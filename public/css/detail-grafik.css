@@ -1,0 +1,446 @@
+/* =========================================
+   DETAIL GRAFIK
+========================================= */
+
+.detail-grafik-page {
+    font-family: 'Inter', sans-serif;
+    background: #f4f6f8;
+    color: #333;
+    min-height: 100vh;
+    padding: 20px 10px 40px;
+}
+
+
+/* =========================================
+   BACK BUTTON
+========================================= */
+
+.back-button {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    background: linear-gradient(
+        135deg,
+        #40dce4,
+        #1079d4
+    );
+
+    color: white;
+
+    text-decoration: none;
+
+    font-weight: 600;
+    font-size: 15px;
+
+    padding: 12px 28px;
+
+    border-radius: 50px;
+
+    margin: 0 0 24px;
+
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.15);
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.back-button:hover {
+
+    color: white;
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 7px 18px rgba(0, 0, 0, 0.20);
+}
+
+/* =========================================
+   TITLE
+========================================= */
+
+.detail-grafik-page h1 {
+    text-align: center;
+
+    color: #4CAF50;
+
+    font-size: 2rem;
+
+    margin-bottom: 30px;
+}
+
+.panic-text {
+    color: rgba(253, 66, 66, 0.894);
+}
+
+
+/* =========================================
+   CHART GRID
+========================================= */
+
+.chart-grid {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    gap: 25px;
+
+    max-width: 1200px;
+
+    margin: auto;
+}
+
+
+/* =========================================
+   CHART CONTAINER
+========================================= */
+
+.chart-container {
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 30px;
+
+    box-shadow:
+        0 12px 24px
+        rgba(0, 0, 0, 0.08);
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease;
+
+    position: relative;
+
+    overflow: hidden;
+}
+
+.chart-container:hover {
+    transform:
+        translateY(-6px)
+        scale(1.01);
+
+    box-shadow:
+        0 16px 32px
+        rgba(0, 0, 0, 0.12);
+}
+
+
+/* =========================================
+   CHART TITLE
+========================================= */
+
+.chart-title {
+    text-align: center;
+
+    font-size: 1.2rem;
+
+    font-weight: 600;
+
+    margin-bottom: 16px;
+
+    color: #673AB7;
+
+    position: relative;
+}
+
+.chart-title::after {
+    content: '';
+
+    display: block;
+
+    width: 50px;
+
+    height: 3px;
+
+    background: #673AB7;
+
+    margin: 8px auto 0;
+
+    border-radius: 2px;
+}
+
+
+/* =========================================
+   CANVAS
+========================================= */
+
+.chart-container canvas {
+    width: 100% !important;
+
+    height: auto !important;
+
+    cursor: pointer;
+}
+
+
+/* =========================================
+   DESCRIPTION
+========================================= */
+
+.chart-container small {
+    display: block;
+
+    text-align: center;
+
+    color: #777;
+
+    margin-top: 10px;
+
+    font-style: italic;
+}
+
+
+/* =========================================
+   RANKING
+========================================= */
+
+.chart-users {
+    margin-top: 15px;
+}
+
+
+/* =========================================
+   COMPARISON BUTTON
+========================================= */
+
+.status-chart {
+    position: relative;
+}
+
+.comparison-button {
+    position: absolute;
+
+    top: 20px;
+
+    right: 30px;
+
+    background: #2196F3;
+
+    color: white;
+
+    border: none;
+
+    padding: 6px 12px;
+
+    border-radius: 6px;
+
+    font-size: 13px;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.comparison-button:hover {
+    background: #1976D2;
+}
+
+
+/* =========================================
+   LOADING
+========================================= */
+
+#loadingOverlay {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    background: white;
+
+    z-index: 9999;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    font-size: 18px;
+}
+
+.spinner {
+    border: 6px solid #f3f3f3;
+
+    border-top: 6px solid #673AB7;
+
+    border-radius: 50%;
+
+    width: 50px;
+
+    height: 50px;
+
+    animation:
+        spin 1s linear infinite;
+
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+
+    0% {
+        transform: rotate(0);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (min-width: 768px) {
+
+    .chart-grid {
+        grid-template-columns:
+            repeat(2, 1fr);
+
+        gap: 35px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .detail-grafik-page {
+        padding: 15px;
+    }
+
+    .detail-grafik-page h1 {
+        font-size: 1.5rem;
+    }
+
+    .chart-container {
+        padding: 20px;
+    }
+
+    .comparison-button {
+        position: static;
+
+        display: block;
+
+        margin:
+            0 auto
+            15px;
+
+        font-size: 11px;
+    }
+
+}
+
+/* =========================================
+   MODAL
+========================================= */
+
+.modal-overlay {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+    width: 100vw;
+    height: 100vh;
+
+    background:
+        rgba(0, 0, 0, 0.4);
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    z-index: 99999;
+}
+
+.modal {
+    background: white;
+
+    border-radius: 12px;
+
+    padding: 30px;
+
+    max-width: 90%;
+
+    width: 600px;
+
+    max-height: 80vh;
+
+    overflow-y: auto;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0, 0, 0, 0.25);
+
+    position: relative;
+}
+
+.modal h2 {
+    margin-top: 0;
+
+    font-size: 1.4rem;
+
+    color: #673AB7;
+}
+
+.modal-close {
+    position: absolute;
+
+    top: 12px;
+    right: 14px;
+
+    background: transparent;
+
+    border: none;
+
+    font-size: 22px;
+
+    cursor: pointer;
+
+    color: #999;
+}
+
+.modal-close:hover {
+    color: #F44336;
+}
+
+
+/* =========================================
+   MODAL TABLE
+========================================= */
+
+.modal-table {
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin-top: 15px;
+}
+
+.modal-table th,
+.modal-table td {
+    padding: 8px;
+
+    border: 1px solid #ccc;
+
+    text-align: center;
+}
+
+.modal-table th {
+    background: #eee;
+
+    font-weight: 600;
+}
