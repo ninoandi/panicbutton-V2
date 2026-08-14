@@ -4,11 +4,12 @@ import {
 } from "./firebase-config.js";
 
 import {
-    ref,
+     ref,
     onValue,
     get,
     push,
     set,
+    update,
     remove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 

@@ -11,7 +11,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
 import {
-    getDatabase
+    getDatabase,
+    ref,
+    onValue,
+    get,
+    push,
+    set,
+    update,
+    remove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
