@@ -1,10 +1,17 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import {
+    initializeApp,
+    getApps,
+    getApp
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+
 import {
     getDatabase,
     ref,
     onValue,
+    get,
     push,
-    set
+    set,
+    remove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
@@ -23,7 +30,10 @@ const firebaseConfig = {
     measurementId: "G-1YCQETHDC5"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
 

@@ -1,11 +1,16 @@
 import {
-    initializeApp
+    initializeApp,
+    getApps,
+    getApp
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 
 import {
     getDatabase,
     ref,
+    onValue,
     get,
+    push,
+    set,
     remove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
@@ -26,7 +31,10 @@ const firebaseConfig = {
 };
 
 
-const app = initializeApp(firebaseConfig);
+const app = getApps().length
+    ? getApp()
+    : initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
 
