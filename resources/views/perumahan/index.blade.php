@@ -51,7 +51,7 @@
 
 
     {{-- searchle --}}
-    <div class="searchle-wrapper">
+    <div class="table-wrapper">
 
     <table>
 
