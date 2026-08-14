@@ -53,33 +53,33 @@
     {{-- searchle --}}
     <div class="searchle-wrapper">
 
-        <searchle>
+    <table>
 
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Nama Perumahan</th>
-                    <th>Kontak</th>
-                    <th>Lokasi</th>
-                    <th>Aksi</th>
-                    <th>Detail</th>
-                </tr>
-            </thead>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama Perumahan</th>
+                <th>Kontak</th>
+                <th>Lokasi</th>
+                <th>Aksi</th>
+                <th>Detail</th>
+            </tr>
+        </thead>
 
-            <tbody id="perumahansearchleBody">
+        <tbody id="perumahanTableBody">
 
-                <tr>
-                    <td colspan="6" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        Memuat data...
-                    </td>
-                </tr>
+            <tr>
+                <td colspan="6" class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Memuat data...
+                </td>
+            </tr>
 
-            </tbody>
+        </tbody>
 
-        </searchle>
+    </table>
 
-    </div>
+</div>
 
 
     {{-- Mobile Card --}}

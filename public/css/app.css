@@ -1022,3 +1022,69 @@
         padding: 8px;
     }
 }
+
+/* =========================================
+   QUICK MESSAGE - ACTION BUTTON
+========================================= */
+
+.quick-message-table .edit-btn,
+.quick-message-table .delete-btn,
+.quick-message-table .save-btn {
+    border: none;
+    border-radius: 6px;
+    padding: 7px 12px;
+    margin: 2px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+/* EDIT */
+.quick-message-table .edit-btn {
+    background: #ffc107;
+    color: #212529;
+}
+
+.quick-message-table .edit-btn:hover {
+    background: #e0a800;
+    transform: translateY(-1px);
+}
+
+/* HAPUS */
+.quick-message-table .delete-btn {
+    background: #dc3545;
+    color: #fff;
+}
+
+.quick-message-table .delete-btn:hover {
+    background: #bb2d3b;
+    transform: translateY(-1px);
+}
+
+/* SIMPAN */
+.quick-message-table .save-btn {
+    background: #198754;
+    color: #fff;
+}
+
+.quick-message-table .save-btn:hover {
+    background: #157347;
+    transform: translateY(-1px);
+}
+
+/* INPUT SAAT EDIT */
+.quick-message-table .edit-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+    font-size: 14px;
+}
+
+.quick-message-table .edit-input:focus {
+    border-color: #006400;
+    box-shadow: 0 0 0 2px rgba(0, 100, 0, 0.1);
+}
