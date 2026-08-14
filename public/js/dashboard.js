@@ -1,17 +1,9 @@
-/*
-|--------------------------------------------------------------------------
-| Firebase SDK
-|--------------------------------------------------------------------------
-*/
+import {
+    db1,
+    db2
+} from "./firebase-config.js";
 
 import {
-    initializeApp,
-    getApps,
-    getApp
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-
-import {
-    getDatabase,
     ref,
     onValue,
     get,
@@ -19,37 +11,6 @@ import {
     set,
     remove
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-
-/*
-|--------------------------------------------------------------------------
-| Firebase Configuration
-|--------------------------------------------------------------------------
-*/
-
-const firebaseConfig = {
-    apiKey: "AIzaSyDk2aeQR7Tmh-vwZnxvTT61fFjluojVRa0",
-    authDomain: "panicbuttonrtdb-eccd1.firebaseapp.com",
-    databaseURL: "https://panicbuttonrtdb-eccd1-default-rtdb.firebaseio.com",
-    projectId: "panicbuttonrtdb-eccd1",
-    storageBucket: "panicbuttonrtdb-eccd1.firebasestorage.app",
-    messagingSenderId: "415344446237",
-    appId: "1:415344446237:web:5a73d6177529e4286e2ff4",
-    measurementId: "G-1YCQETHDC5"
-};
-
-
-/*
-|--------------------------------------------------------------------------
-| Initialize Firebase
-|--------------------------------------------------------------------------
-*/
-
-const app = getApps().length
-    ? getApp()
-    : initializeApp(firebaseConfig);
-
-const db = getDatabase(app);
 
 
 /*
@@ -198,7 +159,7 @@ window.addEventListener("resize", () => {
 */
 
 const perumahanRef =
-    ref(db, "perumahan");
+    ref(db1, "perumahan");
 
 
 /*
