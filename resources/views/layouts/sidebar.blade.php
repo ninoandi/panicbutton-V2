@@ -1,7 +1,4 @@
-<nav
-    class="sidebar"
-    id="sidebar"
->
+<nav class="sidebar" id="sidebar">
 
     <div class="sidebar-header">
 
@@ -23,12 +20,18 @@
 
 
         <li>
-            <a href="{{ route('perumahan') }}">
+            <a href="{{ route('manajemen-user') }}">
                 <i class="fas fa-building"></i>
-                Rekap Data
+                Monitoring Device
             </a>
         </li>
 
+        <li>
+            <a href="{{ route('manajemen-user') }}">
+                <i class="fas fa-building"></i>
+                Management IoT
+            </a>
+        </li>
 
         <li>
             <a href="{{ route('manajemen-user') }}">
@@ -36,6 +39,29 @@
                 Manajemen User
             </a>
         </li>
+
+        <li>
+            <a href="#" id="quick-message">
+                <i class="fas fa-comment-dots"></i>
+                Quick Message
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ route('manajemen-user') }}">
+                <i class="fas fa-user"></i>
+                Panduan SOS
+            </a>
+        </li>
+
+        <li>
+            <a href="{{ route('perumahan') }}">
+                <i class="fas fa-building"></i>
+                Rekap Data
+            </a>
+        </li>
+
+
 
 
         <li>
@@ -46,22 +72,12 @@
         </li>
 
 
-        <li>
-            <a href="#" id="quick-message">
-                <i class="fas fa-comment-dots"></i>
-                Quick Message
-            </a>
-        </li>
-
     </ul>
 
 </nav>
 
 
-<div
-    class="sidebar-overlay"
-    id="sidebarOverlay"
->
+<div class="sidebar-overlay" id="sidebarOverlay">
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
