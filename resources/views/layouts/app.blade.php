@@ -14,6 +14,9 @@
         @yield('title', 'Panic Button Admin')
     </title>
 
+    {{-- Favicon --}}
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/lifemedia_logo.png') }}">
+
     <link
         rel="stylesheet"
         href="{{ asset('css/app.css') }}"

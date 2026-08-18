@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Tombol Escape untuk menutup sidebar
     document.addEventListener('keydown', function (event) {
-        if (eventHmod.key === 'Escape') {
+        if (event.key === 'Escape') {
             sidebar.classList.remove('open');
 
             if (sidebarOverlay) {

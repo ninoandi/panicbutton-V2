@@ -34,3 +34,7 @@ Route::get('/detail-grafik', function () {
 Route::get('/manajemen-user', function () {
    return view('manajemen-user.index');
 })->name('manajemen-user');
+
+Route::get('/iot', function () {
+    return view('iot.index');
+})->name('monitoring-iot');

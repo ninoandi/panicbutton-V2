@@ -1088,3 +1088,264 @@
     border-color: #006400;
     box-shadow: 0 0 0 2px rgba(0, 100, 0, 0.1);
 }
+
+/* =========================================================
+   PANIC PUBLIK
+   ========================================================= */
+
+#publicPanicAlert {
+    grid-column: 1 / -1;
+
+    width: 100%;
+    min-height: 120px;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    padding: 26px 32px;
+
+    background: #fff;
+
+    border-left: 10px solid #999;
+
+    border-radius: 12px;
+
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+    font-family: 'Segoe UI', sans-serif;
+
+    transition:
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+
+/* =========================================================
+   TIDAK ADA PANIC
+   ========================================================= */
+
+#publicPanicAlert .live-empty {
+
+    width: 100%;
+
+    text-align: center;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    color: #666;
+
+}
+
+
+/* =========================================================
+   KONTEN PANIC
+   ========================================================= */
+
+#publicPanicAlert .public-panic-content {
+
+    width: 100%;
+
+    display: block;
+
+}
+
+
+/* =========================================================
+   JUDUL
+   ========================================================= */
+
+#publicPanicAlert .public-panic-title {
+
+    display: block;
+
+    width: 100%;
+
+}
+
+
+#publicPanicAlert .public-panic-title h2 {
+
+    margin: 0 0 6px;
+
+    font-size: 28px;
+
+    font-weight: 700;
+
+    color: #222;
+
+}
+
+
+#publicPanicAlert .public-panic-count {
+
+    display: block;
+
+    font-size: 17px;
+
+    color: #555;
+
+    font-weight: 600;
+
+}
+
+
+/* =========================================================
+   GARIS
+   ========================================================= */
+
+#publicPanicAlert .public-panic-divider {
+
+    width: 100%;
+
+    height: 1px;
+
+    background: #aaa;
+
+    margin: 18px 0 22px;
+
+}
+
+
+/* =========================================================
+   LIST DEVICE
+   ========================================================= */
+
+#publicPanicAlert .public-panic-list {
+
+    width: 100%;
+
+    display: block;
+
+}
+
+
+/* =========================================================
+   DEVICE
+   ========================================================= */
+
+#publicPanicAlert .public-panic-item {
+
+    width: 100%;
+
+    display: block;
+
+    margin: 0;
+
+    padding: 0;
+
+}
+
+
+#publicPanicAlert .public-panic-item h3 {
+
+    margin: 0 0 14px;
+
+    font-size: 23px;
+
+    font-weight: 700;
+
+    color: #222;
+
+}
+
+
+#publicPanicAlert .public-panic-item p {
+
+    margin: 9px 0;
+
+    font-size: 17px;
+
+    color: #222;
+
+}
+
+
+#publicPanicAlert .public-panic-item strong {
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================================
+   STATUS PANIC
+   ========================================================= */
+
+#publicPanicAlert .panic-status {
+
+    color: #d90000;
+
+    font-weight: 700;
+
+}
+
+
+/* =========================================================
+   WAKTU
+   ========================================================= */
+
+#publicPanicAlert .panic-time {
+
+    font-weight: 600;
+
+}
+
+
+/* =========================================================
+   JIKA ADA LEBIH DARI 1 PANIC
+   ========================================================= */
+
+#publicPanicAlert .public-panic-item
++ .public-panic-item {
+
+    margin-top: 24px;
+
+    padding-top: 24px;
+
+    border-top: 1px solid #ddd;
+
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+    #publicPanicAlert {
+
+        padding: 20px;
+
+        border-left-width: 7px;
+
+    }
+
+
+    #publicPanicAlert
+    .public-panic-title h2 {
+
+        font-size: 23px;
+
+    }
+
+
+    #publicPanicAlert
+    .public-panic-item h3 {
+
+        font-size: 20px;
+
+    }
+
+
+    #publicPanicAlert
+    .public-panic-item p {
+
+        font-size: 15px;
+
+    }
+
+}
