@@ -813,7 +813,7 @@ function listenModalPanic() {
 
 if (detailStatus) {
 
-    detailStatus.textContent =
+    detailSpanitatus.textContent =
         active
             ? "PANIC"
             : "NORMAL";
