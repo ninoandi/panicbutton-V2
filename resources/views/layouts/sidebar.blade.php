@@ -20,16 +20,9 @@
 
 
         <li>
-            <a href="{{ route('manajemen-user') }}">
+            <a href="{{ route('monitoring-iot') }}">
                 <i class="fas fa-building"></i>
                 Monitoring Device
-            </a>
-        </li>
-
-        <li>
-            <a href="{{ route('manajemen-user') }}">
-                <i class="fas fa-building"></i>
-                Management IoT
             </a>
         </li>
 

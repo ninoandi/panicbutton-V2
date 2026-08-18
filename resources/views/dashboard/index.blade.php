@@ -170,6 +170,16 @@
 
         </div>
 
+        {{-- Public Panic Alert --}}
+<div
+    id="publicPanicAlert"
+    class="live-box"
+>
+    <div class="live-empty">
+        🚨 Panic Publik Akan Tampil Di Sini
+    </div>
+</div>
+
     </main>
 
 @endsection

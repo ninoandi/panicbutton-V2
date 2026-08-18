@@ -37,6 +37,9 @@ const statusCard =
 const liveAlertBox =
     document.getElementById("liveAlert");
 
+const publicPanicAlert =
+    document.getElementById("publicPanicAlert");
+
 const sidebar =
     document.getElementById("sidebar");
 
@@ -161,7 +164,8 @@ window.addEventListener("resize", () => {
 const perumahanRef =
     ref(db1, "perumahan");
 
-
+const panicPublicRef =
+    ref(db2, "panicChannels");
 /*
 |--------------------------------------------------------------------------
 | Firebase Listener
@@ -689,7 +693,7 @@ onValue(
 
                         <div class="live-empty">
 
-                            🚨 Peringatan Darurat Akan Tampil Disini
+                            🚨 Peringatan Darurat Perumahan Akan Tampil Disini
 
                         </div>
 
@@ -744,7 +748,332 @@ onValue(
 
 );
 
+/*
+|--------------------------------------------------------------------------
+| FIREBASE LISTENER - PANIC PUBLIK
+|--------------------------------------------------------------------------
+*/
 
+onValue(
+    panicPublicRef,
+
+    (snapshot) => {
+
+        try {
+
+            const panicData =
+                snapshot.val() || {};
+
+            const activePanics = [];
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | LOOP ZONA
+            |--------------------------------------------------------------------------
+            */
+
+            Object.entries(panicData)
+                .forEach(([zoneName, zoneData]) => {
+
+                    if (
+                        !zoneData ||
+                        typeof zoneData !== "object"
+                    ) {
+                        return;
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | LOOP DEVICE
+                    |--------------------------------------------------------------------------
+                    */
+
+                    Object.entries(zoneData)
+                        .forEach(([deviceKey, deviceData]) => {
+
+                            if (
+                                !deviceData ||
+                                typeof deviceData !== "object"
+                            ) {
+                                return;
+                            }
+
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | HANYA PANIC AKTIF
+                            |--------------------------------------------------------------------------
+                            */
+
+                            if (
+                                deviceData.active !== true
+                            ) {
+                                return;
+                            }
+
+
+                            activePanics.push({
+
+                                device:
+                                    deviceData.device ||
+                                    deviceKey,
+
+                                zona:
+                                    deviceData.zona ||
+                                    zoneName,
+
+                                lokasi:
+                                    deviceData.lokasi ||
+                                    "-",
+
+                                active:
+                                    true,
+
+                                last_update:
+                                    deviceData.last_update ||
+                                    null
+
+                            });
+
+                        });
+
+                });
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SORT BERDASARKAN UPDATE TERBARU
+            |--------------------------------------------------------------------------
+            */
+
+            activePanics.sort(
+                (a, b) =>
+                    (b.last_update || 0) -
+                    (a.last_update || 0)
+            );
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | RENDER
+            |--------------------------------------------------------------------------
+            */
+
+            renderPublicPanic(activePanics);
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | DEBUG
+            |--------------------------------------------------------------------------
+            */
+
+            console.log(
+                "PANIC PUBLIK:",
+                activePanics
+            );
+
+        }
+        catch (error) {
+
+            console.error(
+                "Error membaca panic publik:",
+                error
+            );
+
+        }
+
+    },
+
+    (error) => {
+
+        console.error(
+            "Firebase Panic Publik Error:",
+            error
+        );
+
+    }
+
+);
+
+/*
+|--------------------------------------------------------------------------
+| RENDER PANIC PUBLIK
+|--------------------------------------------------------------------------
+*/
+
+function renderPublicPanic(activePanics) {
+
+    if (!publicPanicAlert) {
+        return;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | TIDAK ADA PANIC
+    |--------------------------------------------------------------------------
+    */
+
+    if (activePanics.length === 0) {
+
+        publicPanicAlert.innerHTML = `
+
+            <div class="live-empty">
+
+                🚨 Peringatan Darurat Publik Akan Tampil Disini
+
+            </div>
+
+        `;
+
+        publicPanicAlert.style.borderLeftColor =
+            "#999";
+
+        return;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADA PANIC
+    |--------------------------------------------------------------------------
+    */
+
+    publicPanicAlert.style.borderLeftColor =
+        "#ff0000";
+
+
+    publicPanicAlert.innerHTML = `
+
+        <div class="public-panic-content">
+
+            <!-- JUDUL -->
+
+            <div class="public-panic-title">
+
+                <h2>
+                    🚨 PANIC PUBLIK AKTIF
+                </h2>
+
+                <span class="public-panic-count">
+                    ${activePanics.length} perangkat
+                </span>
+
+            </div>
+
+
+            <!-- GARIS PEMISAH -->
+
+            <div class="public-panic-divider"></div>
+
+
+            <!-- DAFTAR DEVICE -->
+
+            <div class="public-panic-list">
+
+                ${activePanics.map(panic => `
+
+                    <div class="public-panic-item">
+
+                        <h3>
+                            🚨 ${escapeHtml(panic.device)}
+                        </h3>
+
+
+                        <p>
+
+                            <strong>
+                                Zona:
+                            </strong>
+
+                            ${escapeHtml(panic.zona)}
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Lokasi:
+                            </strong>
+
+                            ${escapeHtml(panic.lokasi)}
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Status:
+                            </strong>
+
+                            <span class="panic-status">
+                                PANIC AKTIF
+                            </span>
+
+                        </p>
+
+
+                        <p>
+
+                            <strong>
+                                Waktu:
+                            </strong>
+
+                            <span class="panic-time">
+                                ${formatPublicPanicTime(
+                                    panic.last_update
+                                )}
+                            </span>
+
+                        </p>
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+
+        </div>
+
+    `;
+}
+
+/*
+|--------------------------------------------------------------------------
+| FORMAT WAKTU PANIC PUBLIK
+|--------------------------------------------------------------------------
+*/
+
+function formatPublicPanicTime(timestamp) {
+
+    if (!timestamp) {
+        return "-";
+    }
+
+
+    const date =
+        new Date(timestamp);
+
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return "-";
+    }
+
+
+    return date.toLocaleString(
+        "id-ID"
+    );
+
+}
 /*
 |--------------------------------------------------------------------------
 | Firebase Error
