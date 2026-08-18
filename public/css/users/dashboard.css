@@ -1,0 +1,653 @@
+/* =========================================================
+   DASHBOARD USER
+========================================================= */
+
+.user-dashboard {
+
+    min-height: 100vh;
+
+    padding: 30px;
+
+    background: #f5f7fb;
+
+    color: #222;
+
+    font-family:
+        'Segoe UI',
+        Arial,
+        sans-serif;
+
+}
+
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.dashboard-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 25px;
+
+}
+
+
+.header-info h1 {
+
+    margin: 0;
+
+    font-size: 30px;
+
+    font-weight: 700;
+
+}
+
+
+.header-info p {
+
+    margin: 6px 0 0;
+
+    color: #777;
+
+    font-size: 15px;
+
+}
+
+
+.header-info strong {
+
+    color: #333;
+
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+.btn-logout {
+
+    border: none;
+
+    padding: 10px 20px;
+
+    border-radius: 8px;
+
+    background: #d9534f;
+
+    color: white;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background .2s ease,
+        transform .2s ease;
+
+}
+
+
+.btn-logout:hover {
+
+    background: #c9302c;
+
+    transform: translateY(-1px);
+
+}
+
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.dashboard-card {
+
+    background: #fff;
+
+    border-radius: 14px;
+
+    padding: 25px;
+
+    margin-bottom: 25px;
+
+    box-shadow:
+        0 3px 15px rgba(0, 0, 0, .07);
+
+}
+
+
+.card-header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.card-header h2 {
+
+    margin: 0;
+
+    font-size: 21px;
+
+    font-weight: 700;
+
+}
+
+
+.card-header p {
+
+    margin: 5px 0 0;
+
+    color: #777;
+
+    font-size: 14px;
+
+}
+
+
+
+/* =========================================================
+   DATA AKUN
+========================================================= */
+
+.account-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, 1fr);
+
+    gap: 15px;
+
+}
+
+
+.account-item {
+
+    padding: 17px;
+
+    background: #f8f9fb;
+
+    border-radius: 10px;
+
+    border: 1px solid #eee;
+
+}
+
+
+.account-label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    color: #777;
+
+    font-size: 13px;
+
+}
+
+
+.account-item strong {
+
+    display: block;
+
+    color: #222;
+
+    font-size: 16px;
+
+    word-break: break-word;
+
+}
+
+
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
+.status-badge {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 7px 14px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+.status-none {
+
+    background: #eeeeee;
+
+    color: #666;
+
+}
+
+
+.status-active {
+
+    background: #ffe1e1;
+
+    color: #c62828;
+
+}
+
+
+.status-received {
+
+    background: #fff0d5;
+
+    color: #9a6200;
+
+}
+
+
+.status-handling {
+
+    background: #e2edff;
+
+    color: #1769aa;
+
+}
+
+
+.status-completed {
+
+    background: #e1f5e8;
+
+    color: #198754;
+
+}
+
+
+
+/* =========================================================
+   LAPORAN AKTIF
+========================================================= */
+
+.active-report {
+
+    border: 1px solid #eee;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+}
+
+
+.active-report-top {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 20px;
+
+    margin-bottom: 20px;
+
+}
+
+
+.report-title {
+
+    margin: 0;
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+}
+
+
+.report-id {
+
+    margin-top: 5px;
+
+    color: #777;
+
+    font-size: 13px;
+
+}
+
+
+.report-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 15px;
+
+}
+
+
+.report-info {
+
+    padding: 15px;
+
+    background: #f8f9fa;
+
+    border-radius: 9px;
+
+}
+
+
+.report-info-label {
+
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #777;
+
+    font-size: 12px;
+
+}
+
+
+.report-info-value {
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: #222;
+
+}
+
+
+.report-location {
+
+    margin-top: 15px;
+
+    padding: 15px;
+
+    background: #f8f9fa;
+
+    border-radius: 9px;
+
+}
+
+
+.report-location-label {
+
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: #777;
+
+    font-size: 12px;
+
+}
+
+
+.report-location-value {
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+}
+
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.empty-state {
+
+    text-align: center;
+
+    padding: 35px 20px;
+
+    color: #777;
+
+}
+
+
+.empty-icon {
+
+    font-size: 45px;
+
+    margin-bottom: 10px;
+
+}
+
+
+.empty-state h3 {
+
+    margin: 0 0 7px;
+
+    color: #444;
+
+}
+
+
+.empty-state p {
+
+    margin: 0;
+
+    font-size: 14px;
+
+}
+
+
+
+/* =========================================================
+   HISTORY
+========================================================= */
+
+.history-container {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+
+.history-item {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    padding: 17px;
+
+    background: #fafafa;
+
+    border: 1px solid #eee;
+
+    border-radius: 10px;
+
+    transition:
+        background .2s ease,
+        transform .2s ease;
+
+}
+
+
+.history-item:hover {
+
+    background: #f5f6f8;
+
+    transform: translateY(-1px);
+
+}
+
+
+.history-main strong {
+
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 15px;
+
+}
+
+
+.history-details {
+
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    color: #777;
+
+    font-size: 13px;
+
+}
+
+
+.history-details span {
+
+    display: inline-block;
+
+}
+
+
+.loading-state {
+
+    text-align: center;
+
+    padding: 30px;
+
+    color: #777;
+
+}
+
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1000px) {
+
+    .account-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+
+    .report-grid {
+
+        grid-template-columns:
+            repeat(2, 1fr);
+
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .user-dashboard {
+
+        padding: 18px;
+
+    }
+
+
+    .dashboard-header {
+
+        align-items: flex-start;
+
+        gap: 15px;
+
+    }
+
+
+    .dashboard-header h1 {
+
+        font-size: 25px;
+
+    }
+
+
+    .account-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .report-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .card-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+
+    .active-report-top {
+
+        flex-direction: column;
+
+    }
+
+
+    .history-item {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+}

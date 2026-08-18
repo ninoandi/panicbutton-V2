@@ -10,11 +10,10 @@ class FirebaseAuthService
 
     public function __construct()
     {
-        $this->publicDatabaseUrl =
-            rtrim(
-                config('https://panicbttn2-default-rtdb.asia-southeast1.firebasedatabase.app/'),
-                '/'
-            );
+        $this->publicDatabaseUrl = rtrim(
+    config('services.firebase.public_url', ''),
+    '/'
+);
     }
 
 
@@ -73,14 +72,14 @@ class FirebaseAuthService
     */
 
     public function createPublicUser(
-        string $nama,
+        string $name,
         string $username,
         string $password
     ) {
 
         $data = [
 
-            'nama' => $nama,
+            'name' => $name,
 
             'username' => $username,
 

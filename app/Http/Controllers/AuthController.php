@@ -52,8 +52,8 @@ class AuthController extends Controller
         */
 
         $response = Http::get(
-            $this->firebasePublicUrl . '/.json'
-        );
+    $this->firebasePublicUrl . '/users.json'
+);
 
 
         /*
@@ -193,7 +193,7 @@ class AuthController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        return redirect()->route('dashboard');
+        return redirect()->route('user.dashboard');
     }
 
 

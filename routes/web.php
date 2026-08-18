@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
+
 /*
 |--------------------------------------------------------------------------
 | LANDING PAGE
@@ -52,73 +53,9 @@ Route::post('/logout', [
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD ADMIN
+| DASHBOARD ADMIN / SISTEM LAMA
 |--------------------------------------------------------------------------
 */
-
-Route::get('/dashboard', function () {
-    return view('dashboard.index');
-})->name('dashboard');
-
-
-/*
-|--------------------------------------------------------------------------
-| PERUMAHAN
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/perumahan', function () {
-    return view('perumahan.index');
-})->name('perumahan');
-
-
-Route::get('/detail-perumahan', function () {
-
-    $key = request()->query('key');
-
-    return view('perumahan.detail', [
-        'key' => $key
-    ]);
-
-})->name('perumahan.detail');
-
-
-/*
-|--------------------------------------------------------------------------
-| STATISTIK
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/statistik', function () {
-    return view('statistik.index');
-})->name('statistik');
-
-
-Route::get('/detail-grafik', function () {
-    return view('statistik.detail');
-})->name('detail-grafik');
-
-
-/*
-|--------------------------------------------------------------------------
-| MANAJEMEN USER
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/manajemen-user', function () {
-    return view('manajemen-user.index');
-})->name('manajemen-user');
-
-
-/*
-|--------------------------------------------------------------------------
-| IOT / MONITORING
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/iot', function () {
-    return view('iot.index');
-})->name('monitoring-iot');
 
 Route::middleware('user.auth')->group(function () {
 
@@ -127,13 +64,100 @@ Route::middleware('user.auth')->group(function () {
     })->name('dashboard');
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | RIWAYAT
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('/riwayat', function () {
         return view('riwayat.index');
     })->name('riwayat');
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | PROFIL
+    |--------------------------------------------------------------------------
+    */
+
     Route::get('/profil', function () {
         return view('profil.index');
     })->name('profil');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PERUMAHAN
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/perumahan', function () {
+        return view('perumahan.index');
+    })->name('perumahan');
+
+
+    Route::get('/detail-perumahan', function () {
+
+        $key = request()->query('key');
+
+        return view('perumahan.detail', [
+            'key' => $key
+        ]);
+
+    })->name('perumahan.detail');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | STATISTIK
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/statistik', function () {
+        return view('statistik.index');
+    })->name('statistik');
+
+
+    Route::get('/detail-grafik', function () {
+        return view('statistik.detail');
+    })->name('detail-grafik');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | MANAJEMEN USER
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/manajemen-user', function () {
+        return view('manajemen-user.index');
+    })->name('manajemen-user');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | IOT
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/iot', function () {
+        return view('iot.index');
+    })->name('monitoring-iot');
+
+});
+
+
+/*
+|--------------------------------------------------------------------------
+| DASHBOARD USER PUBLIK
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware('web.auth')->group(function () {
+
+    Route::get('/user/dashboard', function () {
+        return view('users.index');
+    })->name('user.dashboard');
 
 });

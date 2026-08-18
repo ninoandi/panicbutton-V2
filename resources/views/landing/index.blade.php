@@ -133,7 +133,11 @@
                 <div class="panic-ring ring-3"></div>
 
 
-                <div class="panic-button">
+                <button
+                    type="button"
+                    class="panic-button"
+                    id="panicButton"
+                >
 
                     <div class="panic-symbol">
                         !
@@ -147,7 +151,7 @@
                         PUBLIC
                     </span>
 
-                </div>
+                </button>
 
             </div>
 
@@ -409,3 +413,17 @@
 </div>
 
 @endsection
+
+@push('scripts')
+
+<script
+    type="module"
+    src="{{ asset('js/users/panic-button.js') }}"
+></script>
+{{-- Monitoring Panic Publik --}}
+<script
+    type="module"
+    src="{{ asset('js/users/public-monitoring.js') }}"
+></script>
+
+@endpush

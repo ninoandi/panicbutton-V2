@@ -217,6 +217,24 @@
     transform: translateY(-50%);
 }
 
+.swal-form {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    padding: 0 15px;
+    box-sizing: border-box;
+  }
+  .swal-form label {
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 14px;
+  }
+  .swal-form input {
+    margin: 5px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
 
 /* =========================================
    RESPONSIVE

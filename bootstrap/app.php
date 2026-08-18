@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
          $middleware->alias([
         'user.auth' => \App\Http\Middleware\UserAuth::class,
     ]);
+      $middleware->alias([
+        'web.auth' => \App\Http\Middleware\WebAuth::class,
+    ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
