@@ -1,12 +1,13 @@
 @extends('layouts.auth')
 
-@section('title', 'Register - Panic Button Publik')
+@section('title', 'Register - Panic Button')
+
 
 @push('styles')
 
 <link
     rel="stylesheet"
-    href="{{ asset('css/auth.css') }}"
+    href="{{ asset('css/auth/register.css') }}"
 >
 
 @endpush
@@ -14,161 +15,185 @@
 
 @section('content')
 
-<div class="auth-page">
+<main class="register-page">
 
-    <div class="auth-card">
+    <div class="register-container">
 
-        <div class="auth-header">
+        <div class="register-card">
 
-            <img
-                src="{{ asset('assets/images/lifemedia_logo.png') }}"
-                alt="Life Media"
-                class="auth-logo"
+            <div class="register-header">
+
+                <h1>
+                    Daftar
+                </h1>
+
+                <p>
+                    Buat akun Panic Button Publik
+                </p>
+
+            </div>
+
+
+            @if ($errors->any())
+
+                <div class="register-alert register-alert-error">
+
+                    {{ $errors->first() }}
+
+                </div>
+
+            @endif
+
+
+            <form
+                action="{{ route('register.process') }}"
+                method="POST"
+                class="register-form"
             >
 
-            <h1>
-                Daftar
-            </h1>
-
-            <p>
-                Akun Panic Button Publik
-            </p>
-
-        </div>
+                @csrf
 
 
-        {{-- Error --}}
-        @if(session('error'))
+                <div class="form-group">
 
-            <div class="auth-alert auth-alert-error">
+                    <label for="name">
+                        Nama
+                    </label>
 
-                {{ session('error') }}
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value="{{ old('name') }}"
+                        placeholder="Masukkan nama"
+                        required
+                    >
 
-            </div>
-
-        @endif
-
-
-        @if($errors->any())
-
-            <div class="auth-alert auth-alert-error">
-
-                {{ $errors->first() }}
-
-            </div>
-
-        @endif
+                </div>
 
 
-        {{-- Register Form --}}
-        <form
-            action="{{ route('register.process') }}"
-            method="POST"
-        >
+                <div class="form-group">
 
-            @csrf
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value="{{ old('username') }}"
+                        placeholder="Masukkan username"
+                        required
+                    >
+
+                </div>
 
 
-            {{-- Nama --}}
-            <div class="form-group">
+                <div class="form-group">
 
-                <label for="nama">
-                    Nama
-                </label>
+                    <label for="email">
+                        Email
+                    </label>
 
-                <input
-                    type="text"
-                    id="nama"
-                    name="nama"
-                    value="{{ old('nama') }}"
-                    placeholder="Masukkan nama"
-                    required
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ old('email') }}"
+                        placeholder="Masukkan email"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="phone">
+                        Nomor HP
+                    </label>
+
+                    <input
+                        type="text"
+                        id="phone"
+                        name="phone"
+                        value="{{ old('phone') }}"
+                        placeholder="Masukkan nomor HP"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Minimal 6 karakter"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="password_confirmation">
+                        Konfirmasi Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        placeholder="Ulangi password"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="btn-register"
                 >
+                    Daftar
+                </button>
+
+            </form>
+
+
+            <div class="login-section">
+
+                <span>
+                    Sudah memiliki akun?
+                </span>
+
+                <a href="{{ route('login') }}">
+                    Login
+                </a>
 
             </div>
 
 
-            {{-- Username --}}
-            <div class="form-group">
+            <div class="back-section">
 
-                <label for="username">
-                    Username
-                </label>
-
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value="{{ old('username') }}"
-                    placeholder="Masukkan username"
-                    required
-                >
+                <a href="{{ route('landing') }}">
+                    ← Kembali ke Panic Publik
+                </a>
 
             </div>
-
-
-            {{-- Password --}}
-            <div class="form-group">
-
-                <label for="password">
-                    Password
-                </label>
-
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Minimal 6 karakter"
-                    required
-                >
-
-            </div>
-
-
-            {{-- Konfirmasi Password --}}
-            <div class="form-group">
-
-                <label for="password_confirmation">
-                    Konfirmasi Password
-                </label>
-
-                <input
-                    type="password"
-                    id="password_confirmation"
-                    name="password_confirmation"
-                    placeholder="Ulangi password"
-                    required
-                >
-
-            </div>
-
-
-            <button
-                type="submit"
-                class="btn-auth"
-            >
-
-                Daftar
-
-            </button>
-
-        </form>
-
-
-        <div class="auth-footer">
-
-            <span>
-                Sudah memiliki akun?
-            </span>
-
-            <a href="{{ route('login') }}">
-                Login
-            </a>
 
         </div>
 
     </div>
 
-</div>
+</main>
 
 @endsection

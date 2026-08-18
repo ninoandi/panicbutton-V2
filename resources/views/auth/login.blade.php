@@ -2,142 +2,161 @@
 
 @section('title', 'Login - Panic Button')
 
+
 @push('styles')
 
-<link
-    rel="stylesheet"
-    href="{{ asset('css/auth.css') }}"
->
+    <link
+        rel="stylesheet"
+        href="{{ asset('css/auth/login.css') }}"
+    >
 
 @endpush
 
 
 @section('content')
 
-<div class="auth-page">
+<main class="login-page">
 
-    <div class="auth-card">
+    <div class="login-container">
 
-        {{-- Logo --}}
-        <div class="auth-header">
+        <div class="login-card">
 
-            <img
-                src="{{ asset('assets/images/lifemedia_logo.png') }}"
-                alt="Life Media"
-                class="auth-logo"
-            >
+            {{-- Logo --}}
+            <div class="login-logo">
 
-            <h1>
-                Panic Button
-            </h1>
-
-            <p>
-                Web Monitoring
-            </p>
-
-        </div>
-
-
-        {{-- Error --}}
-        @if(session('error'))
-
-            <div class="auth-alert auth-alert-error">
-
-                {{ session('error') }}
-
-            </div>
-
-        @endif
-
-
-        @if($errors->any())
-
-            <div class="auth-alert auth-alert-error">
-
-                {{ $errors->first() }}
-
-            </div>
-
-        @endif
-
-
-        {{-- Login Form --}}
-        <form
-            action="{{ route('login.process') }}"
-            method="POST"
-        >
-
-            @csrf
-
-
-            {{-- Username --}}
-            <div class="form-group">
-
-                <label for="username">
-                    Username / Email
-                </label>
-
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    value="{{ old('username') }}"
-                    placeholder="Masukkan username atau email"
-                    autocomplete="username"
-                    required
-                    autofocus
+                <img
+                    src="{{ asset('assets/images/lifemedia_logo.png') }}"
+                    alt="Panic Button"
                 >
 
             </div>
 
 
-            {{-- Password --}}
-            <div class="form-group">
+            {{-- Header --}}
+            <div class="login-header">
 
-                <label for="password">
-                    Password
-                </label>
+                <h1>
+                    Login
+                </h1>
 
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    placeholder="Masukkan password"
-                    autocomplete="current-password"
-                    required
-                >
+                <p>
+                    Masuk ke sistem Panic Button
+                </p>
 
             </div>
 
 
-            {{-- Button --}}
-            <button
-                type="submit"
-                class="btn-auth"
+            {{-- Error Validasi --}}
+            @if ($errors->any())
+
+                <div class="login-alert login-alert-error">
+
+                    {{ $errors->first() }}
+
+                </div>
+
+            @endif
+
+
+            {{-- Success --}}
+            @if (session('success'))
+
+                <div class="login-alert login-alert-success">
+
+                    {{ session('success') }}
+
+                </div>
+
+            @endif
+
+
+            {{-- Form Login --}}
+            <form
+                action="{{ route('login.process') }}"
+                method="POST"
+                class="login-form"
             >
 
-                Masuk
-
-            </button>
-
-        </form>
+                @csrf
 
 
-        {{-- Register --}}
-        <div class="auth-footer">
+                {{-- Username --}}
+                <div class="form-group">
 
-            <span>
-                Belum memiliki akun?
-            </span>
+                    <label for="username">
+                        Username
+                    </label>
 
-            <a href="{{ route('register') }}">
-                Daftar User Publik
-            </a>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        value="{{ old('username') }}"
+                        placeholder="Masukkan username"
+                        autocomplete="username"
+                        required
+                    >
+
+                </div>
+
+
+                {{-- Password --}}
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Masukkan password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                </div>
+
+
+                {{-- Login --}}
+                <button
+                    type="submit"
+                    class="btn-login"
+                >
+                    Login
+                </button>
+
+            </form>
+
+
+            {{-- Register --}}
+            <div class="register-section">
+
+                <span>
+                    Belum memiliki akun?
+                </span>
+
+                <a href="{{ route('register') }}">
+                    Daftar sebagai User Publik
+                </a>
+
+            </div>
+
+
+            {{-- Kembali --}}
+            <div class="back-section">
+
+                <a href="{{ route('landing') }}">
+                    ← Kembali ke Panic Publik
+                </a>
+
+            </div>
 
         </div>
 
     </div>
 
-</div>
+</main>
 
 @endsection

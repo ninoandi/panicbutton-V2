@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,23 +18,41 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 | AUTH
 |--------------------------------------------------------------------------
-| Sementara menuju halaman login.
-| Nanti kita ganti menggunakan AuthController.
-|--------------------------------------------------------------------------
 */
 
-Route::get('/login', function () {
-    return view('auth.login');
-})->name('login');
+Route::get('/login', [
+    AuthController::class,
+    'showLogin'
+])->name('login');
 
-Route::get('/register', function () {
-    return view('auth.register');
-})->name('register');
+
+Route::post('/login', [
+    AuthController::class,
+    'login'
+])->name('login.process');
+
+
+Route::get('/register', [
+    AuthController::class,
+    'showRegister'
+])->name('register');
+
+
+Route::post('/register', [
+    AuthController::class,
+    'register'
+])->name('register.process');
+
+
+Route::post('/logout', [
+    AuthController::class,
+    'logout'
+])->name('logout');
 
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD
+| DASHBOARD ADMIN
 |--------------------------------------------------------------------------
 */
 
@@ -101,3 +119,21 @@ Route::get('/manajemen-user', function () {
 Route::get('/iot', function () {
     return view('iot.index');
 })->name('monitoring-iot');
+
+Route::middleware('user.auth')->group(function () {
+
+    Route::get('/dashboard', function () {
+        return view('dashboard.index');
+    })->name('dashboard');
+
+
+    Route::get('/riwayat', function () {
+        return view('riwayat.index');
+    })->name('riwayat');
+
+
+    Route::get('/profil', function () {
+        return view('profil.index');
+    })->name('profil');
+
+});
