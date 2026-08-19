@@ -25,35 +25,48 @@ class AuthController extends Controller
 
 
     /**
-     * Proses Login
+     * Halaman Register
      */
-    public function login(Request $request)
+    public function showRegister()
+    {
+        return view('auth.register');
+    }
+
+
+    /**
+     * Proses Register
+     */
+    public function register(Request $request)
     {
         /*
         |--------------------------------------------------------------------------
-        | Validasi input
+        | Validasi
         |--------------------------------------------------------------------------
         */
 
         $request->validate([
-            'username' => ['required', 'string'],
-            'password' => ['required', 'string'],
+            'name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
 
-        $username = trim($request->username);
+        $name = trim($request->name);
+        $email = strtolower(trim($request->email));
+        $phone = trim($request->phone ?? '');
         $password = $request->password;
 
 
         /*
         |--------------------------------------------------------------------------
-        | Ambil semua user dari Firebase 2
+        | Ambil user dari Firebase
         |--------------------------------------------------------------------------
         */
 
         $response = Http::get(
-    $this->firebasePublicUrl . '/users.json'
-);
+            $this->firebasePublicUrl . '/users.json'
+        );
 
 
         /*
@@ -65,7 +78,7 @@ class AuthController extends Controller
         if (!$response->successful()) {
 
             return back()
-                ->withInput($request->only('username'))
+                ->withInput()
                 ->with('error', 'Tidak dapat terhubung ke Firebase.');
         }
 
@@ -75,21 +88,162 @@ class AuthController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Tidak ada data
+        | Cek email sudah digunakan atau belum
+        |--------------------------------------------------------------------------
+        */
+
+        if (is_array($users)) {
+
+            foreach ($users as $user) {
+
+                if (!is_array($user)) {
+                    continue;
+                }
+
+                if (
+                    isset($user['email']) &&
+                    strtolower(trim($user['email'])) === $email
+                ) {
+
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Email sudah digunakan.');
+                }
+            }
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Data user baru
+        |--------------------------------------------------------------------------
+        */
+
+        $newUser = [
+            'name' => $name,
+            'email' => $email,
+            'phone' => $phone,
+            'password' => Hash::make($password),
+            'role' => 'user',
+        ];
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Simpan ke Firebase
+        |--------------------------------------------------------------------------
+        */
+
+        $firebaseResponse = Http::post(
+            $this->firebasePublicUrl . '/users.json',
+            $newUser
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Gagal menyimpan
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$firebaseResponse->successful()) {
+
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Gagal membuat akun. Silakan coba lagi.'
+                );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Berhasil
+        |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Registrasi berhasil. Silakan login.'
+            );
+    }
+
+
+    /**
+     * Proses Login
+     */
+    public function login(Request $request)
+    {
+        /*
+        |--------------------------------------------------------------------------
+        | Validasi
+        |--------------------------------------------------------------------------
+        */
+
+        $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
+        ]);
+
+
+        $email = strtolower(trim($request->email));
+        $password = $request->password;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Ambil semua user dari Firebase
+        |--------------------------------------------------------------------------
+        */
+
+        $response = Http::get(
+            $this->firebasePublicUrl . '/users.json'
+        );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Firebase gagal diakses
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$response->successful()) {
+
+            return back()
+                ->withInput($request->only('email'))
+                ->with(
+                    'error',
+                    'Tidak dapat terhubung ke Firebase.'
+                );
+        }
+
+
+        $users = $response->json();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tidak ada data user
         |--------------------------------------------------------------------------
         */
 
         if (!is_array($users)) {
 
             return back()
-                ->withInput($request->only('username'))
-                ->with('error', 'Data pengguna tidak ditemukan.');
+                ->withInput($request->only('email'))
+                ->with(
+                    'error',
+                    'Data pengguna tidak ditemukan.'
+                );
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Cari username
+        | Cari berdasarkan email
         |--------------------------------------------------------------------------
         */
 
@@ -99,13 +253,13 @@ class AuthController extends Controller
 
             if (
                 is_array($user) &&
-                isset($user['username']) &&
-                strtolower($user['username']) === strtolower($username)
+                isset($user['email']) &&
+                strtolower(trim($user['email'])) === $email
             ) {
 
                 $userFound = $user;
 
-                // Simpan key Firebase
+                // Simpan Firebase key
                 $userFound['_key'] = $key;
 
                 break;
@@ -115,32 +269,41 @@ class AuthController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Username tidak ditemukan
+        | Email tidak ditemukan
         |--------------------------------------------------------------------------
         */
 
         if (!$userFound) {
 
             return back()
-                ->withInput($request->only('username'))
-                ->with('error', 'Username atau password salah.');
+                ->withInput($request->only('email'))
+                ->with(
+                    'error',
+                    'Email atau password salah.'
+                );
         }
 
 
         /*
         |--------------------------------------------------------------------------
-        | Cek password bcrypt
+        | Cek password
         |--------------------------------------------------------------------------
         */
 
         if (
             !isset($userFound['password']) ||
-            !Hash::check($password, $userFound['password'])
+            !Hash::check(
+                $password,
+                $userFound['password']
+            )
         ) {
 
             return back()
-                ->withInput($request->only('username'))
-                ->with('error', 'Username atau password salah.');
+                ->withInput($request->only('email'))
+                ->with(
+                    'error',
+                    'Email atau password salah.'
+                );
         }
 
 
@@ -156,8 +319,11 @@ class AuthController extends Controller
         ) {
 
             return back()
-                ->withInput($request->only('username'))
-                ->with('error', 'Akun tidak memiliki akses sebagai user.');
+                ->withInput($request->only('email'))
+                ->with(
+                    'error',
+                    'Akun tidak memiliki akses sebagai user.'
+                );
         }
 
 
@@ -176,8 +342,6 @@ class AuthController extends Controller
             'web_role' => 'user',
 
             'web_user_id' => $userFound['_key'],
-
-            'web_username' => $userFound['username'],
 
             'web_user_name' => $userFound['name'] ?? '',
 

@@ -10,11 +10,12 @@ class UserAuth
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!session('user_logged_in')) {
+        if (!session('web_logged_in')) {
+
             return redirect()
                 ->route('login')
                 ->withErrors([
-                    'username' => 'Silakan login terlebih dahulu.'
+                    'email' => 'Silakan login terlebih dahulu.'
                 ]);
         }
 

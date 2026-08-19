@@ -1,165 +1,140 @@
-@extends('layouts.auth')
+@extends('layouts.user')
 
-@section('title', 'Dashboard User - Panic Button')
+@section('title', 'Dashboard - Panic Button')
+
+@section('page-title', 'Dashboard')
 
 
 @push('styles')
 
-    <link
-        rel="stylesheet"
-        href="{{ asset('css/users/dashboard.css') }}"
-    >
+<link
+    rel="stylesheet"
+    href="{{ asset('css/users/dashboard.css') }}"
+>
 
 @endpush
 
 
 @section('content')
 
-<div class="user-dashboard">
+<div class="dashboard-page">
 
 
-    {{-- =========================================================
-        HEADER
-    ========================================================== --}}
+    {{-- Welcome --}}
+    <section class="welcome-card">
 
-    <header class="dashboard-header">
+        <div>
 
-        <div class="header-info">
+            <span>
+                Selamat datang
+            </span>
 
-            <h1>
-                Dashboard
-            </h1>
+            <h2>
+                {{ session('web_user_name', 'User') }}
+            </h2>
 
             <p>
-                Selamat datang,
-                <strong>
-                    {{ session('web_user_name', session('web_username', 'User')) }}
-                </strong>
+                Gunakan Panic Button ketika membutuhkan bantuan.
             </p>
 
         </div>
 
 
-        <form
-            action="{{ route('logout') }}"
-            method="POST"
+        <a
+            href="{{ route('user.panic') }}"
+            class="btn-panic"
         >
-
-            @csrf
-
-            <button
-                type="submit"
-                class="btn-logout"
-            >
-                Logout
-            </button>
-
-        </form>
-
-    </header>
-
-
-
-    {{-- =========================================================
-        DATA AKUN
-    ========================================================== --}}
-
-    <section class="dashboard-card account-card">
-
-        <div class="card-header">
-
-            <div>
-
-                <h2>
-                    Data Akun
-                </h2>
-
-                <p>
-                    Informasi akun Anda
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="account-grid">
-
-
-            <div class="account-item">
-
-                <span class="account-label">
-                    Nama
-                </span>
-
-                <strong id="userName">
-                    {{ session('web_user_name', '-') }}
-                </strong>
-
-            </div>
-
-
-            <div class="account-item">
-
-                <span class="account-label">
-                    Username
-                </span>
-
-                <strong id="userUsername">
-                    {{ session('web_username', '-') }}
-                </strong>
-
-            </div>
-
-
-            <div class="account-item">
-
-                <span class="account-label">
-                    Email
-                </span>
-
-                <strong id="userEmail">
-                    {{ session('web_user_email', '-') }}
-                </strong>
-
-            </div>
-
-
-            <div class="account-item">
-
-                <span class="account-label">
-                    No. Telepon
-                </span>
-
-                <strong id="userPhone">
-                    {{ session('web_user_phone', '-') }}
-                </strong>
-
-            </div>
-
-
-        </div>
+            🚨 Kirim Panic
+        </a>
 
     </section>
 
 
 
-    {{-- =========================================================
-        STATUS LAPORAN AKTIF
-    ========================================================== --}}
+    {{-- Statistik --}}
+    <section class="dashboard-stats">
 
-    <section class="dashboard-card active-report-card">
+
+        <div class="stat-card">
+
+            <span class="stat-icon">
+                🚨
+            </span>
+
+            <div>
+
+                <span>
+                    Laporan Aktif
+                </span>
+
+                <strong id="activeReportCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span class="stat-icon">
+                📋
+            </span>
+
+            <div>
+
+                <span>
+                    Total Laporan
+                </span>
+
+                <strong id="totalReportCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <span class="stat-icon">
+                ✅
+            </span>
+
+            <div>
+
+                <span>
+                    Selesai
+                </span>
+
+                <strong id="completedReportCount">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+
+    {{-- Status Panic --}}
+    <section class="dashboard-card">
 
         <div class="card-header">
 
             <div>
 
                 <h2>
-                    Status Laporan Aktif
+                    Status Panic Button
                 </h2>
 
                 <p>
-                    Status Panic Button Anda saat ini
+                    Status laporan Anda saat ini
                 </p>
 
             </div>
@@ -188,8 +163,15 @@
                 </h3>
 
                 <p>
-                    Belum ada laporan Panic Button yang sedang diproses.
+                    Saat ini tidak ada laporan Panic Button yang aktif.
                 </p>
+
+                <a
+                    href="{{ route('user.panic') }}"
+                    class="btn-primary"
+                >
+                    Kirim Panic
+                </a>
 
             </div>
 
@@ -199,39 +181,67 @@
 
 
 
-    {{-- =========================================================
-        RIWAYAT LAPORAN
-    ========================================================== --}}
+    {{-- Menu cepat --}}
+    <section class="quick-menu">
 
-    <section class="dashboard-card history-card">
-
-        <div class="card-header">
-
-            <div>
-
-                <h2>
-                    Riwayat Laporan
-                </h2>
-
-                <p>
-                    Daftar laporan Panic Button Anda
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div
-            id="historyContainer"
-            class="history-container"
+        <a
+            href="{{ route('user.panic') }}"
+            class="quick-card"
         >
 
-            <div class="loading-state">
-                Memuat riwayat laporan...
-            </div>
+            <span>
+                🚨
+            </span>
 
-        </div>
+            <strong>
+                Panic Button
+            </strong>
+
+            <small>
+                Kirim laporan darurat
+            </small>
+
+        </a>
+
+
+        <a
+            href="{{ route('user.history') }}"
+            class="quick-card"
+        >
+
+            <span>
+                📋
+            </span>
+
+            <strong>
+                Riwayat Laporan
+            </strong>
+
+            <small>
+                Lihat laporan sebelumnya
+            </small>
+
+        </a>
+
+
+        <a
+            href="{{ route('user.profile') }}"
+            class="quick-card"
+        >
+
+            <span>
+                👤
+            </span>
+
+            <strong>
+                Profil
+            </strong>
+
+            <small>
+                Kelola informasi akun
+            </small>
+
+        </a>
 
     </section>
 
@@ -241,11 +251,6 @@
 @endsection
 
 
-
-{{-- =========================================================
-    JAVASCRIPT
-========================================================== --}}
-
 @push('scripts')
 
 <script>
@@ -254,8 +259,6 @@
 
         id: @json(session('web_user_id')),
 
-        username: @json(session('web_username')),
-
         name: @json(session('web_user_name')),
 
         email: @json(session('web_user_email')),
@@ -263,11 +266,6 @@
         phone: @json(session('web_user_phone'))
 
     };
-
-    console.log(
-        "Current User:",
-        window.currentUser
-    );
 
 </script>
 

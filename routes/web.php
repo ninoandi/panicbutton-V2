@@ -150,14 +150,25 @@ Route::middleware('user.auth')->group(function () {
 
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD USER PUBLIK
+| User
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('web.auth')->group(function () {
+Route::middleware('user.auth')
+    ->prefix('user')
+    ->name('user.')
+    ->group(function () {
 
-    Route::get('/user/dashboard', function () {
-        return view('users.index');
-    })->name('user.dashboard');
+        Route::view('/dashboard', 'users.index')
+            ->name('dashboard');
 
-});
+        Route::view('/panic', 'users.panic')
+            ->name('panic');
+
+        Route::view('/history', 'users.history')
+            ->name('history');
+
+        Route::view('/profile', 'users.profil')
+            ->name('profile');
+
+    });

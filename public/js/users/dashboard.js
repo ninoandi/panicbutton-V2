@@ -34,10 +34,6 @@ console.log("=================================");
 
 const activeReportContainer =
     document.getElementById("activeReportContainer");
-
-const historyContainer =
-    document.getElementById("historyContainer");
-
 const activeStatusBadge =
     document.getElementById("activeStatusBadge");
 
@@ -51,12 +47,6 @@ const activeStatusBadge =
 if (!activeReportContainer) {
     console.error(
         "Element #activeReportContainer tidak ditemukan."
-    );
-}
-
-if (!historyContainer) {
-    console.error(
-        "Element #historyContainer tidak ditemukan."
     );
 }
 
@@ -78,19 +68,6 @@ if (!userId) {
     console.error(
         "ID user tidak ditemukan dari session."
     );
-
-    if (historyContainer) {
-
-        historyContainer.innerHTML = `
-
-            <div class="loading-state">
-
-                ID user tidak ditemukan.
-
-            </div>
-
-        `;
-    }
 
 } else {
 
@@ -251,11 +228,6 @@ function loadUserReports() {
                 activeReport
             );
 
-
-            renderHistory(
-                userReports
-            );
-
         },
 
 
@@ -266,20 +238,6 @@ function loadUserReports() {
                 error
             );
 
-
-            if (historyContainer) {
-
-                historyContainer.innerHTML = `
-
-                    <div class="loading-state">
-
-                        Gagal mengambil data laporan.
-
-                    </div>
-
-                `;
-
-            }
 
         }
 
@@ -495,114 +453,6 @@ function updateStatusBadge(status) {
         `status-badge ${getStatusClass(status)}`;
 
 }
-
-
-/*
-|--------------------------------------------------------------------------
-| RIWAYAT
-|--------------------------------------------------------------------------
-*/
-
-function renderHistory(reports) {
-
-    if (!historyContainer) {
-        return;
-    }
-
-
-    if (reports.length === 0) {
-
-        historyContainer.innerHTML = `
-
-            <div class="empty-state">
-
-                <div class="empty-icon">
-                    📋
-                </div>
-
-                <h3>
-                    Belum ada riwayat laporan
-                </h3>
-
-                <p>
-                    Laporan Panic Button Anda
-                    akan muncul di sini.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-    }
-
-
-    historyContainer.innerHTML =
-
-        reports
-            .map(
-                report => `
-
-                    <div class="history-item">
-
-                        <div class="history-main">
-
-                            <strong>
-                                🚨 Panic Button
-                            </strong>
-
-                            <div class="history-details">
-
-                                <span>
-
-                                    ID:
-                                    ${escapeHtml(
-                                        report.id
-                                    )}
-
-                                </span>
-
-
-                                <span>
-
-                                    ${formatDate(
-                                        report.created_at
-                                    )}
-
-                                </span>
-
-
-                                <span>
-
-                                    ${escapeHtml(
-                                        report.address || "-"
-                                    )}
-
-                                </span>
-
-                            </div>
-
-                        </div>
-
-
-                        <span
-                            class="status-badge ${getStatusClass(report.status)}"
-                        >
-
-                            ${formatStatus(
-                                report.status
-                            )}
-
-                        </span>
-
-                    </div>
-
-                `
-            )
-            .join("");
-
-}
-
 
 /*
 |--------------------------------------------------------------------------

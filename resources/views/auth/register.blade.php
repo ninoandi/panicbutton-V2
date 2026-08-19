@@ -34,11 +34,24 @@
             </div>
 
 
+            {{-- Error --}}
             @if ($errors->any())
 
                 <div class="register-alert register-alert-error">
 
                     {{ $errors->first() }}
+
+                </div>
+
+            @endif
+
+
+            {{-- Success --}}
+            @if (session('success'))
+
+                <div class="register-alert register-alert-success">
+
+                    {{ session('success') }}
 
                 </div>
 
@@ -54,6 +67,7 @@
                 @csrf
 
 
+                {{-- Nama --}}
                 <div class="form-group">
 
                     <label for="name">
@@ -67,29 +81,13 @@
                         value="{{ old('name') }}"
                         placeholder="Masukkan nama"
                         required
+                        autocomplete="name"
                     >
 
                 </div>
 
 
-                <div class="form-group">
-
-                    <label for="username">
-                        Username
-                    </label>
-
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        value="{{ old('username') }}"
-                        placeholder="Masukkan username"
-                        required
-                    >
-
-                </div>
-
-
+                {{-- Email --}}
                 <div class="form-group">
 
                     <label for="email">
@@ -103,11 +101,13 @@
                         value="{{ old('email') }}"
                         placeholder="Masukkan email"
                         required
+                        autocomplete="email"
                     >
 
                 </div>
 
 
+                {{-- Nomor HP --}}
                 <div class="form-group">
 
                     <label for="phone">
@@ -120,11 +120,13 @@
                         name="phone"
                         value="{{ old('phone') }}"
                         placeholder="Masukkan nomor HP"
+                        autocomplete="tel"
                     >
 
                 </div>
 
 
+                {{-- Password --}}
                 <div class="form-group">
 
                     <label for="password">
@@ -137,11 +139,13 @@
                         name="password"
                         placeholder="Minimal 6 karakter"
                         required
+                        autocomplete="new-password"
                     >
 
                 </div>
 
 
+                {{-- Konfirmasi Password --}}
                 <div class="form-group">
 
                     <label for="password_confirmation">
@@ -154,11 +158,13 @@
                         name="password_confirmation"
                         placeholder="Ulangi password"
                         required
+                        autocomplete="new-password"
                     >
 
                 </div>
 
 
+                {{-- Tombol Register --}}
                 <button
                     type="submit"
                     class="btn-register"
@@ -169,6 +175,7 @@
             </form>
 
 
+            {{-- Login --}}
             <div class="login-section">
 
                 <span>
@@ -182,6 +189,7 @@
             </div>
 
 
+            {{-- Kembali --}}
             <div class="back-section">
 
                 <a href="{{ route('landing') }}">

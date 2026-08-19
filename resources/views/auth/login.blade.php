@@ -58,6 +58,18 @@
             @endif
 
 
+            {{-- Error dari Controller --}}
+            @if (session('error'))
+
+                <div class="login-alert login-alert-error">
+
+                    {{ session('error') }}
+
+                </div>
+
+            @endif
+
+
             {{-- Success --}}
             @if (session('success'))
 
@@ -80,20 +92,20 @@
                 @csrf
 
 
-                {{-- Username --}}
+                {{-- Email --}}
                 <div class="form-group">
 
-                    <label for="username">
-                        Username
+                    <label for="email">
+                        Email
                     </label>
 
                     <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        value="{{ old('username') }}"
-                        placeholder="Masukkan username"
-                        autocomplete="username"
+                        type="email"
+                        id="email"
+                        name="email"
+                        value="{{ old('email') }}"
+                        placeholder="Masukkan email"
+                        autocomplete="email"
                         required
                     >
 
