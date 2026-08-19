@@ -1,0 +1,235 @@
+/* =========================================================
+ *  PANIC BUTTON PAGE
+ = *======================================================== */
+
+.panic-page {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Card Container utama, menyamai .profile-card */
+.panic-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 30px;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+}
+
+/* Biarkan elemen anak selain tombol panic mengisi lebar penuh */
+.panic-header,
+.panic-warning,
+.panic-location,
+.panic-status {
+    width: 100%;
+}
+
+/* =========================================================
+ *  PANIC HEADER
+ = *======================================================== */
+
+.panic-header {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eef1f5;
+}
+
+.panic-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: #fff1f2;
+    color: #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+}
+
+.panic-header h2 {
+    margin: 0 0 6px;
+    color: #17365d;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.panic-header p {
+    margin: 0;
+    color: #7b8794;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* =========================================================
+ *  WARNING BOX
+ = *======================================================== */
+
+.panic-warning {
+    padding: 16px;
+    background: #fffbe3;
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    color: #92400e;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.panic-warning strong {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.panic-warning p {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #b45309;
+}
+
+/* =========================================================
+ *  LOCATION FIELD
+ = *======================================================== */
+
+.panic-location {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.location-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #7b8794;
+}
+
+.location-display {
+    width: 100%;
+    min-height: 46px;
+    padding: 12px 14px;
+    background: #f1f5f9; /* Warna latar yang lebih lembut */
+    border-radius: 9px;
+    color: #263238;
+    font-family: inherit;
+    font-size: 14px;
+    display: flex;
+    align-items: center; /* Memastikan teks berada di tengah secara vertikal */
+    line-height: 1.5;
+    word-break: break-word; /* Mencegah teks meluber jika alamat terlalu panjang */
+}
+
+/* =========================================================
+ *  CIRCULAR PANIC BUTTON (TOMBOL BULAT)
+ = *======================================================== */
+
+.panic-button {
+    width: 180px;
+    height: 180px;
+    border: 6px solid #fecdd3;
+    border-radius: 50%;
+    background: #dc3545;
+    color: #ffffff;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin: 10px auto;
+    box-shadow: 0 10px 25px rgba(220, 53, 69, 0.35);
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.panic-button:hover {
+    background: #bb2d3b;
+    border-color: #ffe4e6;
+    transform: scale(1.04);
+    box-shadow: 0 14px 30px rgba(220, 53, 69, 0.45);
+}
+
+.panic-button:active {
+    transform: scale(0.96);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.25);
+}
+
+.panic-button span {
+    font-size: 34px;
+    line-height: 1;
+    margin-bottom: 2px;
+}
+
+.panic-button strong {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: center;
+}
+
+.panic-button small {
+    font-size: 10px;
+    opacity: 0.85;
+    font-weight: 400;
+    text-align: center;
+    padding: 0 10px;
+}
+
+.panic-button:disabled {
+    background: #9ca3af;
+    border-color: #e5e7eb;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* =========================================================
+ *  STATUS DISPLAY
+ = *======================================================== */
+
+.panic-status {
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px dashed #e5e7eb;
+    border-radius: 9px;
+    text-align: center;
+    color: #4b5563;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* =========================================================
+ *  RESPONSIVE
+ = *======================================================== */
+
+@media (max-width: 600px) {
+    .panic-card {
+        padding: 20px;
+    }
+
+    .panic-header h2 {
+        font-size: 20px;
+    }
+
+    .panic-button {
+        width: 150px;
+        height: 150px;
+        border-width: 5px;
+    }
+
+    .panic-button span {
+        font-size: 28px;
+    }
+
+    .panic-button strong {
+        font-size: 13px;
+    }
+
+    .panic-button small {
+        font-size: 9px;
+    }
+}

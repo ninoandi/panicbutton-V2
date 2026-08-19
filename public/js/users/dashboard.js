@@ -36,6 +36,12 @@ const activeReportContainer =
     document.getElementById("activeReportContainer");
 const activeStatusBadge =
     document.getElementById("activeStatusBadge");
+const activeReportCount = 
+    document.getElementById("activeReportCount");
+const totalReportCount = 
+    document.getElementById("totalReportCount");
+const completedReportCount = 
+    document.getElementById("completedReportCount");
 
 
 /*
@@ -55,6 +61,12 @@ if (!activeStatusBadge) {
         "Element #activeStatusBadge tidak ditemukan."
     );
 }
+if (!activeReportCount) 
+    console.error("Element #activeReportCount tidak ditemukan.");
+if (!totalReportCount) 
+    console.error("Element #totalReportCount tidak ditemukan.");
+if (!completedReportCount) 
+    console.error("Element #completedReportCount tidak ditemukan.");
 
 
 /*
@@ -174,6 +186,30 @@ function loadUserReports() {
 
                 );
 
+            
+            /*
+            | -----------------------------------------------*---------------------------
+            | HITUNG & RENDER STATISTIK (TOTAL, AKTIF, SELESAI)
+            |--------------------------------------------------------------------------
+            */
+            const totalReports = userReports.length;
+
+            const completedReports = userReports.filter(
+                report => report.status === "completed"
+            ).length;
+
+            const activeReports = totalReports - completedReports;
+
+            // Render angka ke HTML jika element tersedia
+            if (totalReportCount) {
+                totalReportCount.textContent = totalReports;
+            }
+            if (completedReportCount) {
+                completedReportCount.textContent = completedReports;
+            }
+            if (activeReportCount) {
+                activeReportCount.textContent = activeReports;
+            }
 
             console.log(
                 "Laporan milik user:",
