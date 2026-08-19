@@ -12,6 +12,9 @@ const panicAlert =
 const panicCount =
     document.getElementById("publicPanicCount");
 
+const now = Date.now();
+const twentyFourHoursAgo = now - (24 * 60 * 60 * 1000);
+
 
 if (!panicAlert) {
 
@@ -42,11 +45,22 @@ if (!panicAlert) {
                     }));
 
 
-            const activeReports =
-                reports.filter(
-                    report =>
-                        report.status === "active"
-                );
+            const activeReports = reports
+                .filter(
+                    report =>{
+                        const isActive = report.status === "active";
+        
+                        const isRecent = report.created_at >= twentyFourHoursAgo;
+                        
+                        return isActive && isRecent; 
+                    }
+                       
+
+                )
+                .sort((a, b) => {
+                    // 3. Urutkan data berdasarkan created_at dari yang terbesar (terbaru) ke terkecil (terlama)
+                    return b.created_at - a.created_at;
+                });
 
 
             // ==========================================
