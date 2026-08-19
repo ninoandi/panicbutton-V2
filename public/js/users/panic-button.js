@@ -668,6 +668,54 @@ async function autoTurnOffDevice(
 }
 
 // =====================================================
+// REVERSE GEOCODING
+// KOORDINAT → NAMA / ALAMAT LOKASI
+// =====================================================
+
+async function getAddressFromCoordinates(latitude, longitude) {
+
+    try {
+
+        const url =
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+
+        const response = await fetch(url, {
+            headers: {
+                "Accept": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                "Gagal mendapatkan alamat lokasi."
+            );
+        }
+
+        const data = await response.json();
+
+        console.log(
+            "Reverse geocoding:",
+            data
+        );
+
+        return (
+            data.display_name ||
+            `${latitude}, ${longitude}`
+        );
+
+    } catch (error) {
+
+        console.warn(
+            "Reverse geocoding gagal:",
+            error
+        );
+
+        // Jika gagal, tetap gunakan koordinat
+        return `${latitude}, ${longitude}`;
+    }
+}
+
+// =====================================================
 // TOMBOL PANIC
 // =====================================================
 
@@ -831,10 +879,36 @@ panicButton?.addEventListener(
                 nearestDevice
             );
 
+            // =====================================================
+            // DAPATKAN ALAMAT LOKASI
+            // =====================================================
+
+            const address =
+                await getAddressFromCoordinates(
+                    latitude,
+                    longitude
+                );
+
+            console.log(
+                "Alamat lokasi user:",
+                address
+            );
+
+            const locationUrl =
+            `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
             // =================================================
             // 4. BUAT DATA PANIC
             // =================================================
+
+            // =====================================================
+// WAKTU PANIC
+// =====================================================
+
+            const createdAt = Date.now();
+
+            const autoOffAt =
+                createdAt + PANIC_DURATION;
 
             const panicData = {
 
@@ -868,7 +942,10 @@ panicButton?.addEventListener(
                     longitude,
 
                 address:
-                    `${latitude}, ${longitude}`,
+                    address,
+                
+                location_url:
+                     locationUrl,
 
                 status:
                     "active",
@@ -888,10 +965,13 @@ panicButton?.addEventListener(
                     ),
 
                 created_at:
-                    Date.now(),
+                    createdAt,
 
                 updated_at:
-                    Date.now()
+                    createdAt,
+
+                auto_off_at:
+                    autoOffAt
 
             };
 
@@ -975,16 +1055,15 @@ panicButton?.addEventListener(
                 }
             );
 
-            // =====================================================
-            // MULAI AUTO-OFF 30 DETIK
-            // =====================================================
+        // =====================================================
+        // MULAI AUTO-OFF 30 DETIK
+        // =====================================================
 
-            autoTurnOffDevice(
-                nearestDevice.zone,
-                nearestDevice.deviceKey,
-                panicId
-            );
-
+        autoTurnOffDevice(
+            nearestDevice.zone,
+            nearestDevice.deviceKey,
+            panicId
+        );
 
             console.log(
                 "================================="
