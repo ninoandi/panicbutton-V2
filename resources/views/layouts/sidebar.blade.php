@@ -11,6 +11,7 @@
 
     <ul class="sidebar-menu">
 
+        {{-- Dashboard --}}
         <li>
             <a href="{{ route('dashboard') }}">
                 <i class="fas fa-home"></i>
@@ -19,6 +20,7 @@
         </li>
 
 
+        {{-- Monitoring Device --}}
         <li>
             <a href="{{ route('monitoring-iot') }}">
                 <i class="fas fa-building"></i>
@@ -26,6 +28,8 @@
             </a>
         </li>
 
+
+        {{-- Manajemen User --}}
         <li>
             <a href="{{ route('manajemen-user') }}">
                 <i class="fas fa-user"></i>
@@ -33,6 +37,8 @@
             </a>
         </li>
 
+
+        {{-- Quick Message --}}
         <li>
             <a href="#" id="quick-message">
                 <i class="fas fa-comment-dots"></i>
@@ -40,13 +46,17 @@
             </a>
         </li>
 
+
+        {{-- Panduan SOS --}}
         <li>
             <a href="{{ route('manajemen-user') }}">
-                <i class="fas fa-user"></i>
+                <i class="fas fa-life-ring"></i>
                 Panduan SOS
             </a>
         </li>
 
+
+        {{-- Rekap Data --}}
         <li>
             <a href="{{ route('perumahan') }}">
                 <i class="fas fa-building"></i>
@@ -55,8 +65,7 @@
         </li>
 
 
-
-
+        {{-- Statistik --}}
         <li>
             <a href="{{ route('statistik') }}">
                 <i class="fas fa-chart-line"></i>
@@ -64,13 +73,49 @@
             </a>
         </li>
 
-
     </ul>
+
+
+    {{-- =====================================================
+        LOGOUT
+    ====================================================== --}}
+
+    <div class="sidebar-logout-container">
+
+        <form
+            action="{{ route('logout') }}"
+            method="POST"
+            id="adminLogoutForm"
+        >
+
+            @csrf
+
+            <button
+                type="button"
+                class="sidebar-logout"
+                id="adminLogoutButton"
+            >
+
+                <i class="fas fa-sign-out-alt"></i>
+
+                <span>
+                    Logout
+                </span>
+
+            </button>
+
+        </form>
+
+    </div>
 
 </nav>
 
 
-<div class="sidebar-overlay" id="sidebarOverlay">
+<div
+    class="sidebar-overlay"
+    id="sidebarOverlay"
+>
 </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

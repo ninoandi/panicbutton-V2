@@ -15,10 +15,15 @@ Route::get('/', function () {
 })->name('landing');
 
 
+
 /*
 |--------------------------------------------------------------------------
 | AUTH
 |--------------------------------------------------------------------------
+|
+| Login dan register digunakan oleh user publik.
+| Admin juga login melalui halaman login yang sama.
+|
 */
 
 Route::get('/login', [
@@ -51,17 +56,31 @@ Route::post('/logout', [
 ])->name('logout');
 
 
+
 /*
 |--------------------------------------------------------------------------
-| DASHBOARD ADMIN / SISTEM LAMA
+| DASHBOARD ADMIN
 |--------------------------------------------------------------------------
+|
+| Hanya role = admin yang boleh masuk.
+|
 */
 
-Route::middleware('user.auth')->group(function () {
+Route::middleware(['user.auth', 'role:admin'])->group(function () {
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD
+    |--------------------------------------------------------------------------
+    */
 
     Route::get('/dashboard', function () {
+
         return view('dashboard.index');
+
     })->name('dashboard');
+
 
 
     /*
@@ -71,8 +90,11 @@ Route::middleware('user.auth')->group(function () {
     */
 
     Route::get('/riwayat', function () {
+
         return view('riwayat.index');
+
     })->name('riwayat');
+
 
 
     /*
@@ -82,8 +104,11 @@ Route::middleware('user.auth')->group(function () {
     */
 
     Route::get('/profil', function () {
+
         return view('profil.index');
+
     })->name('profil');
+
 
 
     /*
@@ -93,7 +118,9 @@ Route::middleware('user.auth')->group(function () {
     */
 
     Route::get('/perumahan', function () {
+
         return view('perumahan.index');
+
     })->name('perumahan');
 
 
@@ -108,6 +135,7 @@ Route::middleware('user.auth')->group(function () {
     })->name('perumahan.detail');
 
 
+
     /*
     |--------------------------------------------------------------------------
     | STATISTIK
@@ -115,13 +143,18 @@ Route::middleware('user.auth')->group(function () {
     */
 
     Route::get('/statistik', function () {
+
         return view('statistik.index');
+
     })->name('statistik');
 
 
     Route::get('/detail-grafik', function () {
+
         return view('statistik.detail');
+
     })->name('detail-grafik');
+
 
 
     /*
@@ -131,8 +164,11 @@ Route::middleware('user.auth')->group(function () {
     */
 
     Route::get('/manajemen-user', function () {
+
         return view('manajemen-user.index');
+
     })->name('manajemen-user');
+
 
 
     /*
@@ -142,33 +178,78 @@ Route::middleware('user.auth')->group(function () {
     */
 
     Route::get('/iot', function () {
+
         return view('iot.index');
+
     })->name('monitoring-iot');
 
 });
 
 
+
 /*
 |--------------------------------------------------------------------------
-| User
+| USER PUBLIK
 |--------------------------------------------------------------------------
+|
+| Hanya role = user yang boleh masuk.
+|
 */
 
-Route::middleware('user.auth')
+Route::middleware(['user.auth', 'role:user'])
     ->prefix('user')
     ->name('user.')
     ->group(function () {
 
-        Route::view('/dashboard', 'users.index')
-            ->name('dashboard');
 
-        Route::view('/panic', 'users.panic')
-            ->name('panic');
+        /*
+        |--------------------------------------------------------------------------
+        | DASHBOARD USER
+        |--------------------------------------------------------------------------
+        */
 
-        Route::view('/history', 'users.history')
-            ->name('history');
+        Route::view(
+            '/dashboard',
+            'users.index'
+        )->name('dashboard');
 
-        Route::view('/profile', 'users.profil')
-            ->name('profile');
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PANIC BUTTON
+        |--------------------------------------------------------------------------
+        */
+
+        Route::view(
+            '/panic',
+            'users.panic'
+        )->name('panic');
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | RIWAYAT LAPORAN
+        |--------------------------------------------------------------------------
+        */
+
+        Route::view(
+            '/history',
+            'users.history'
+        )->name('history');
+
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | PROFIL USER
+        |--------------------------------------------------------------------------
+        */
+
+        Route::view(
+            '/profile',
+            'users.profil'
+        )->name('profile');
 
     });

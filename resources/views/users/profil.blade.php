@@ -9,7 +9,7 @@
 
 <link
     rel="stylesheet"
-    href="{{ asset('css/users/profile.css') }}"
+    href="{{ asset('css/users/profil.css') }}"
 >
 
 @endpush

@@ -6,20 +6,25 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class UserAuth
+class AdminAuth
 {
     public function handle(
         Request $request,
         Closure $next
     ): Response {
 
-        if (!session('web_logged_in')) {
+        if (
+            !session('web_logged_in') ||
+            session('web_role') !== 'admin'
+        ) {
 
             return redirect()
                 ->route('login')
-                ->withErrors([
-                    'email' => 'Silakan login terlebih dahulu.'
-                ]);
+                ->with(
+                    'error',
+                    'Anda tidak memiliki akses admin.'
+                );
+
         }
 
         return $next($request);
