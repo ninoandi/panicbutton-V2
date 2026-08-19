@@ -17,10 +17,49 @@
     {{-- Favicon --}}
     <link rel="icon" type="image/png" href="{{ asset('assets/images/lifemedia_logo.png') }}">
 
+    {{-- Font Awesome 6 --}}
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+
+    {{-- Shared Layout & Tokens --}}
+    <link
+        rel="stylesheet"
+        href="{{ asset('css/shared/layout.css') }}"
+    >
+
+    {{-- Shared Sidebar --}}
+    <link
+        rel="stylesheet"
+        href="{{ asset('css/shared/sidebar.css') }}"
+    >
+
+    {{-- Shared Navbar --}}
+    <link
+        rel="stylesheet"
+        href="{{ asset('css/shared/navbar.css') }}"
+    >
+
+    {{-- App CSS (for cards, tables, modals) --}}
     <link
         rel="stylesheet"
         href="{{ asset('css/app.css') }}"
     >
+
+    {{-- Early Theme Init --}}
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('app_theme') || localStorage.getItem('user_theme');
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     @stack('styles')
 
@@ -29,20 +68,32 @@
 
 <body>
 
-    <div class="admin-layout">
+    <div class="app-layout admin-layout" id="adminLayout">
 
-        {{-- Sidebar --}}
-        @include('layouts.sidebar')
+        {{-- Zero-Flicker Pre-render Script --}}
+        <script>
+            (function () {
+                try {
+                    if (window.innerWidth <= 768 || localStorage.getItem('app_sidebar_collapsed') === 'true' || localStorage.getItem('admin_sidebar_collapsed') === 'true') {
+                        document.getElementById('adminLayout').classList.add('sidebar-collapsed');
+                    }
+                } catch (e) {}
+            })();
+        </script>
 
+        {{-- REUSABLE SIDEBAR COMPONENT (ADMIN) --}}
+        <x-sidebar role="admin" />
 
-        <div class="main-wrapper">
+        {{-- MAIN WRAPPER --}}
+        <div class="app-main admin-main">
 
-            {{-- Navbar --}}
-            @include('layouts.navbar')
+            {{-- REUSABLE NAVBAR COMPONENT (ADMIN) --}}
+            <x-navbar role="admin" />
 
-
-            {{-- Content --}}
-            @yield('content')
+            {{-- CONTENT --}}
+            <main class="app-content admin-content">
+                @yield('content')
+            </main>
 
         </div>
 
@@ -54,25 +105,15 @@
         src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
     ></script>
 
-
-    {{-- App --}}
+    {{-- Shared Theme JS --}}
     <script
-        src="{{ asset('js/app.js') }}"
+        src="{{ asset('js/shared/theme.js') }}"
     ></script>
 
-
-    {{-- Sidebar --}}
+    {{-- Shared Sidebar JS --}}
     <script
-        src="{{ asset('js/sidebar.js') }}"
+        src="{{ asset('js/shared/sidebar.js') }}"
     ></script>
-
-
-    {{-- Quick Message --}}
-    <script
-        type="module"
-        src="{{ asset('js/quick-message.js') }}"
-    ></script>
-
 
     @stack('scripts')
 

@@ -19,16 +19,6 @@ import {
 |--------------------------------------------------------------------------
 | FIREBASE REFERENCE
 |--------------------------------------------------------------------------
-|
-| Struktur:
-|
-| panicChannels/
-|     ├── TESTER/
-|     │   ├── PB_prototyp/
-|     │   ├── PB_001/
-|     │   └── PB_002/
-|
-|--------------------------------------------------------------------------
 */
 
 const devicesRef = ref(
@@ -39,7 +29,7 @@ const devicesRef = ref(
 
 /*
 |--------------------------------------------------------------------------
-| ELEMENT
+| DOM ELEMENTS
 |--------------------------------------------------------------------------
 */
 
@@ -64,6 +54,9 @@ const filterZone =
 const filterStatus =
     document.getElementById("filterStatus");
 
+const firebaseConnection =
+    document.getElementById("firebaseConnection");
+
 const connectionText =
     document.getElementById("connectionText");
 
@@ -73,7 +66,7 @@ const iotMessage =
 
 /*
 |--------------------------------------------------------------------------
-| MODAL ELEMENT
+| MODAL ELEMENTS
 |--------------------------------------------------------------------------
 */
 
@@ -116,7 +109,7 @@ const btnDetailReset =
 
 /*
 |--------------------------------------------------------------------------
-| DATA
+| LOCAL STATE
 |--------------------------------------------------------------------------
 */
 
@@ -124,239 +117,135 @@ let devices = [];
 
 let selectedDevice = null;
 
+let stopModalPanicListener = null;
+
 
 /*
 |--------------------------------------------------------------------------
-| HELPER
+| HELPER: Escape HTML
 |--------------------------------------------------------------------------
 */
 
 function escapeHtml(value) {
-
-    if (
-        value === null ||
-        value === undefined
-    ) {
+    if (value === null || value === undefined) {
         return "";
     }
-
     return String(value)
-
         .replaceAll("&", "&amp;")
-
         .replaceAll("<", "&lt;")
-
         .replaceAll(">", "&gt;")
-
         .replaceAll('"', "&quot;")
-
         .replaceAll("'", "&#039;");
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| FORMAT TIME
+| HELPER: Format Time
 |--------------------------------------------------------------------------
 */
 
 function formatDate(timestamp) {
-
     if (!timestamp) {
         return "-";
     }
-
-    const date =
-        new Date(timestamp);
-
-    if (
-        Number.isNaN(
-            date.getTime()
-        )
-    ) {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
         return "-";
     }
-
-    return date.toLocaleString(
-        "id-ID"
-    );
-
+    return date.toLocaleString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| UPDATE SUMMARY
+| UPDATE SUMMARY COUNTERS
 |--------------------------------------------------------------------------
 */
 
 function updateSummary() {
+    const total = devices.length;
+    const panic = devices.filter(
+        device => device.active === true
+    ).length;
+    const normal = total - panic;
 
-    const total =
-        devices.length;
-
-    const panic =
-        devices.filter(
-            device =>
-                device.active === true
-        ).length;
-
-    const normal =
-        total - panic;
-
-
-    totalDevice.textContent =
-        total;
-
-    totalNormal.textContent =
-        normal;
-
-    totalPanic.textContent =
-        panic;
-
+    if (totalDevice) totalDevice.textContent = total.toLocaleString("id-ID");
+    if (totalNormal) totalNormal.textContent = normal.toLocaleString("id-ID");
+    if (totalPanic) totalPanic.textContent = panic.toLocaleString("id-ID");
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| UPDATE ZONE FILTER
+| UPDATE ZONE FILTER DROPDOWN
 |--------------------------------------------------------------------------
 */
 
 function updateZoneFilter() {
+    if (!filterZone) return;
 
-    const selected =
-        filterZone.value;
-
-
+    const selected = filterZone.value;
     const zones = [
         ...new Set(
-            devices.map(
-                device =>
-                    device.zona
-            )
+            devices.map(device => device.zona).filter(Boolean)
         )
     ];
 
-
     zones.sort();
 
-
     filterZone.innerHTML = `
-        <option value="">
-            Semua Zona
-        </option>
+        <option value="">Semua Zona</option>
     `;
 
+    zones.forEach(zone => {
+        const option = document.createElement("option");
+        option.value = zone;
+        option.textContent = `${zone}`;
+        filterZone.appendChild(option);
+    });
 
-    zones.forEach(
-        zone => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value =
-                zone;
-
-            option.textContent =
-                zone;
-
-            filterZone.appendChild(
-                option
-            );
-
-        }
-    );
-
-
-    if (
-        zones.includes(selected)
-    ) {
-
-        filterZone.value =
-            selected;
-
+    if (zones.includes(selected)) {
+        filterZone.value = selected;
     }
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| FILTER DEVICE
+| FILTER DEVICES
 |--------------------------------------------------------------------------
 */
 
 function getFilteredDevices() {
+    const keyword = searchDevice ? searchDevice.value.trim().toLowerCase() : "";
+    const zone = filterZone ? filterZone.value : "";
+    const status = filterStatus ? filterStatus.value : "";
 
-    const keyword =
-        searchDevice.value
-            .trim()
-            .toLowerCase();
+    return devices.filter(device => {
+        const matchesSearch =
+            !keyword ||
+            device.device.toLowerCase().includes(keyword) ||
+            device.zona.toLowerCase().includes(keyword) ||
+            device.lokasi.toLowerCase().includes(keyword);
 
+        const matchesZone =
+            !zone || device.zona === zone;
 
-    const zone =
-        filterZone.value;
+        const matchesStatus =
+            !status ||
+            (status === "panic" && device.active === true) ||
+            (status === "normal" && device.active !== true);
 
-
-    const status =
-        filterStatus.value;
-
-
-    return devices.filter(
-        device => {
-
-            const matchesSearch =
-
-                !keyword ||
-
-                device.device
-                    .toLowerCase()
-                    .includes(keyword) ||
-
-                device.zona
-                    .toLowerCase()
-                    .includes(keyword) ||
-
-                device.lokasi
-                    .toLowerCase()
-                    .includes(keyword);
-
-
-            const matchesZone =
-
-                !zone ||
-
-                device.zona === zone;
-
-
-            const matchesStatus =
-
-                !status ||
-
-                (
-                    status === "panic" &&
-                    device.active === true
-                ) ||
-
-                (
-                    status === "normal" &&
-                    device.active !== true
-                );
-
-
-            return (
-                matchesSearch &&
-                matchesZone &&
-                matchesStatus
-            );
-
-        }
-    );
-
+        return matchesSearch && matchesZone && matchesStatus;
+    });
 }
 
 
@@ -367,673 +256,324 @@ function getFilteredDevices() {
 */
 
 function renderTable() {
+    if (!tableBody) return;
 
-    const filtered =
-        getFilteredDevices();
+    const filtered = getFilteredDevices();
 
-
-    if (
-        filtered.length === 0
-    ) {
-
+    if (filtered.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td
-                    colspan="6"
-                    class="iot-loading"
-                >
-                    Tidak ada perangkat.
+                <td colspan="6" class="iot-empty">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size:24px; margin-bottom:8px; display:block;"></i>
+                    Tidak ada perangkat IoT yang sesuai filter.
                 </td>
             </tr>
         `;
-
         return;
-
     }
-
 
     tableBody.innerHTML = "";
 
+    filtered.forEach((device, index) => {
+        const row = document.createElement("tr");
 
-    filtered.forEach(
-        (device, index) => {
+        row.innerHTML = `
+            <td style="font-weight: 600; color: var(--dash-text-muted);">
+                ${index + 1}
+            </td>
 
-            const row =
-                document.createElement("tr");
+            <td>
+                <div class="table-device-cell">
+                    <div class="table-device-icon">
+                        <i class="fa-solid fa-microchip"></i>
+                    </div>
+                    <span>${escapeHtml(device.device)}</span>
+                </div>
+            </td>
 
+            <td>
+                <span class="zone-pill">
+                    <i class="fa-solid fa-location-dot" style="font-size:10px; margin-right:4px; color:var(--dash-primary);"></i>
+                    ${escapeHtml(device.zona)}
+                </span>
+            </td>
 
-            row.innerHTML = `
+            <td style="color: var(--dash-text-muted);">
+                ${escapeHtml(device.lokasi)}
+            </td>
 
-                <td>
-                    ${index + 1}
-                </td>
-
-
-                <td>
-                    <strong>
-                        ${escapeHtml(
-                            device.device
-                        )}
-                    </strong>
-                </td>
-
-
-                <td>
-                    ${escapeHtml(
-                        device.zona
-                    )}
-                </td>
-
-
-                <td>
-                    ${escapeHtml(
-                        device.lokasi
-                    )}
-                </td>
-
-
-                <td>
-
-                    <span
-                        class="iot-status ${
-                            device.active
-                                ? "panic"
-                                : "normal"
-                        }"
-                    >
-
-                        ${
-                            device.active
-                                ? "🚨 PANIC"
-                                : "🟢 NORMAL"
-                        }
-
-                    </span>
-
-                </td>
-
-
-                <td>
-
-                    <button
-                        type="button"
-                        class="iot-btn iot-btn-primary btn-detail"
-                        data-zone="${escapeHtml(
-                            device.zona
-                        )}"
-                        data-device="${escapeHtml(
-                            device.device
-                        )}"
-                    >
-                        Detail
-                    </button>
-
-                </td>
-
-            `;
-
-
-            tableBody.appendChild(row);
-
-        }
-    );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DETAIL BUTTON
-    |--------------------------------------------------------------------------
-    */
-
-    tableBody
-        .querySelectorAll(
-            ".btn-detail"
-        )
-        .forEach(
-            button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        openDetail(
-                            button.dataset.zone,
-                            button.dataset.device
-                        );
-
-                    }
-                );
-
+            <td>
+                ${device.active
+                ? `<span class="status-pill status-pill-panic">
+                               <span class="pulse-dot-red"></span>
+                               <span>PANIC AKTIF</span>
+                           </span>`
+                : `<span class="status-pill status-pill-normal">
+                               <span class="pulse-dot"></span>
+                               <span>NORMAL</span>
+                           </span>`
             }
-        );
+            </td>
 
+            <td style="text-align: center;">
+                <button
+                    type="button"
+                    class="btn-table-detail btn-detail"
+                    data-zone="${escapeHtml(device.zona)}"
+                    data-device="${escapeHtml(device.device)}"
+                >
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Detail</span>
+                </button>
+            </td>
+        `;
+
+        tableBody.appendChild(row);
+    });
+
+    // Event listener untuk tombol detail
+    tableBody.querySelectorAll(".btn-detail").forEach(button => {
+        button.addEventListener("click", () => {
+            openDetail(
+                button.dataset.zone,
+                button.dataset.device
+            );
+        });
+    });
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| OPEN DETAIL
+| OPEN DETAIL MODAL
 |--------------------------------------------------------------------------
 */
 
-function openDetail(
-    zone,
-    deviceId
-) {
-
-    const device =
-        devices.find(
-            item =>
-
-                item.zona === zone &&
-
-                item.device === deviceId
-        );
-
+function openDetail(zone, deviceId) {
+    const device = devices.find(
+        item => item.zona === zone && item.device === deviceId
+    );
 
     if (!device) {
-
-        console.error(
-            "Device tidak ditemukan:",
-            zone,
-            deviceId
-        );
-
+        console.error("Device tidak ditemukan:", zone, deviceId);
         return;
-
     }
 
+    selectedDevice = device;
 
-    selectedDevice =
-        device;
+    if (detailDevice) detailDevice.textContent = device.device;
+    if (detailZone) detailZone.textContent = device.zona;
+    if (detailDeviceId) detailDeviceId.textContent = device.device;
+    if (detailZona) detailZona.textContent = device.zona;
+    if (detailLokasi) detailLokasi.textContent = device.lokasi || "-";
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEVICE
-    |--------------------------------------------------------------------------
-    */
-
-    detailDevice.textContent =
-        device.device;
-
-    detailZone.textContent =
-        device.zona;
-
-    detailDeviceId.textContent =
-        device.device;
-
-    detailZona.textContent =
-        device.zona;
-
-    detailLokasi.textContent =
-        device.lokasi || "-";
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | STATUS PANIC
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        device.active === true
-    ) {
-
-        detailStatus.textContent =
-            "PANIC";
-
-        detailStatus.className =
-            "iot-value panic";
-
-
-        detailActive.textContent =
-            "Aktif";
-
-        detailActive.className =
-            "iot-value panic";
-
+    if (detailStatus) {
+        detailStatus.textContent = device.active ? "PANIC AKTIF" : "NORMAL";
+        detailStatus.className = `iot-detail-value iot-value ${device.active ? "panic" : "normal"}`;
     }
 
-    else {
-
-        detailStatus.textContent =
-            "NORMAL";
-
-        detailStatus.className =
-            "iot-value normal";
-
-
-        detailActive.textContent =
-            "Tidak Aktif";
-
-        detailActive.className =
-            "iot-value normal";
-
+    if (detailActive) {
+        detailActive.textContent = device.active ? "Alarm Aktif" : "Standby (Normal)";
+        detailActive.className = `iot-detail-value iot-value ${device.active ? "panic" : "normal"}`;
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | LAST UPDATE
-    |--------------------------------------------------------------------------
-    */
-
-    detailLastUpdate.textContent =
-        formatDate(
-            device.last_update
-        );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | BUTTON STATE
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        device.active === true
-    ) {
-
-        btnDetailPanic.style.display =
-            "none";
-
-        btnDetailReset.style.display =
-            "inline-flex";
-
+    if (detailLastUpdate) {
+        detailLastUpdate.textContent = formatDate(device.last_update);
     }
 
-    else {
-
-        btnDetailPanic.style.display =
-            "inline-flex";
-
-        btnDetailReset.style.display =
-            "inline-flex";
-
+    // Button states
+    if (btnDetailPanic) {
+        btnDetailPanic.disabled = device.active === true;
+    }
+    if (btnDetailReset) {
+        btnDetailReset.disabled = device.active !== true;
     }
 
+    if (detailModal) {
+        detailModal.style.display = "flex";
+    }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SHOW MODAL
-    |--------------------------------------------------------------------------
-    */
-
- detailModal.style.display = 
-    "flex";
-
-listenModalPanic();
+    listenModalPanic();
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| CLOSE MODAL
+| CLOSE DETAIL MODAL
 |--------------------------------------------------------------------------
 */
 
 function closeModal() {
-
-    detailModal.style.display =
-        "none";
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | STOP REALTIME LISTENER
-    |--------------------------------------------------------------------------
-    */
-
-    if (stopModalPanicListener) {
-
-        stopModalPanicListener();
-
-        stopModalPanicListener =
-            null;
-
+    if (detailModal) {
+        detailModal.style.display = "none";
     }
 
-
-    selectedDevice =
-        null;
-}
-
-closeDetail.addEventListener(
-    "click",
-    closeModal
-);
-
-
-detailModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target ===
-            detailModal
-        ) {
-
-            closeModal();
-
-        }
-
-    }
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| CEK PANIC DALAM ZONA
-|--------------------------------------------------------------------------
-|
-| Tidak boleh ada lebih dari satu device
-| panic dalam zona yang sama.
-|
-|--------------------------------------------------------------------------
-*/
-
-function getActivePanicInZone(
-    zone,
-    exceptDevice = null
-) {
-
-    return devices.find(
-        device =>
-
-            device.zona === zone &&
-
-            device.device !== exceptDevice &&
-
-            device.active === true
-    );
-
-}
-
-/*
-|--------------------------------------------------------------------------
-| REALTIME STATUS PANIC MODAL
-|--------------------------------------------------------------------------
-*/
-
-let stopModalPanicListener = null;
-
-function listenModalPanic() {
-
-    // Hentikan listener sebelumnya
     if (stopModalPanicListener) {
         stopModalPanicListener();
         stopModalPanicListener = null;
     }
 
-    if (!selectedDevice) {
-        return;
+    selectedDevice = null;
+}
+
+if (closeDetail) {
+    closeDetail.addEventListener("click", closeModal);
+}
+
+if (detailModal) {
+    detailModal.addEventListener("click", event => {
+        if (event.target === detailModal) {
+            closeModal();
+        }
+    });
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| CHECK ACTIVE PANIC IN ZONE
+|--------------------------------------------------------------------------
+*/
+
+function getActivePanicInZone(zone, exceptDevice = null) {
+    return devices.find(
+        device =>
+            device.zona === zone &&
+            device.device !== exceptDevice &&
+            device.active === true
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| REALTIME LISTENER FOR MODAL POPUP
+|--------------------------------------------------------------------------
+*/
+
+function listenModalPanic() {
+    if (stopModalPanicListener) {
+        stopModalPanicListener();
+        stopModalPanicListener = null;
     }
 
-    const zone =
-        selectedDevice.zona;
+    if (!selectedDevice) return;
 
-    const deviceId =
-        selectedDevice.device;
+    const zone = selectedDevice.zona;
+    const deviceId = selectedDevice.device;
 
-    const deviceRef =
-        ref(
-            db2,
-            `panicChannels/${zone}/${deviceId}`
-        );
-
+    const deviceRef = ref(
+        db2,
+        `panicChannels/${zone}/${deviceId}`
+    );
 
     stopModalPanicListener = onValue(
         deviceRef,
         snapshot => {
+            const data = snapshot.val();
+            if (!data) return;
 
-            const data =
-                snapshot.val();
+            const active = data.active === true;
 
-            if (!data) {
-                return;
+            // FIX: Ganti detailSpanitatus menjadi detailStatus
+            if (detailStatus) {
+                detailStatus.textContent = active ? "PANIC AKTIF" : "NORMAL";
+                detailStatus.className = `iot-detail-value iot-value ${active ? "panic" : "normal"}`;
             }
 
+            if (detailActive) {
+                detailActive.textContent = active ? "Alarm Aktif" : "Standby (Normal)";
+                detailActive.className = `iot-detail-value iot-value ${active ? "panic" : "normal"}`;
+            }
 
-            /*
-            |--------------------------------------------------------------------------
-            | STATUS
-            |--------------------------------------------------------------------------
-            */
-
-            const active =
-                data.active === true;
-
-
-      /*
-|--------------------------------------------------------------------------
-| UPDATE STATUS DI MODAL
-|--------------------------------------------------------------------------
-*/
-
-if (detailStatus) {
-
-    detailSpanitatus.textContent =
-        active
-            ? "PANIC"
-            : "NORMAL";
-
-    detailStatus.className =
-        active
-            ? "iot-value panic"
-            : "iot-value normal";
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE PANIC BUTTON STATUS
-|--------------------------------------------------------------------------
-*/
-
-if (detailActive) {
-
-    detailActive.textContent =
-        active
-            ? "Aktif"
-            : "Tidak Aktif";
-
-    detailActive.className =
-        active
-            ? "iot-value panic"
-            : "iot-value normal";
-}
-
-
-/*
-|--------------------------------------------------------------------------
-| UPDATE LAST UPDATE
-|--------------------------------------------------------------------------
-*/
-
-if (detailLastUpdate) {
-
-    detailLastUpdate.textContent =
-        formatDate(data.last_update);
-}
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE TOMBOL PANIC
-            |--------------------------------------------------------------------------
-            */
+            if (detailLastUpdate) {
+                detailLastUpdate.textContent = formatDate(data.last_update);
+            }
 
             if (btnDetailPanic) {
-
-                btnDetailPanic.disabled =
-                    active;
-
-                btnDetailPanic.textContent =
-                    active
-                        ? "Panic Aktif"
-                        : "Kirim Panic";
-
+                btnDetailPanic.disabled = active;
             }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE TOMBOL RESET
-            |--------------------------------------------------------------------------
-            */
 
             if (btnDetailReset) {
-
-                btnDetailReset.disabled =
-                    !active;
-
+                btnDetailReset.disabled = !active;
             }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | PESAN
-            |--------------------------------------------------------------------------
-            */
 
             if (iotMessage) {
-
                 if (active) {
-
-                    iotMessage.textContent =
-                        `🚨 ${deviceId} sedang dalam kondisi PANIC.`;
-
+                    iotMessage.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--dash-emergency);"></i> <span><strong>${escapeHtml(deviceId)}</strong> di Zona ${escapeHtml(zone)} sedang dalam kondisi <strong>PANIC</strong>.</span>`;
                 } else {
-
-                    iotMessage.textContent =
-                        `✅ ${deviceId} dalam kondisi normal.`;
-
+                    iotMessage.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--dash-success);"></i> <span><strong>${escapeHtml(deviceId)}</strong> dalam kondisi normal.</span>`;
                 }
-
             }
-
         }
     );
-
 }
+
 
 /*
 |--------------------------------------------------------------------------
-| KIRIM PANIC
+| SEND PANIC
 |--------------------------------------------------------------------------
 */
 
 async function sendPanic() {
+    if (!selectedDevice) return;
 
-    if (!selectedDevice) {
+    const zone = selectedDevice.zona;
+    const deviceId = selectedDevice.device;
 
-        return;
-
-    }
-
-
-    const zone =
-        selectedDevice.zona;
-
-    const deviceId =
-        selectedDevice.device;
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | CEK DEVICE LAIN DALAM ZONA
-    |--------------------------------------------------------------------------
-    */
-
-    const existingPanic =
-        getActivePanicInZone(
-            zone,
-            deviceId
-        );
-
-
+    const existingPanic = getActivePanicInZone(zone, deviceId);
     if (existingPanic) {
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--dash-warning);"></i> <span>Zona ${escapeHtml(zone)} sedang panic dari device <strong>${escapeHtml(existingPanic.device)}</strong>.</span>`;
+        }
 
-        iotMessage.textContent =
-            `⚠️ Zona ${zone} sedang panic dari ${existingPanic.device}.`;
-
-        alert(
-            `Zona ${zone} sedang mengalami panic dari device ${existingPanic.device}.`
-        );
-
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: "warning",
+                title: "Peringatan Zona",
+                text: `Zona ${zone} sedang mengalami panic dari device ${existingPanic.device}.`,
+                confirmButtonColor: "#173f70"
+            });
+        } else {
+            alert(`Zona ${zone} sedang mengalami panic dari device ${existingPanic.device}.`);
+        }
         return;
-
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | FIREBASE PATH
-    |--------------------------------------------------------------------------
-    */
-
-    const deviceRef =
-        ref(
-            db2,
-            `panicChannels/${zone}/${deviceId}`
-        );
-
+    const deviceRef = ref(
+        db2,
+        `panicChannels/${zone}/${deviceId}`
+    );
 
     try {
+        await update(deviceRef, {
+            active: true,
+            device: deviceId,
+            lokasi: selectedDevice.lokasi,
+            zona: zone,
+            last_update: Date.now()
+        });
 
-        await update(
-            deviceRef,
-            {
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--dash-success);"></i> <span>Panic berhasil dipicu untuk <strong>${escapeHtml(deviceId)}</strong>.</span>`;
+        }
 
-                active: true,
-
-                device:
-                    deviceId,
-
-                lokasi:
-                    selectedDevice.lokasi,
-
-                zona:
-                    zone,
-
-                last_update:
-                    Date.now()
-
-            }
-        );
-
-
-        iotMessage.textContent =
-            `🚨 Panic berhasil dikirim untuk ${deviceId}.`;
-
-
-        console.log(
-            "PANIC WEB:",
-            {
-                device: deviceId,
-                zona: zone,
-                lokasi: selectedDevice.lokasi
-            }
-        );
-
-
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: "success",
+                title: "Panic Terkirim",
+                text: `Sinyal panic berhasil dikirim ke perangkat ${deviceId}`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    } catch (error) {
+        console.error("Gagal mengirim panic:", error);
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:var(--dash-emergency);"></i> <span>Gagal mengirim panic: ${escapeHtml(error.message)}</span>`;
+        }
     }
-
-    catch (error) {
-
-        console.error(
-            "Gagal mengirim panic:",
-            error
-        );
-
-
-        iotMessage.textContent =
-            "❌ Gagal mengirim panic: " +
-            error.message;
-
-    }
-
 }
 
 
@@ -1044,315 +584,156 @@ async function sendPanic() {
 */
 
 async function resetPanic() {
+    if (!selectedDevice) return;
 
-    if (!selectedDevice) {
+    const zone = selectedDevice.zona;
+    const deviceId = selectedDevice.device;
 
-        return;
-
-    }
-
-
-    const zone =
-        selectedDevice.zona;
-
-    const deviceId =
-        selectedDevice.device;
-
-
-    const deviceRef =
-        ref(
-            db2,
-            `panicChannels/${zone}/${deviceId}`
-        );
-
+    const deviceRef = ref(
+        db2,
+        `panicChannels/${zone}/${deviceId}`
+    );
 
     try {
+        await update(deviceRef, {
+            active: false,
+            last_update: Date.now()
+        });
 
-        await update(
-            deviceRef,
-            {
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--dash-success);"></i> <span>Panic <strong>${escapeHtml(deviceId)}</strong> berhasil di-reset ke normal.</span>`;
+        }
 
-                active: false,
-
-                last_update:
-                    Date.now()
-
-            }
-        );
-
-
-        iotMessage.textContent =
-            `✅ Panic ${deviceId} berhasil di-reset.`;
-
-
-        console.log(
-            "RESET PANIC:",
-            deviceId
-        );
-
-
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: "success",
+                title: "Reset Berhasil",
+                text: `Status panic ${deviceId} berhasil dinetralkan`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    } catch (error) {
+        console.error("Gagal reset panic:", error);
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:var(--dash-emergency);"></i> <span>Gagal reset panic: ${escapeHtml(error.message)}</span>`;
+        }
     }
-
-    catch (error) {
-
-        console.error(
-            "Gagal reset panic:",
-            error
-        );
-
-
-        iotMessage.textContent =
-            "❌ Gagal reset panic: " +
-            error.message;
-
-    }
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| BUTTON
+| EVENT LISTENERS
 |--------------------------------------------------------------------------
 */
 
-btnDetailPanic.addEventListener(
-    "click",
-    sendPanic
-);
+if (btnDetailPanic) {
+    btnDetailPanic.addEventListener("click", sendPanic);
+}
 
+if (btnDetailReset) {
+    btnDetailReset.addEventListener("click", resetPanic);
+}
 
-btnDetailReset.addEventListener(
-    "click",
-    resetPanic
-);
+if (searchDevice) {
+    searchDevice.addEventListener("input", renderTable);
+}
+
+if (filterZone) {
+    filterZone.addEventListener("change", renderTable);
+}
+
+if (filterStatus) {
+    filterStatus.addEventListener("change", renderTable);
+}
 
 
 /*
 |--------------------------------------------------------------------------
-| SEARCH
-|--------------------------------------------------------------------------
-*/
-
-searchDevice.addEventListener(
-    "input",
-    renderTable
-);
-
-
-filterZone.addEventListener(
-    "change",
-    renderTable
-);
-
-
-filterStatus.addEventListener(
-    "change",
-    renderTable
-);
-
-
-/*
-|--------------------------------------------------------------------------
-| FIREBASE REALTIME LISTENER
+| FIREBASE REALTIME LISTENER (MAIN)
 |--------------------------------------------------------------------------
 */
 
 onValue(
-
     devicesRef,
-
     snapshot => {
-
-        const data =
-            snapshot.val();
-
-
+        const data = snapshot.val();
         devices = [];
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DATA KOSONG
-        |--------------------------------------------------------------------------
-        */
-
         if (!data) {
-
             updateSummary();
-
             updateZoneFilter();
-
             renderTable();
 
-
-            connectionText.textContent =
-                "Terhubung";
-
-
-            iotMessage.textContent =
-                "Belum ada perangkat IoT.";
-
+            if (firebaseConnection) {
+                firebaseConnection.className = "connection-badge";
+            }
+            if (connectionText) {
+                connectionText.textContent = "Terhubung";
+            }
+            if (iotMessage) {
+                iotMessage.innerHTML = `<i class="fa-solid fa-circle-info"></i> <span>Belum ada perangkat IoT terdata di Firebase.</span>`;
+            }
             return;
-
         }
 
+        // Loop Zona
+        Object.entries(data).forEach(([zoneName, zoneData]) => {
+            if (!zoneData || typeof zoneData !== "object") return;
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOOP ZONA
-        |--------------------------------------------------------------------------
-        */
+            // Loop Device
+            Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
+                if (!deviceData || typeof deviceData !== "object") return;
 
-        Object.entries(data)
-            .forEach(
-                ([zoneName, zoneData]) => {
+                devices.push({
+                    device: deviceData.device || deviceKey,
+                    zona: deviceData.zona || zoneName,
+                    lokasi: deviceData.lokasi || "-",
+                    active: deviceData.active === true,
+                    last_update: deviceData.last_update || null
+                });
+            });
+        });
 
-                    if (
-                        !zoneData ||
-                        typeof zoneData !==
-                        "object"
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | LOOP DEVICE
-                    |--------------------------------------------------------------------------
-                    */
-
-                    Object.entries(zoneData)
-                        .forEach(
-                            ([deviceKey, deviceData]) => {
-
-                                if (
-                                    !deviceData ||
-                                    typeof deviceData !==
-                                    "object"
-                                ) {
-
-                                    return;
-
-                                }
-
-
-                                /*
-                                |--------------------------------------------------------------------------
-                                | DEVICE
-                                |--------------------------------------------------------------------------
-                                */
-
-                                devices.push({
-
-                                    device:
-                                        deviceData.device ||
-                                        deviceKey,
-
-                                    zona:
-                                        deviceData.zona ||
-                                        zoneName,
-
-                                    lokasi:
-                                        deviceData.lokasi ||
-                                        "-",
-
-                                    active:
-                                        deviceData.active ===
-                                        true,
-
-                                    last_update:
-                                        deviceData.last_update ||
-                                        null
-
-                                });
-
-                            }
-                        );
-
-                }
-            );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SORT DEVICE
-        |--------------------------------------------------------------------------
-        */
-
-        devices.sort(
-            (a, b) =>
-                a.device.localeCompare(
-                    b.device
-                )
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE UI
-        |--------------------------------------------------------------------------
-        */
+        // Sort device by name
+        devices.sort((a, b) => a.device.localeCompare(b.device));
 
         updateSummary();
-
         updateZoneFilter();
-
         renderTable();
 
+        if (firebaseConnection) {
+            firebaseConnection.className = "connection-badge";
+        }
+        const dot = firebaseConnection?.querySelector(".connection-dot");
+        if (dot) dot.className = "connection-dot";
 
-        /*
-        |--------------------------------------------------------------------------
-        | CONNECTION
-        |--------------------------------------------------------------------------
-        */
+        if (connectionText) {
+            connectionText.textContent = "Realtime Terhubung";
+        }
 
-        connectionText.textContent =
-            "Terhubung";
-
-
-        iotMessage.textContent =
-            `${devices.length} device berhasil dimuat.`;
-
-
-        console.log(
-            "================================"
-        );
-
-        console.log(
-            "DATA IoT"
-        );
-
-        console.log(
-            "================================"
-        );
-
-        console.log(
-            devices
-        );
-
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--dash-success);"></i> <span>${devices.length} perangkat IoT berhasil disinkronkan secara realtime.</span>`;
+        }
     },
-
-
     error => {
+        console.error("Firebase IoT Error:", error);
 
-        console.error(
-            "Firebase IoT Error:",
-            error
-        );
+        if (firebaseConnection) {
+            firebaseConnection.className = "connection-badge error";
+        }
+        const dot = firebaseConnection?.querySelector(".connection-dot");
+        if (dot) dot.className = "connection-dot error";
 
+        if (connectionText) {
+            connectionText.textContent = "Terputus";
+        }
 
-        connectionText.textContent =
-            "Terputus";
-
-
-        iotMessage.textContent =
-            "❌ Gagal membaca Firebase: " +
-            error.message;
-
+        if (iotMessage) {
+            iotMessage.innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:var(--dash-emergency);"></i> <span>Gagal membaca data Firebase: ${escapeHtml(error.message)}</span>`;
+        }
     }
-
 );
+
+console.log("IoT Monitoring initialized smoothly.");

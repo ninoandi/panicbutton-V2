@@ -14,34 +14,46 @@
         @yield('title', 'Panic Button')
     </title>
 
+    {{-- Favicon --}}
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/lifemedia_logo.png') }}">
 
-    {{-- Font Awesome --}}
+    {{-- Font Awesome 6 --}}
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     >
 
-
-    {{-- Layout --}}
+    {{-- Shared Layout & Tokens --}}
     <link
         rel="stylesheet"
-        href="{{ asset('css/users/layout.css') }}"
+        href="{{ asset('css/shared/layout.css') }}"
     >
 
-
-    {{-- Sidebar --}}
+    {{-- Shared Sidebar --}}
     <link
         rel="stylesheet"
-        href="{{ asset('css/users/sidebar.css') }}"
+        href="{{ asset('css/shared/sidebar.css') }}"
     >
 
-
-    {{-- Navbar --}}
+    {{-- Shared Navbar --}}
     <link
         rel="stylesheet"
-        href="{{ asset('css/users/navbar.css') }}"
+        href="{{ asset('css/shared/navbar.css') }}"
     >
 
+    {{-- Early Theme Init --}}
+    <script>
+        (function () {
+            try {
+                var savedTheme = localStorage.getItem('app_theme') || localStorage.getItem('user_theme');
+                if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                } else {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
     @stack('styles')
 
@@ -50,24 +62,29 @@
 
 <body>
 
-<div class="user-layout">
+<div class="app-layout user-layout" id="userLayout">
+    <script>
+        (function () {
+            try {
+                if (window.innerWidth <= 768 || localStorage.getItem('app_sidebar_collapsed') === 'true' || localStorage.getItem('user_sidebar_collapsed') === 'true') {
+                    document.getElementById('userLayout').classList.add('sidebar-collapsed');
+                }
+            } catch (e) {}
+        })();
+    </script>
 
-    {{-- SIDEBAR --}}
-    @include('layouts.users.sidebar')
+    {{-- REUSABLE SIDEBAR COMPONENT --}}
+    <x-sidebar role="user" />
 
+    {{-- MAIN WRAPPER --}}
+    <div class="app-main user-main">
 
-    {{-- MAIN --}}
-    <div class="user-main">
-
-        {{-- NAVBAR --}}
-        @include('layouts.users.navbar')
-
+        {{-- REUSABLE NAVBAR COMPONENT --}}
+        <x-navbar role="user" />
 
         {{-- CONTENT --}}
-        <main class="user-content">
-
+        <main class="app-content user-content">
             @yield('content')
-
         </main>
 
     </div>
@@ -75,11 +92,24 @@
 </div>
 
 
-{{-- Sidebar JS --}}
+<script>
+    window.currentUserId = @json(session('web_user_id'));
+</script>
+
+{{-- SweetAlert2 --}}
 <script
-    src="{{ asset('js/users/sidebar.js') }}"
+    src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
 ></script>
 
+{{-- Shared Theme JS --}}
+<script
+    src="{{ asset('js/shared/theme.js') }}"
+></script>
+
+{{-- Shared Sidebar JS --}}
+<script
+    src="{{ asset('js/shared/sidebar.js') }}"
+></script>
 
 @stack('scripts')
 

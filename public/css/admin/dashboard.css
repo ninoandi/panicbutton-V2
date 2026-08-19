@@ -1,5 +1,6 @@
 /* =========================================================
-   DASHBOARD USER - MODERN EMERGENCY DESIGN SYSTEM
+   DASHBOARD ADMIN - MODERN EMERGENCY & MONITORING DESIGN SYSTEM
+   Matches and harmonizes with User Dashboard design language
 ========================================================= */
 
 :root,
@@ -14,6 +15,10 @@
     --dash-emergency-bg: #fef2f2;
     --dash-emergency-border: #fecaca;
     
+    --dash-warning: #d97706;
+    --dash-warning-bg: #fffbeb;
+    --dash-warning-border: #fde68a;
+    
     --dash-success: #10b981;
     --dash-success-bg: #ecfdf5;
     --dash-success-border: #a7f3d0;
@@ -25,6 +30,10 @@
     --dash-profile: #0284c7;
     --dash-profile-bg: #f0f9ff;
     --dash-profile-border: #bae6fd;
+    
+    --dash-iot: #0d9488;
+    --dash-iot-bg: #f0fdfa;
+    --dash-iot-border: #99f6e4;
     
     --dash-bg: #f6f8fc;
     --dash-card-bg: #ffffff;
@@ -47,6 +56,10 @@
     --dash-emergency-bg: rgba(220, 38, 38, 0.18);
     --dash-emergency-border: rgba(248, 113, 113, 0.35);
     
+    --dash-warning: #fbbf24;
+    --dash-warning-bg: rgba(245, 158, 11, 0.18);
+    --dash-warning-border: rgba(251, 191, 36, 0.35);
+    
     --dash-success: #34d399;
     --dash-success-bg: rgba(16, 185, 129, 0.18);
     --dash-success-border: rgba(52, 211, 153, 0.35);
@@ -59,6 +72,10 @@
     --dash-profile-bg: rgba(2, 132, 199, 0.18);
     --dash-profile-border: rgba(56, 189, 248, 0.35);
     
+    --dash-iot: #2dd4bf;
+    --dash-iot-bg: rgba(13, 148, 136, 0.18);
+    --dash-iot-border: rgba(45, 212, 191, 0.35);
+    
     --dash-bg: #0b1329;
     --dash-card-bg: #111c36;
     --dash-card-hover-bg: #162444;
@@ -70,7 +87,7 @@
 }
 
 .dashboard-page {
-    min-height: calc(100vh - var(--user-navbar-height, 58px));
+    min-height: calc(100vh - var(--admin-navbar-height, 58px));
     padding: 24px 30px;
     background: var(--dash-bg);
     color: var(--dash-text-main);
@@ -92,6 +109,12 @@
     100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
 
+@keyframes pulseDotOrange {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(217, 119, 6, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }
+}
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -104,7 +127,7 @@
 }
 
 /* =========================================================
-   1. WELCOME CARD
+   1. WELCOME CARD (HERO BANNER)
 ========================================================= */
 
 .welcome-card {
@@ -129,8 +152,8 @@
     position: absolute;
     top: -40px;
     right: -40px;
-    width: 140px;
-    height: 140px;
+    width: 150px;
+    height: 150px;
     background: radial-gradient(circle, rgba(37, 99, 235, 0.12) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
@@ -141,10 +164,10 @@
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
-    background: var(--dash-success-bg);
-    border: 1px solid var(--dash-success-border);
+    background: var(--dash-primary-bg);
+    border: 1px solid var(--dash-primary-light);
     border-radius: 20px;
-    color: var(--dash-success);
+    color: var(--dash-primary);
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 8px;
@@ -173,42 +196,57 @@
     line-height: 1.5;
 }
 
-.btn-panic-hero {
+.welcome-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.btn-hero-action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 11px 22px;
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    padding: 11px 20px;
+    background: linear-gradient(135deg, #173f70 0%, #0f2b4d 100%);
     color: #ffffff;
     border-radius: 10px;
     text-decoration: none;
     font-size: 13.5px;
     font-weight: 700;
     white-space: nowrap;
-    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+    box-shadow: 0 4px 14px rgba(23, 63, 112, 0.3);
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
 
-.btn-panic-hero:hover {
-    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+[data-theme="dark"] .btn-hero-action {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-hero-action:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.45);
+    box-shadow: 0 6px 20px rgba(23, 63, 112, 0.45);
     color: #ffffff;
 }
 
-.btn-panic-hero:active {
+[data-theme="dark"] .btn-hero-action:hover {
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+}
+
+.btn-hero-action:active {
     transform: scale(0.98);
 }
 
-.btn-panic-hero i {
+.btn-hero-action i {
     font-size: 15px;
 }
 
 /* =========================================================
-   2. STATISTIK UTAMA (TOP 3 CARDS)
+   2. STATISTIK UTAMA (TOP 3 STAT CARDS)
 ========================================================= */
 
 .dashboard-stats {
@@ -263,80 +301,91 @@
     transform: scale(1.08);
 }
 
-/* Card 1: Aktif */
-.stat-card-active {
-    border-color: var(--dash-emergency-border);
+/* Card 1: Status Panic Buzzer */
+.stat-card-buzzer {
+    border-color: var(--dash-border);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
-.stat-card-active:hover {
-    box-shadow: 0 10px 25px -4px rgba(220, 38, 38, 0.16);
+
+.stat-icon-buzzer {
+    background: var(--dash-primary-bg);
+    color: var(--dash-primary);
+    border: 1px solid var(--dash-border);
 }
-.stat-icon-active {
-    background: var(--dash-emergency-bg);
-    color: var(--dash-emergency);
-    border: 1px solid var(--dash-emergency-border);
-}
-.stat-badge-active {
+
+.stat-badge-buzzer {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     padding: 4px 10px;
+    background: var(--dash-success-bg);
+    color: var(--dash-success);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    border: 1px solid var(--dash-success-border);
+}
+
+.stat-badge-buzzer.darurat {
     background: var(--dash-emergency-bg);
     color: var(--dash-emergency);
+    border-color: var(--dash-emergency-border);
+}
+
+.stat-badge-buzzer.penting {
+    background: var(--dash-warning-bg);
+    color: var(--dash-warning);
+    border-color: var(--dash-warning-border);
+}
+
+/* Card 2: Total Perumahan */
+.stat-card-perumahan {
+    border-color: var(--dash-profile-border);
+}
+
+.stat-card-perumahan:hover {
+    box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.16);
+}
+
+.stat-icon-perumahan {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
+}
+
+.stat-badge-perumahan {
+    padding: 4px 10px;
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
     font-size: 11px;
     font-weight: 700;
     border-radius: 20px;
-    border: 1px solid var(--dash-emergency-border);
-}
-.pulse-dot-red {
-    width: 7px;
-    height: 7px;
-    background: #dc2626;
-    border-radius: 50%;
-    animation: pulseDotRed 1.8s infinite;
+    border: 1px solid var(--dash-profile-border);
 }
 
-/* Card 2: Total */
-.stat-card-total {
+/* Card 3: Total Users */
+.stat-card-users {
     border-color: var(--dash-history-border);
 }
-.stat-card-total:hover {
+
+.stat-card-users:hover {
     box-shadow: 0 10px 25px -4px rgba(79, 70, 229, 0.16);
 }
-.stat-icon-total {
+
+.stat-icon-users {
     background: var(--dash-history-bg);
     color: var(--dash-history);
-    border: 1px solid var(--dash-history-border);
-}
-.stat-badge-total {
-    padding: 4px 10px;
-    background: var(--dash-history-bg);
-    color: var(--dash-history);
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 20px;
     border: 1px solid var(--dash-history-border);
 }
 
-/* Card 3: Selesai */
-.stat-card-completed {
-    border-color: var(--dash-success-border);
-}
-.stat-card-completed:hover {
-    box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.16);
-}
-.stat-icon-completed {
-    background: var(--dash-success-bg);
-    color: var(--dash-success);
-    border: 1px solid var(--dash-success-border);
-}
-.stat-badge-completed {
+.stat-badge-users {
     padding: 4px 10px;
-    background: var(--dash-success-bg);
-    color: var(--dash-success);
+    background: var(--dash-history-bg);
+    color: var(--dash-history);
     font-size: 11px;
     font-weight: 700;
     border-radius: 20px;
-    border: 1px solid var(--dash-success-border);
+    border: 1px solid var(--dash-history-border);
 }
 
 .stat-card-body {
@@ -367,7 +416,7 @@
 }
 
 /* =========================================================
-   3. STATUS PANIC BUTTON (LIVE MONITOR CARD)
+   3. LIVE MONITOR SECTIONS (DASHBOARD CARDS)
 ========================================================= */
 
 .dashboard-card {
@@ -410,6 +459,18 @@
     flex-shrink: 0;
 }
 
+.card-header-icon.emergency {
+    background: var(--dash-emergency-bg);
+    color: var(--dash-emergency);
+    border: 1px solid var(--dash-emergency-border);
+}
+
+.card-header-icon.public {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
+}
+
 .card-header h2 {
     margin: 0;
     font-size: 17px;
@@ -442,32 +503,21 @@
     border: 1px solid var(--dash-border);
 }
 
-.status-active {
+.status-active,
+.status-darurat {
     background: var(--dash-emergency-bg);
     color: var(--dash-emergency);
     border: 1px solid var(--dash-emergency-border);
     box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
 }
 
-.status-received {
-    background: #fffbeb;
-    color: #b45309;
-    border: 1px solid #fde68a;
+.status-penting {
+    background: var(--dash-warning-bg);
+    color: var(--dash-warning);
+    border: 1px solid var(--dash-warning-border);
 }
 
-[data-theme="dark"] .status-received {
-    background: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
-    border-color: rgba(245, 158, 11, 0.3);
-}
-
-.status-handling {
-    background: var(--dash-primary-bg);
-    color: var(--dash-primary);
-    border: 1px solid var(--dash-history-border);
-}
-
-.status-completed {
+.status-biasa {
     background: var(--dash-success-bg);
     color: var(--dash-success);
     border: 1px solid var(--dash-success-border);
@@ -476,7 +526,7 @@
 /* Empty State */
 .empty-state {
     text-align: center;
-    padding: 30px 20px;
+    padding: 32px 20px;
     color: var(--dash-text-muted);
     display: flex;
     flex-direction: column;
@@ -498,6 +548,12 @@
     border: 1px solid var(--dash-success-border);
 }
 
+.empty-state-icon.public-idle {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border-color: var(--dash-profile-border);
+}
+
 .empty-state h3 {
     margin: 0 0 6px;
     color: var(--dash-text-main);
@@ -506,77 +562,90 @@
 }
 
 .empty-state p {
-    margin: 0 0 16px;
+    margin: 0;
     font-size: 13px;
-    max-width: 420px;
+    max-width: 440px;
     line-height: 1.5;
     color: var(--dash-text-muted);
 }
 
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 9px 18px;
-    background: var(--dash-primary-dark);
-    color: #ffffff;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
-
-[data-theme="dark"] .btn-primary {
-    background: #2563eb;
-    color: #ffffff;
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-    color: #ffffff;
-}
-
-/* Active Report Component (Rendered by JS) */
-.active-report {
+/* Active Alert Card Rendering */
+.active-alert-wrapper {
     border: 1px solid var(--dash-emergency-border);
     background: var(--dash-emergency-bg);
-    border-radius: 12px;
-    padding: 18px 20px;
+    border-radius: 14px;
+    padding: 20px 22px;
+    animation: fadeInUp 0.3s ease;
 }
 
-.active-report-top {
+.active-alert-wrapper.priority-darurat {
+    border-color: var(--dash-emergency-border);
+    background: var(--dash-emergency-bg);
+}
+
+.active-alert-wrapper.priority-penting {
+    border-color: var(--dash-warning-border);
+    background: var(--dash-warning-bg);
+}
+
+.active-alert-wrapper.priority-biasa {
+    border-color: var(--dash-success-border);
+    background: var(--dash-success-bg);
+}
+
+.active-alert-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
 
-.report-title {
-    margin: 0;
-    font-size: 16px;
+.alert-user-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--dash-emergency);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
     font-weight: 700;
-    color: var(--dash-emergency);
 }
 
-.report-grid {
+.alert-user-info strong {
+    display: block;
+    font-size: 16px;
+    color: var(--dash-text-main);
+}
+
+.alert-user-info span {
+    font-size: 12.5px;
+    color: var(--dash-text-muted);
+}
+
+.alert-info-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 12px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
-.report-info {
+.alert-info-cell {
     padding: 12px 14px;
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
-.report-info-label {
+.alert-info-label {
     display: block;
     margin-bottom: 4px;
     color: var(--dash-text-muted);
@@ -584,40 +653,118 @@
     font-weight: 500;
 }
 
-.report-info-value {
+.alert-info-value {
     font-size: 13px;
     font-weight: 700;
     color: var(--dash-text-main);
 }
 
-.report-location {
-    padding: 12px 14px;
+.alert-message-box {
+    padding: 14px 16px;
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
-    border-radius: 8px;
+    border-radius: 10px;
+    margin-bottom: 16px;
 }
 
-.report-location-label {
+.alert-message-box strong {
     display: block;
-    margin-bottom: 4px;
+    font-size: 12px;
     color: var(--dash-text-muted);
-    font-size: 11.5px;
-    font-weight: 500;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
 }
 
-.report-location-value {
-    font-size: 13px;
+.alert-message-box p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--dash-text-main);
+    line-height: 1.45;
+}
+
+.alert-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-location-map {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--dash-primary);
+    color: #ffffff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 12.5px;
     font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-location-map:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(23, 63, 112, 0.35);
+    color: #ffffff;
+}
+
+/* Public Panic Item Cards */
+.public-panic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+}
+
+.public-panic-card {
+    padding: 16px 18px;
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-emergency-border);
+    border-radius: 12px;
+    box-shadow: var(--dash-shadow);
+    transition: all 0.2s ease;
+    animation: fadeInUp 0.3s ease;
+}
+
+.public-panic-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dash-shadow-hover);
+}
+
+.public-panic-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.public-panic-device {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--dash-emergency);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.public-panic-details {
+    font-size: 12.5px;
+    color: var(--dash-text-muted);
+    line-height: 1.6;
+}
+
+.public-panic-details strong {
     color: var(--dash-text-main);
 }
 
 /* =========================================================
-   4. QUICK ACTION MENU (BOTTOM 3 CARDS)
+   4. QUICK ACTION MENU (4 BOTTOM CARDS)
 ========================================================= */
 
 .quick-menu {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     margin-bottom: 24px;
 }
@@ -724,90 +871,119 @@
     transform: translateX(4px);
 }
 
-/* Card 4: Panic Button (Quick) */
-.quick-card-panic {
-    border-color: var(--dash-emergency-border);
+/* Card 1: Rekap Perumahan */
+.quick-card-rekap {
+    border-color: var(--dash-profile-border);
 }
-.quick-card-panic:hover {
-    box-shadow: 0 12px 28px -4px rgba(220, 38, 38, 0.2);
+.quick-card-rekap:hover {
+    box-shadow: 0 12px 28px -4px rgba(2, 132, 199, 0.2);
 }
-.quick-icon-panic {
-    background: var(--dash-emergency-bg);
-    color: var(--dash-emergency);
-    border: 1px solid var(--dash-emergency-border);
+.quick-icon-rekap {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
 }
-.quick-badge-panic {
-    background: var(--dash-emergency-bg);
-    color: var(--dash-emergency);
-    border: 1px solid var(--dash-emergency-border);
+.quick-badge-rekap {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
 }
-.quick-card-panic .quick-link-text {
-    color: var(--dash-emergency);
+.quick-card-rekap .quick-link-text {
+    color: var(--dash-profile);
 }
-.quick-card-panic .quick-arrow {
-    background: var(--dash-emergency-bg);
-    color: var(--dash-emergency);
+.quick-card-rekap .quick-arrow {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
 }
-.quick-card-panic:hover .quick-arrow {
-    background: var(--dash-emergency);
+.quick-card-rekap:hover .quick-arrow {
+    background: var(--dash-profile);
     color: #ffffff;
 }
 
-/* Card 5: Riwayat Laporan (Quick) */
-.quick-card-history {
+/* Card 2: Manajemen User */
+.quick-card-users {
     border-color: var(--dash-history-border);
 }
-.quick-card-history:hover {
+.quick-card-users:hover {
     box-shadow: 0 12px 28px -4px rgba(79, 70, 229, 0.2);
 }
-.quick-icon-history {
+.quick-icon-users {
     background: var(--dash-history-bg);
     color: var(--dash-history);
     border: 1px solid var(--dash-history-border);
 }
-.quick-badge-history {
+.quick-badge-users {
     background: var(--dash-history-bg);
     color: var(--dash-history);
     border: 1px solid var(--dash-history-border);
 }
-.quick-card-history .quick-link-text {
+.quick-card-users .quick-link-text {
     color: var(--dash-history);
 }
-.quick-card-history .quick-arrow {
+.quick-card-users .quick-arrow {
     background: var(--dash-history-bg);
     color: var(--dash-history);
 }
-.quick-card-history:hover .quick-arrow {
+.quick-card-users:hover .quick-arrow {
     background: var(--dash-history);
     color: #ffffff;
 }
 
-/* Card 6: Profil (Quick) */
-.quick-card-profile {
-    border-color: var(--dash-profile-border);
+/* Card 3: Monitoring IoT */
+.quick-card-iot {
+    border-color: var(--dash-iot-border);
 }
-.quick-card-profile:hover {
-    box-shadow: 0 12px 28px -4px rgba(2, 132, 199, 0.2);
+.quick-card-iot:hover {
+    box-shadow: 0 12px 28px -4px rgba(13, 148, 136, 0.2);
 }
-.quick-icon-profile {
-    background: var(--dash-profile-bg);
-    color: var(--dash-profile);
-    border: 1px solid var(--dash-profile-border);
+.quick-icon-iot {
+    background: var(--dash-iot-bg);
+    color: var(--dash-iot);
+    border: 1px solid var(--dash-iot-border);
 }
-.quick-badge-profile {
-    background: var(--dash-profile-bg);
-    color: var(--dash-profile);
-    border: 1px solid var(--dash-profile-border);
+.quick-badge-iot {
+    background: var(--dash-iot-bg);
+    color: var(--dash-iot);
+    border: 1px solid var(--dash-iot-border);
 }
-.quick-card-profile .quick-link-text {
-    color: var(--dash-profile);
+.quick-card-iot .quick-link-text {
+    color: var(--dash-iot);
 }
-.quick-card-profile .quick-arrow {
-    background: var(--dash-profile-bg);
-    color: var(--dash-profile);
+.quick-card-iot .quick-arrow {
+    background: var(--dash-iot-bg);
+    color: var(--dash-iot);
 }
-.quick-card-profile:hover .quick-arrow {
-    background: var(--dash-profile);
+.quick-card-iot:hover .quick-arrow {
+    background: var(--dash-iot);
+    color: #ffffff;
+}
+
+/* Card 4: Statistik & Grafik */
+.quick-card-stats {
+    border-color: var(--dash-warning-border);
+}
+.quick-card-stats:hover {
+    box-shadow: 0 12px 28px -4px rgba(217, 119, 6, 0.2);
+}
+.quick-icon-stats {
+    background: var(--dash-warning-bg);
+    color: var(--dash-warning);
+    border: 1px solid var(--dash-warning-border);
+}
+.quick-badge-stats {
+    background: var(--dash-warning-bg);
+    color: var(--dash-warning);
+    border: 1px solid var(--dash-warning-border);
+}
+.quick-card-stats .quick-link-text {
+    color: var(--dash-warning);
+}
+.quick-card-stats .quick-arrow {
+    background: var(--dash-warning-bg);
+    color: var(--dash-warning);
+}
+.quick-card-stats:hover .quick-arrow {
+    background: var(--dash-warning);
     color: #ffffff;
 }
 
@@ -815,13 +991,22 @@
    5. RESPONSIVE BREAKPOINTS
 ========================================================= */
 
-@media (max-width: 1024px) {
-    .dashboard-stats,
+@media (max-width: 1200px) {
     .quick-menu {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .quick-card:last-child {
+    .alert-info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1024px) {
+    .dashboard-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card:last-child {
         grid-column: span 2;
     }
 }
@@ -838,21 +1023,29 @@
         padding: 20px;
     }
 
-    .btn-panic-hero {
+    .welcome-actions {
         width: 100%;
     }
 
-    .dashboard-stats,
+    .btn-hero-action {
+        width: 100%;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .stat-card:last-child {
+        grid-column: span 1;
+    }
+
     .quick-menu {
         grid-template-columns: 1fr;
         gap: 14px;
     }
 
-    .quick-card:last-child {
-        grid-column: span 1;
-    }
-
-    .report-grid {
+    .alert-info-grid {
         grid-template-columns: 1fr;
     }
 
@@ -862,9 +1055,13 @@
         gap: 10px;
     }
 
-    .active-report-top {
+    .active-alert-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 10px;
+    }
+
+    .alert-actions-bar {
+        justify-content: flex-start;
     }
 }

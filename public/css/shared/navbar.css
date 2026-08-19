@@ -1,0 +1,311 @@
+/* =====================================================
+   SHARED REUSABLE NAVBAR (LIGHT & DARK MODE READY)
+===================================================== */
+
+.app-navbar,
+.user-navbar,
+.admin-navbar {
+    position: sticky;
+    top: 0;
+    height: var(--navbar-height, 58px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0 20px;
+    background: var(--bg-surface, #ffffff);
+    border-bottom: 1px solid var(--border-color, #e5eaf0);
+    z-index: 900;
+    transition:
+        background-color 0.25s ease,
+        border-color 0.25s ease;
+}
+
+
+/* =====================================================
+   LEFT: TOGGLE & TITLE
+===================================================== */
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-toggle {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-brand, #173f6f);
+    font-size: 15px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        color 0.25s ease;
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-hover, #eef4fa);
+}
+
+.sidebar-toggle:active {
+    transform: scale(0.94);
+}
+
+.sidebar-toggle i {
+    pointer-events: none;
+}
+
+.navbar-title {
+    flex: 1;
+}
+
+.navbar-title h1 {
+    margin: 0;
+    font-size: 17px;
+    color: var(--text-brand, #173f6f);
+    font-weight: 700;
+    line-height: 1.2;
+    transition: color 0.25s ease;
+}
+
+
+/* =====================================================
+   RIGHT: THEME TOGGLE & PROFILE
+===================================================== */
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+
+/* =====================================================
+   THEME TOGGLE BUTTON & ANIMATION
+===================================================== */
+
+.theme-toggle {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 9px;
+    background: var(--bg-surface-secondary, #f1f5f9);
+    color: var(--text-secondary, #475569);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.2s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.08) rotate(12deg);
+    background: var(--bg-surface-tertiary, #e2e8f0);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.theme-toggle:active {
+    transform: scale(0.92) rotate(-8deg);
+}
+
+.theme-icon-sun,
+.theme-icon-moon {
+    position: absolute;
+    font-size: 15px;
+    transition:
+        transform 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease;
+}
+
+/* Light Theme: Moon visible, Sun hidden */
+.theme-icon-sun {
+    opacity: 0;
+    transform: translateY(16px) rotate(45deg);
+    pointer-events: none;
+    color: #f59e0b;
+}
+
+.theme-icon-moon {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+    color: #475569;
+}
+
+/* Dark Theme: Sun visible, Moon hidden */
+[data-theme="dark"] .theme-icon-sun {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+}
+
+[data-theme="dark"] .theme-icon-moon {
+    opacity: 0;
+    transform: translateY(-16px) rotate(-45deg);
+    pointer-events: none;
+}
+
+
+/* =====================================================
+   USER / ADMIN IDENTITY PILL
+===================================================== */
+
+.navbar-user {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 3px 10px 3px 4px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color, #e5eaf0);
+    background: var(--bg-surface-secondary, #f8fafc);
+    text-decoration: none;
+    user-select: none;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+a.navbar-user:hover {
+    background: var(--bg-hover, #eef4fa);
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-avatar {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #1d4b7d;
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 700;
+    flex-shrink: 0;
+    overflow: hidden;
+    transition:
+        box-shadow 0.2s ease,
+        background-color 0.25s ease;
+}
+
+.navbar-avatar-admin {
+    background: #16a34a;
+}
+
+[data-theme="dark"] .navbar-avatar {
+    background: #2563eb;
+}
+
+[data-theme="dark"] .navbar-avatar-admin {
+    background: #10b981;
+}
+
+.navbar-user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-user-info strong {
+    font-size: 12px;
+    color: var(--text-primary, #1e293b);
+    font-weight: 600;
+    line-height: 1.15;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.25s ease;
+}
+
+.navbar-user-info span {
+    font-size: 9.5px;
+    color: var(--text-muted, #8a96a3);
+    line-height: 1;
+    margin-top: 1px;
+    white-space: nowrap;
+    transition: color 0.25s ease;
+}
+
+.navbar-admin {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.navbar-admin .navbar-user-info strong {
+    color: #15803d;
+}
+
+.navbar-admin .navbar-user-info span {
+    color: #16a34a;
+}
+
+[data-theme="dark"] .navbar-admin {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .navbar-admin .navbar-user-info strong {
+    color: #86efac;
+}
+
+[data-theme="dark"] .navbar-admin .navbar-user-info span {
+    color: #6ee7b7;
+}
+
+
+/* =====================================================
+   MOBILE RESPONSIVE
+===================================================== */
+
+@media (max-width: 768px) {
+
+    .app-navbar,
+    .user-navbar,
+    .admin-navbar {
+        height: var(--navbar-mobile-height, 52px);
+        padding: 0 14px;
+        gap: 10px;
+    }
+
+    .navbar-title h1 {
+        font-size: 15px;
+    }
+
+    .theme-toggle {
+        width: 30px;
+        height: 30px;
+    }
+
+    .theme-icon-sun,
+    .theme-icon-moon {
+        font-size: 13px;
+    }
+
+    .navbar-user-info {
+        display: none;
+    }
+
+    .navbar-user {
+        padding: 0;
+        border: none;
+        background: transparent;
+    }
+
+}

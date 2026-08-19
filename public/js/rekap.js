@@ -4,7 +4,7 @@ import {
 } from "./firebase-config.js";
 
 import {
-     ref,
+    ref,
     onValue,
     get,
     push,
@@ -23,32 +23,17 @@ const perumahanRef = ref(db1, "perumahan");
 
 
 /* =========================================
-   DOM
+   DOM ELEMENTS
 ========================================= */
 
-const tableBody =
-    document.getElementById("perumahanTableBody");
-
-const totalCount =
-    document.getElementById("totalCount");
-
-const searchInput =
-    document.getElementById("searchInput");
-
-const prevBtn =
-    document.getElementById("prevBtn");
-
-const nextBtn =
-    document.getElementById("nextBtn");
-
-const paginationInfo =
-    document.getElementById("paginationInfo");
-
-const cardContainer =
-    document.getElementById("cardContainer");
-
-const openAddModal =
-    document.getElementById("openAddModal");
+const tableBody = document.getElementById("perumahanTableBody");
+const totalCount = document.getElementById("totalCount");
+const searchInput = document.getElementById("searchInput");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const paginationInfo = document.getElementById("paginationInfo");
+const cardContainer = document.getElementById("cardContainer");
+const openAddModal = document.getElementById("openAddModal");
 
 
 /* =========================================
@@ -56,27 +41,40 @@ const openAddModal =
 ========================================= */
 
 let allData = [];
-
 let currentPage = 1;
-
-const itemsPerPage = 5;
+const itemsPerPage = 8;
 
 let daftarPerumahan = {};
-
 let detailPerumahan = {};
 
 
 /* =========================================
-   HELPER
+   HELPER FUNCTIONS
 ========================================= */
 
 function toSlug(text) {
-
     return text
         .toLowerCase()
         .trim()
         .replace(/\s+/g, "_");
+}
 
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function escapeAttribute(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/"/g, "&quot;");
 }
 
 
@@ -85,66 +83,38 @@ function toSlug(text) {
 ========================================= */
 
 function mergeData() {
-
     allData = [];
 
     for (const key in daftarPerumahan) {
-
         allData.push({
-
             key: key,
-
             nama: daftarPerumahan[key],
-
-            info:
-                detailPerumahan[key]?.info || {}
-
+            info: detailPerumahan[key]?.info || {}
         });
-
     }
 
-    currentPage = 1;
+    // Sort alphabetically by nama
+    allData.sort((a, b) => a.nama.localeCompare(b.nama));
 
-    renderTable(
-        filterData(searchInput.value)
-    );
+    currentPage = 1;
+    renderTable(filterData(searchInput ? searchInput.value : ""));
 }
 
 
 /* =========================================
-   FILTER
+   FILTER DATA
 ========================================= */
 
 function filterData(query) {
-
-    const q = query
-        .toLowerCase()
-        .trim();
+    const q = (query || "").toLowerCase().trim();
 
     return allData.filter(({ nama, info }) => {
-
         return (
-
-            nama
-                .toLowerCase()
-                .includes(q)
-
-            ||
-
-            (info.kontak || "")
-                .toLowerCase()
-                .includes(q)
-
-            ||
-
-            (info.lokasi || "")
-                .toLowerCase()
-                .includes(q)
-
+            nama.toLowerCase().includes(q) ||
+            (info.kontak || "").toLowerCase().includes(q) ||
+            (info.lokasi || "").toLowerCase().includes(q)
         );
-
     });
-
 }
 
 
@@ -153,105 +123,74 @@ function filterData(query) {
 ========================================= */
 
 function renderTable(filteredData) {
+    if (!tableBody) return;
 
     const totalItems = filteredData.length;
 
-    totalCount.textContent = totalItems;
-
-
-    const totalPages =
-        Math.ceil(totalItems / itemsPerPage);
-
-
-    if (totalPages === 0) {
-
-        currentPage = 1;
-
-    } else {
-
-        currentPage =
-            Math.max(
-                1,
-                Math.min(
-                    currentPage,
-                    totalPages
-                )
-            );
-
+    if (totalCount) {
+        totalCount.textContent = totalItems.toLocaleString("id-ID");
     }
 
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    const startIdx =
-        (currentPage - 1) * itemsPerPage;
+    if (totalPages === 0) {
+        currentPage = 1;
+    } else {
+        currentPage = Math.max(1, Math.min(currentPage, totalPages));
+    }
 
-
-    const endIdx =
-        Math.min(
-            startIdx + itemsPerPage,
-            totalItems
-        );
-
-
-    const paginatedData =
-        filteredData.slice(
-            startIdx,
-            endIdx
-        );
-
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
+    const paginatedData = filteredData.slice(startIdx, endIdx);
 
     tableBody.innerHTML = "";
 
-
     if (totalItems === 0) {
-
         tableBody.innerHTML = `
             <tr>
-                <td
-                    colspan="6"
-                    class="loading"
-                >
-                    <i class="fas fa-building"></i>
-                    Tidak ada data ditemukan.
+                <td colspan="6" class="loading">
+                    <i class="fa-solid fa-building-circle-xmark" style="font-size:32px; display:block; margin-bottom:8px; opacity:0.6;"></i>
+                    <strong style="font-size:15px; display:block; margin-bottom:4px; color:var(--dash-text-main);">Tidak ada data perumahan ditemukan.</strong>
+                    <span style="font-size:13px;">Coba sesuaikan kata kunci pencarian Anda.</span>
                 </td>
             </tr>
         `;
-
     } else {
+        paginatedData.forEach(({ key, nama, info }, index) => {
+            const row = document.createElement("tr");
 
-        paginatedData.forEach(
-            ({ key, nama, info }, index) => {
+            row.innerHTML = `
+                <td style="font-weight: 600; color: var(--dash-text-muted);">
+                    ${startIdx + index + 1}
+                </td>
 
-                const row =
-                    document.createElement("tr");
+                <td>
+                    <div class="perumahan-cell">
+                        <div class="perumahan-icon-badge">
+                            <i class="fa-solid fa-city"></i>
+                        </div>
+                        <span class="perumahan-title-text">${escapeHtml(nama)}</span>
+                    </div>
+                </td>
 
+                <td>
+                    <span style="display:inline-flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-phone" style="font-size:12px; color:var(--dash-primary);"></i>
+                        ${escapeHtml(info.kontak || "-")}
+                    </span>
+                </td>
 
-                row.innerHTML = `
+                <td>
+                    <span style="display:inline-flex; align-items:center; gap:6px; color:var(--dash-text-muted);">
+                        <i class="fa-solid fa-location-dot" style="font-size:12px; color:var(--dash-emergency);"></i>
+                        ${escapeHtml(info.lokasi || "-")}
+                    </span>
+                </td>
 
-                    <td>
-                        ${startIdx + index + 1}
-                    </td>
-
-                    <td>
-                        <strong>
-                            ${escapeHtml(nama)}
-                        </strong>
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            info.kontak || "-"
-                        )}
-                    </td>
-
-                    <td>
-                        ${escapeHtml(
-                            info.lokasi || "-"
-                        )}
-                    </td>
-
-                    <td>
-
+                <td style="text-align: center;">
+                    <div class="action-buttons-group">
                         <button
+                            type="button"
                             class="btn-edit"
                             onclick="openEditModal(
                                 '${escapeAttribute(key)}',
@@ -259,71 +198,53 @@ function renderTable(filteredData) {
                                 '${escapeAttribute(info.kontak || "")}',
                                 '${escapeAttribute(info.lokasi || "")}'
                             )"
+                            title="Edit Perumahan"
                         >
-                            <i class="fas fa-edit"></i>
-                            Edit
+                            <i class="fa-solid fa-pen-to-square"></i>
+                            <span>Edit</span>
                         </button>
 
                         <button
+                            type="button"
                             class="btn-delete"
                             onclick="confirmDelete(
                                 '${escapeAttribute(key)}',
                                 '${escapeAttribute(nama)}'
                             )"
+                            title="Hapus Perumahan"
                         >
-                            <i class="fas fa-trash"></i>
-                            Hapus
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Hapus</span>
                         </button>
-
-                    </td>
-
-                    <td>
 
                         <a
                             href="/detail-perumahan?key=${encodeURIComponent(key)}"
                             class="btn-detail"
+                            title="Lihat Detail Monitor"
                         >
-                            <i class="fas fa-eye"></i>
-                            Detail
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            <span>Detail</span>
                         </a>
+                    </div>
+                </td>
+            `;
 
-                    </td>
-
-                `;
-
-
-                tableBody.appendChild(row);
-
-            }
-        );
-
+            tableBody.appendChild(row);
+        });
     }
 
-
-    if (totalItems === 0) {
-
-        paginationInfo.textContent =
-            "Menampilkan 0 - 0 dari 0 data";
-
-    } else {
-
-        paginationInfo.textContent =
-            `Menampilkan ${startIdx + 1} - ${endIdx} dari ${totalItems} data`;
-
+    if (paginationInfo) {
+        if (totalItems === 0) {
+            paginationInfo.textContent = "Menampilkan 0 - 0 dari 0 data perumahan";
+        } else {
+            paginationInfo.textContent = `Menampilkan ${startIdx + 1} - ${endIdx} dari ${totalItems} data perumahan`;
+        }
     }
 
-
-    prevBtn.disabled =
-        currentPage === 1;
-
-
-    nextBtn.disabled =
-        totalPages === 0 ||
-        currentPage >= totalPages;
-
+    if (prevBtn) prevBtn.disabled = currentPage === 1;
+    if (nextBtn) nextBtn.disabled = totalPages === 0 || currentPage >= totalPages;
 
     renderCards(filteredData);
-
 }
 
 
@@ -332,156 +253,88 @@ function renderTable(filteredData) {
 ========================================= */
 
 function renderCards(data) {
+    if (!cardContainer) return;
 
     const totalItems = data.length;
-
-    const totalPages =
-        Math.ceil(
-            totalItems / itemsPerPage
-        );
-
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
 
     if (totalPages === 0) {
-
         cardContainer.innerHTML = `
-            <div class="perumahan-card">
-                <div class="card-title">
-                    Tidak ada data
-                </div>
+            <div class="perumahan-card" style="text-align:center; padding:30px 16px;">
+                <i class="fa-solid fa-building-circle-xmark" style="font-size:28px; opacity:0.6; margin-bottom:8px; display:block;"></i>
+                <div class="card-title" style="justify-content:center;">Tidak ada data perumahan</div>
             </div>
         `;
-
         return;
-
     }
 
-
-    const startIdx =
-        (currentPage - 1) * itemsPerPage;
-
-
-    const endIdx =
-        Math.min(
-            startIdx + itemsPerPage,
-            totalItems
-        );
-
-
-    const paginatedData =
-        data.slice(
-            startIdx,
-            endIdx
-        );
-
+    const startIdx = (currentPage - 1) * itemsPerPage;
+    const endIdx = Math.min(startIdx + itemsPerPage, totalItems);
+    const paginatedData = data.slice(startIdx, endIdx);
 
     cardContainer.innerHTML = "";
 
+    paginatedData.forEach(({ key, nama, info }) => {
+        const card = document.createElement("div");
+        card.className = "perumahan-card";
 
-    paginatedData.forEach(
-        ({ key, nama, info }) => {
+        card.innerHTML = `
+            <div class="card-title">
+                <i class="fa-solid fa-city" style="color:var(--dash-success); font-size:16px;"></i>
+                <span>${escapeHtml(nama)}</span>
+            </div>
 
-            const card =
-                document.createElement("div");
+            <div class="card-info">
+                <i class="fa-solid fa-phone" style="width:18px; color:var(--dash-primary);"></i>
+                <strong>Kontak:</strong>
+                <span>${escapeHtml(info.kontak || "-")}</span>
+            </div>
 
+            <div class="card-info">
+                <i class="fa-solid fa-location-dot" style="width:18px; color:var(--dash-emergency);"></i>
+                <strong>Lokasi:</strong>
+                <span>${escapeHtml(info.lokasi || "-")}</span>
+            </div>
 
-            card.className =
-                "perumahan-card";
+            <div class="card-actions">
+                <button
+                    type="button"
+                    class="btn-edit"
+                    onclick="openEditModal(
+                        '${escapeAttribute(key)}',
+                        '${escapeAttribute(nama)}',
+                        '${escapeAttribute(info.kontak || "")}',
+                        '${escapeAttribute(info.lokasi || "")}'
+                    )"
+                >
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Edit</span>
+                </button>
 
+                <button
+                    type="button"
+                    class="btn-delete"
+                    onclick="confirmDelete(
+                        '${escapeAttribute(key)}',
+                        '${escapeAttribute(nama)}'
+                    )"
+                >
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Hapus</span>
+                </button>
 
-            card.innerHTML = `
+                <a
+                    href="/detail-perumahan?key=${encodeURIComponent(key)}"
+                    class="btn-detail"
+                >
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    <span>Detail</span>
+                </a>
+            </div>
+        `;
 
-                <div class="card-title">
-                    ${escapeHtml(nama)}
-                </div>
-
-                <div class="card-info">
-                    <strong>Kontak:</strong>
-                    <span>
-                        ${escapeHtml(
-                            info.kontak || "-"
-                        )}
-                    </span>
-                </div>
-
-                <div class="card-info">
-                    <strong>Lokasi:</strong>
-                    <span>
-                        ${escapeHtml(
-                            info.lokasi || "-"
-                        )}
-                    </span>
-                </div>
-
-                <div class="card-actions">
-
-                    <button
-                        class="btn-edit"
-                        onclick="openEditModal(
-                            '${escapeAttribute(key)}',
-                            '${escapeAttribute(nama)}',
-                            '${escapeAttribute(info.kontak || "")}',
-                            '${escapeAttribute(info.lokasi || "")}'
-                        )"
-                    >
-                        <i class="fas fa-edit"></i>
-                        Edit
-                    </button>
-
-                    <button
-                        class="btn-delete"
-                        onclick="confirmDelete(
-                            '${escapeAttribute(key)}',
-                            '${escapeAttribute(nama)}'
-                        )"
-                    >
-                        <i class="fas fa-trash"></i>
-                        Hapus
-                    </button>
-
-                    <a
-                        href="/detail-perumahan?key=${encodeURIComponent(key)}"
-                        class="btn-detail"
-                    >
-                        <i class="fas fa-eye"></i>
-                        Detail
-                    </a>
-
-                </div>
-
-            `;
-
-
-            cardContainer.appendChild(card);
-
-        }
-    );
-
-}
-
-
-/* =========================================
-   ESCAPE HTML
-========================================= */
-
-function escapeHtml(value) {
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-function escapeAttribute(value) {
-
-    return String(value)
-        .replace(/\\/g, "\\\\")
-        .replace(/'/g, "\\'")
-        .replace(/"/g, "&quot;");
-
+        cardContainer.appendChild(card);
+    });
 }
 
 
@@ -489,559 +342,274 @@ function escapeAttribute(value) {
    SEARCH
 ========================================= */
 
-searchInput.addEventListener(
-    "input",
-    () => {
-
+if (searchInput) {
+    searchInput.addEventListener("input", () => {
         currentPage = 1;
-
-        renderTable(
-            filterData(
-                searchInput.value
-            )
-        );
-
-    }
-);
+        renderTable(filterData(searchInput.value));
+    });
+}
 
 
 /* =========================================
    PAGINATION
 ========================================= */
 
-prevBtn.addEventListener(
-    "click",
-    () => {
-
+if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
         if (currentPage > 1) {
-
             currentPage--;
-
-            renderTable(
-                filterData(
-                    searchInput.value
-                )
-            );
-
+            renderTable(filterData(searchInput ? searchInput.value : ""));
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
+    });
+}
 
-    }
-);
-
-
-nextBtn.addEventListener(
-    "click",
-    () => {
-
-        const data =
-            filterData(
-                searchInput.value
-            );
-
-        const totalPages =
-            Math.ceil(
-                data.length / itemsPerPage
-            );
+if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+        const data = filterData(searchInput ? searchInput.value : "");
+        const totalPages = Math.ceil(data.length / itemsPerPage);
 
         if (currentPage < totalPages) {
-
             currentPage++;
-
             renderTable(data);
-
+            window.scrollTo({ top: 0, behavior: "smooth" });
         }
-
-    }
-);
-
-
-/* =========================================
-   FIREBASE - DAFTAR PERUMAHAN
-========================================= */
-
-onValue(
-    daftarRef,
-    (snapshot) => {
-
-        daftarPerumahan =
-            snapshot.val() || {};
-
-        mergeData();
-
-    }
-);
+    });
+}
 
 
 /* =========================================
-   FIREBASE - DETAIL PERUMAHAN
+   FIREBASE - LISTENERS
 ========================================= */
 
-onValue(
-    perumahanRef,
-    (snapshot) => {
+onValue(daftarRef, (snapshot) => {
+    daftarPerumahan = snapshot.val() || {};
+    mergeData();
+});
 
-        detailPerumahan =
-            snapshot.val() || {};
-
-        mergeData();
-
-    }
-);
+onValue(perumahanRef, (snapshot) => {
+    detailPerumahan = snapshot.val() || {};
+    mergeData();
+});
 
 
 /* =========================================
    TAMBAH PERUMAHAN
 ========================================= */
 
-openAddModal.addEventListener(
-    "click",
-    () => {
-
+if (openAddModal) {
+    openAddModal.addEventListener("click", () => {
         Swal.fire({
-
-            title: "Tambah Perumahan",
-
+            title: "Tambah Kawasan Perumahan",
             html: `
-
                 <div class="swal-form">
-
-                    <label>
-                        Nama Perumahan
-                    </label>
-
+                    <label for="swalNama">Nama Perumahan</label>
                     <input
                         id="swalNama"
                         class="swal2-input"
-                        placeholder="Masukkan nama perumahan"
+                        placeholder="Contoh: Griya Asri Pratama"
                     >
 
-
-                    <label>
-                        Kontak
-                    </label>
-
+                    <label for="swalKontak">Nomor Kontak Posko / Satpam</label>
                     <input
                         id="swalKontak"
                         class="swal2-input"
-                        placeholder="Masukkan nomor kontak"
+                        placeholder="Contoh: 081234567890"
                     >
 
-
-                    <label>
-                        Lokasi
-                    </label>
-
+                    <label for="swalLokasi">Titik Lokasi Wilayah</label>
                     <input
                         id="swalLokasi"
                         class="swal2-input"
-                        placeholder="Masukkan lokasi"
+                        placeholder="Contoh: Blok A - G, Kec. Sukamaju"
                     >
-
                 </div>
-
             `,
-
             showCancelButton: true,
-
-            confirmButtonText:
-                "Simpan",
-
-            cancelButtonText:
-                "Batal",
-
+            confirmButtonText: "Simpan Data",
+            cancelButtonText: "Batal",
+            confirmButtonColor: "#173f70",
+            cancelButtonColor: "#64748b",
             focusConfirm: false,
-
             preConfirm: () => {
-
-                const nama =
-                    document
-                        .getElementById("swalNama")
-                        .value
-                        .trim();
-
-                const kontak =
-                    document
-                        .getElementById("swalKontak")
-                        .value
-                        .trim();
-
-                const lokasi =
-                    document
-                        .getElementById("swalLokasi")
-                        .value
-                        .trim();
-
+                const nama = document.getElementById("swalNama").value.trim();
+                const kontak = document.getElementById("swalKontak").value.trim();
+                const lokasi = document.getElementById("swalLokasi").value.trim();
 
                 if (!nama || !kontak || !lokasi) {
-
-                    Swal.showValidationMessage(
-                        "Semua field harus diisi"
-                    );
-
+                    Swal.showValidationMessage("Semua field wajib diisi!");
                     return false;
-
                 }
 
-
-                return {
-                    nama,
-                    kontak,
-                    lokasi
-                };
-
+                return { nama, kontak, lokasi };
             }
+        }).then(async (result) => {
+            if (!result.isConfirmed) return;
 
-        }).then(
-            async (result) => {
+            const { nama, kontak, lokasi } = result.value;
+            const key = toSlug(nama);
 
-                if (!result.isConfirmed) {
-                    return;
-                }
+            const updates = {};
+            updates[`daftar_perumahan/${key}`] = nama;
+            updates[`perumahan/${key}/info`] = {
+                kontak,
+                lokasi,
+                nama
+            };
+            updates[`perumahan/${key}/buzzers`] = {
+                main: { priority: "off", state: "off" },
+                buzzer_utama: { priority: "off", state: "off" }
+            };
+            updates[`perumahan/${key}/monitor`] = {};
+            updates[`perumahan/${key}/users`] = {};
 
-
-                const {
-                    nama,
-                    kontak,
-                    lokasi
-                } = result.value;
-
-
-                const key =
-                    toSlug(nama);
-
-
-                const updates = {};
-
-
-                updates[
-                    `daftar_perumahan/${key}`
-                ] = nama;
-
-
-                updates[
-                    `perumahan/${key}/info`
-                ] = {
-
-                    kontak,
-                    lokasi,
-                    nama
-
-                };
-
-
-                updates[
-                    `perumahan/${key}/buzzers`
-                ] = {
-
-                    main: {
-                        priority: "off",
-                        state: "off"
-                    },
-
-                    buzzer_utama: {
-                        priority: "off",
-                        state: "off"
-                    }
-
-                };
-
-
-                updates[
-                    `perumahan/${key}/monitor`
-                ] = {};
-
-
-                updates[
-                    `perumahan/${key}/users`
-                ] = {};
-
-
-                try {
-
-                    await update(
-                        ref(db1),
-                        updates
-                    );
-
-
-                    Swal.fire(
-                        "Berhasil",
-                        "Data perumahan berhasil ditambahkan.",
-                        "success"
-                    );
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    Swal.fire(
-                        "Gagal",
-                        "Data gagal ditambahkan.",
-                        "error"
-                    );
-
-                }
-
+            try {
+                await update(ref(db1), updates);
+                Swal.fire({
+                    icon: "success",
+                    title: "Berhasil Ditambahkan",
+                    text: `Kawasan ${nama} berhasil didaftarkan.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal Menambahkan",
+                    text: error.message,
+                    confirmButtonColor: "#173f70"
+                });
             }
-        );
-
-    }
-);
+        });
+    });
+}
 
 
 /* =========================================
    EDIT PERUMAHAN
 ========================================= */
 
-window.openEditModal =
-    function (
-        key,
-        nama,
-        kontak,
-        lokasi
-    ) {
+window.openEditModal = function (key, nama, kontak, lokasi) {
+    Swal.fire({
+        title: "Edit Data Perumahan",
+        html: `
+            <div class="swal-form">
+                <label for="swalNama">Nama Perumahan</label>
+                <input
+                    id="swalNama"
+                    class="swal2-input"
+                    value="${escapeHtml(nama)}"
+                >
 
-        Swal.fire({
+                <label for="swalKontak">Nomor Kontak Posko / Satpam</label>
+                <input
+                    id="swalKontak"
+                    class="swal2-input"
+                    value="${escapeHtml(kontak)}"
+                >
 
-            title: "Edit Data Perumahan",
+                <label for="swalLokasi">Titik Lokasi Wilayah</label>
+                <input
+                    id="swalLokasi"
+                    class="swal2-input"
+                    value="${escapeHtml(lokasi)}"
+                >
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: "Simpan Perubahan",
+        cancelButtonText: "Batal",
+        confirmButtonColor: "#173f70",
+        cancelButtonColor: "#64748b",
+        focusConfirm: false,
+        preConfirm: () => {
+            const namaBaru = document.getElementById("swalNama").value.trim();
+            const kontakBaru = document.getElementById("swalKontak").value.trim();
+            const lokasiBaru = document.getElementById("swalLokasi").value.trim();
 
-            html: `
-
-                <div class="swal-form">
-
-                    <label>
-                        Nama Perumahan
-                    </label>
-
-                    <input
-                        id="swalNama"
-                        class="swal2-input"
-                        value="${escapeHtml(nama)}"
-                    >
-
-
-                    <label>
-                        Kontak
-                    </label>
-
-                    <input
-                        id="swalKontak"
-                        class="swal2-input"
-                        value="${escapeHtml(kontak)}"
-                    >
-
-
-                    <label>
-                        Lokasi
-                    </label>
-
-                    <input
-                        id="swalLokasi"
-                        class="swal2-input"
-                        value="${escapeHtml(lokasi)}"
-                    >
-
-                </div>
-
-            `,
-
-            showCancelButton: true,
-
-            confirmButtonText:
-                "Simpan",
-
-            cancelButtonText:
-                "Batal",
-
-            focusConfirm: false,
-
-            preConfirm: () => {
-
-                const namaBaru =
-                    document
-                        .getElementById("swalNama")
-                        .value
-                        .trim();
-
-                const kontakBaru =
-                    document
-                        .getElementById("swalKontak")
-                        .value
-                        .trim();
-
-                const lokasiBaru =
-                    document
-                        .getElementById("swalLokasi")
-                        .value
-                        .trim();
-
-
-                if (
-                    !namaBaru ||
-                    !kontakBaru ||
-                    !lokasiBaru
-                ) {
-
-                    Swal.showValidationMessage(
-                        "Semua field harus diisi"
-                    );
-
-                    return false;
-
-                }
-
-
-                return {
-                    namaBaru,
-                    kontakBaru,
-                    lokasiBaru
-                };
-
+            if (!namaBaru || !kontakBaru || !lokasiBaru) {
+                Swal.showValidationMessage("Semua field wajib diisi!");
+                return false;
             }
 
-        }).then(
-            async (result) => {
+            return { namaBaru, kontakBaru, lokasiBaru };
+        }
+    }).then(async (result) => {
+        if (!result.isConfirmed) return;
 
-                if (!result.isConfirmed) {
-                    return;
-                }
+        const { namaBaru, kontakBaru, lokasiBaru } = result.value;
 
+        const updates = {};
+        updates[`daftar_perumahan/${key}`] = namaBaru;
+        updates[`perumahan/${key}/info`] = {
+            kontak: kontakBaru,
+            lokasi: lokasiBaru,
+            nama: namaBaru
+        };
 
-                const {
-                    namaBaru,
-                    kontakBaru,
-                    lokasiBaru
-                } = result.value;
-
-
-                const updates = {};
-
-
-                updates[
-                    `daftar_perumahan/${key}`
-                ] = namaBaru;
-
-
-                updates[
-                    `perumahan/${key}/info`
-                ] = {
-
-                    kontak:
-                        kontakBaru,
-
-                    lokasi:
-                        lokasiBaru,
-
-                    nama:
-                        namaBaru
-
-                };
-
-
-                try {
-
-                    await update(
-                        ref(db1),
-                        updates
-                    );
-
-
-                    Swal.fire(
-                        "Berhasil",
-                        "Data berhasil diubah.",
-                        "success"
-                    );
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    Swal.fire(
-                        "Gagal",
-                        "Data gagal diubah.",
-                        "error"
-                    );
-
-                }
-
-            }
-        );
-
-    };
+        try {
+            await update(ref(db1), updates);
+            Swal.fire({
+                icon: "success",
+                title: "Berhasil Diperbarui",
+                text: "Data perumahan berhasil disimpan.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: "error",
+                title: "Gagal Mengubah",
+                text: error.message,
+                confirmButtonColor: "#173f70"
+            });
+        }
+    });
+};
 
 
 /* =========================================
    HAPUS PERUMAHAN
 ========================================= */
 
-window.confirmDelete =
-    function (key, nama) {
+window.confirmDelete = function (key, nama) {
+    Swal.fire({
+        title: `Hapus ${nama}?`,
+        text: "Kawasan perumahan dan seluruh data monitor serta pengguna terkait akan dihapus secara permanen.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Ya, Hapus",
+        cancelButtonText: "Batal",
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#64748b"
+    }).then(async (result) => {
+        if (!result.isConfirmed) return;
 
-        Swal.fire({
+        const updates = {};
+        updates[`daftar_perumahan/${key}`] = null;
+        updates[`perumahan/${key}`] = null;
 
-            title: `Hapus ${nama}?`,
+        try {
+            await update(ref(db1), updates);
+            Swal.fire({
+                icon: "success",
+                title: "Terhapus",
+                text: `Kawasan ${nama} berhasil dihapus.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (error) {
+            console.error(error);
+            Swal.fire({
+                icon: "error",
+                title: "Gagal Menghapus",
+                text: error.message,
+                confirmButtonColor: "#173f70"
+            });
+        }
+    });
+};
 
-            text:
-                "Data perumahan dan seluruh data terkait akan dihapus.",
-
-            icon: "warning",
-
-            showCancelButton: true,
-
-            confirmButtonText:
-                "Ya, hapus",
-
-            cancelButtonText:
-                "Batal"
-
-        }).then(
-            async (result) => {
-
-                if (!result.isConfirmed) {
-                    return;
-                }
-
-
-                const updates = {};
-
-
-                updates[
-                    `daftar_perumahan/${key}`
-                ] = null;
-
-
-                updates[
-                    `perumahan/${key}`
-                ] = null;
-
-
-                try {
-
-                    await update(
-                        ref(db1),
-                        updates
-                    );
-
-
-                    Swal.fire(
-                        "Terhapus!",
-                        "Data berhasil dihapus.",
-                        "success"
-                    );
-
-                } catch (error) {
-
-                    console.error(error);
-
-                    Swal.fire(
-                        "Gagal",
-                        "Data gagal dihapus.",
-                        "error"
-                    );
-
-                }
-
-            }
-        );
-
-    };
+console.log("Rekap Data Perumahan initialized smoothly.");
