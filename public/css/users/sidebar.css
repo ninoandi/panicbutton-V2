@@ -299,3 +299,46 @@
     width: auto;
     min-width: auto;
 }
+
+.swal-confirm {
+    background: #dc2626 !important;
+
+    color: #ffffff !important;
+
+    border: none !important;
+
+    border-radius: 8px !important;
+
+    padding: 10px 20px !important;
+
+    font-weight: 600 !important;
+
+    margin-left: 8px !important;
+
+    cursor: pointer !important;
+}
+
+.swal-confirm:hover {
+    background: #b91c1c !important;
+}
+
+
+.swal-cancel {
+    background: #e5e7eb !important;
+
+    color: #374151 !important;
+
+    border: none !important;
+
+    border-radius: 8px !important;
+
+    padding: 10px 20px !important;
+
+    font-weight: 600 !important;
+
+    cursor: pointer !important;
+}
+
+.swal-cancel:hover {
+    background: #d1d5db !important;
+}
