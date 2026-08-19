@@ -467,3 +467,36 @@
     }
 
 }
+
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.location-text {
+    color: #555;
+    line-height: 1.5;
+}
+
+.location-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 6px;
+
+    background: #e8f1ff;
+    color: #1a4f8b;
+
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+
+    transition: 0.2s ease;
+}
+
+.location-link:hover {
+    background: #d5e6ff;
+    text-decoration: underline;
+}

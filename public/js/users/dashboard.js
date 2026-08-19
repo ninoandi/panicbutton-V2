@@ -2,7 +2,9 @@ import { db2 } from "../firebase-config.js";
 
 import {
     ref,
-    onValue
+    onValue,
+    get,
+    update
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
@@ -239,13 +241,21 @@ function loadUserReports() {
             |--------------------------------------------------------------------------
             */
 
-            const activeReport =
+            const activeReport = 
                 userReports.find(
-
                     report =>
                         report.status !== "completed"
-
                 );
+
+            console.log(
+                "Laporan aktif:",
+                activeReport
+            );
+
+            // Cek apakah sudah lewat 30 detik
+            if (activeReport) {
+                checkAutoOff(activeReport);
+            }
 
 
             console.log(
@@ -281,6 +291,186 @@ function loadUserReports() {
 
 }
 
+/* 
+|--------------------------------------------------------------------------
+| AUTO OFF PANIC 30 DETIK
+|--------------------------------------------------------------------------
+*/
+
+const PANIC_DURATION = 30 * 1000;
+
+async function checkAutoOff(report) {
+
+    // Hanya cek laporan yang masih aktif
+    if (!report || report.status === "completed") {
+        return;
+    }
+
+    // Kalau belum ada waktu dibuat, jangan lakukan apa-apa
+    if (!report.created_at) {
+        return;
+    }
+
+    const elapsed = Date.now() - Number(report.created_at);
+
+    console.log(
+        "Cek umur Panic:",
+        Math.round(elapsed / 1000),
+        "detik"
+    );
+
+    // Belum 30 detik
+    if (elapsed < PANIC_DURATION) {
+        return;
+    }
+
+    console.log(
+        "Panic sudah lebih dari 30 detik."
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | MATIKAN IOT
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        report.assigned_zone &&
+        report.assigned_device
+    ) {
+
+        // Karena assigned_device berisi nama device,
+        // kita perlu mencari deviceKey di panicChannels.
+        const channelsRef = ref(
+            db2,
+            `panicChannels/${report.assigned_zone}`
+        );
+
+        try {
+
+            const snapshot =
+                await get(channelsRef);
+
+            if (snapshot.exists()) {
+
+                const devices =
+                    snapshot.val();
+
+                for (
+                    const [deviceKey, deviceData]
+                    of Object.entries(devices)
+                ) {
+
+                    if (!deviceData) {
+                        continue;
+                    }
+
+                    const deviceName =
+                        deviceData.device || deviceKey;
+
+                    if (
+                        deviceName === report.assigned_device
+                    ) {
+
+                        console.log(
+                            "Device ditemukan:",
+                            deviceKey
+                        );
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Pastikan device memang milik panic ini
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if (
+                            deviceData.assigned_panic_id &&
+                            deviceData.assigned_panic_id !== report.id
+                        ) {
+
+                            console.warn(
+                                "Device sedang digunakan panic lain."
+                            );
+
+                            break;
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | MATIKAN DEVICE
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const deviceRef = ref(
+                            db2,
+                            `panicChannels/${report.assigned_zone}/${deviceKey}`
+                        );
+
+                        await update(
+                            deviceRef,
+                            {
+                                active: false,
+                                assigned_panic_id: "",
+                                panic_latitude: null,
+                                panic_longitude: null,
+                                last_update: Date.now()
+                            }
+                        );
+
+                        console.log(
+                            "IoT berhasil dimatikan otomatis:",
+                            deviceKey
+                        );
+
+                        break;
+                    }
+                }
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Gagal mematikan IoT:",
+                error
+            );
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE STATUS LAPORAN
+    |--------------------------------------------------------------------------
+    */
+
+    try {
+
+        const panicRef =
+            ref(
+                db2,
+                `public_panics/${report.id}`
+            );
+
+        await update(
+            panicRef,
+            {
+                status: "completed",
+                device_auto_off: true,
+                updated_at: Date.now()
+            }
+        );
+
+        console.log(
+            "Status panic diubah menjadi completed."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Gagal update status panic:",
+            error
+        );
+    }
+}
 
 /*
 |--------------------------------------------------------------------------
@@ -369,12 +559,7 @@ function renderActiveReport(report) {
                         🚨 Panic Button
                     </h3>
 
-                    <div class="report-id">
-
-                        ID Laporan:
-                        ${escapeHtml(report.id)}
-
-                    </div>
+                    
 
                 </div>
 

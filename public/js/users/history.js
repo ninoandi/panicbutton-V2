@@ -330,16 +330,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                                     <span>
 
-                                        ID:
-                                        ${escapeHtml(
-                                            report.id
-                                        )}
-
-                                    </span>
-
-
-                                    <span>
-
                                         ${formatDate(
                                             report.created_at
                                         )}
@@ -347,13 +337,45 @@ document.addEventListener("DOMContentLoaded", () => {
                                     </span>
 
 
-                                    <span>
+                            <div class="location-info">
 
+                                    <span class="location-text">
+                                        📍
                                         ${escapeHtml(
-                                            report.address || "-"
+                                            report.address || "Lokasi tidak tersedia"
                                         )}
-
                                     </span>
+
+                                    ${
+                                        report.location_url
+                                            ? `
+                                                <a
+                                                    href="${escapeHtml(report.location_url)}"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="location-link"
+                                                >
+                                                    Lihat lokasi
+                                                </a>
+                                            `
+                                            : (
+                                                report.latitude != null &&
+                                                report.longitude != null
+                                            )
+                                                ? `
+                                                    <a
+                                                        href="https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="location-link"
+                                                    >
+                                                        Lihat lokasi
+                                                    </a>
+                                                `
+                                                : ""
+                                    }
+
+                                </div>
 
                                 </div>
 
