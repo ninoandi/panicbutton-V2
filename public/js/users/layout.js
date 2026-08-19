@@ -109,3 +109,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const userLayout = document.querySelector('.user-layout');
+
+    if (!sidebarToggle) {
+        console.warn('Tombol sidebar tidak ditemukan');
+        return;
+    }
+
+    if (!userLayout) {
+        console.warn('User layout tidak ditemukan');
+        return;
+    }
+
+    sidebarToggle.addEventListener('click', () => {
+
+        userLayout.classList.toggle('sidebar-collapsed');
+
+        const icon = sidebarToggle.querySelector('i');
+
+        if (!icon) return;
+
+        if (userLayout.classList.contains('sidebar-collapsed')) {
+
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-xmark');
+
+        } else {
+
+            icon.classList.remove('fa-xmark');
+            icon.classList.add('fa-bars');
+
+        }
+
+    });
+
+});
