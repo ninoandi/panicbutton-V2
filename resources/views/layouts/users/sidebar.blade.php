@@ -91,31 +91,33 @@
     </nav>
 
 
-    {{-- LOGOUT --}}
-    <div class="sidebar-bottom">
+   {{-- LOGOUT --}}
+<div class="sidebar-bottom">
 
-        <form
-            action="{{ route('logout') }}"
-            method="POST"
+    <form
+        action="{{ route('logout') }}"
+        method="POST"
+        id="userLogoutForm"
+    >
+
+        @csrf
+
+        <button
+            type="button"
+            class="sidebar-logout"
+            id="userLogoutButton"
         >
 
-            @csrf
+            <i class="fa-solid fa-right-from-bracket"></i>
 
-            <button
-                type="submit"
-                class="sidebar-logout"
-            >
+            <span>
+                Logout
+            </span>
 
-                <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
 
-                <span>
-                    Logout
-                </span>
+    </form>
 
-            </button>
-
-        </form>
-
-    </div>
+</div>
 
 </aside>
