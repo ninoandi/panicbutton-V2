@@ -17,6 +17,12 @@ import {
 const panicButton =
     document.getElementById("panicButton");
 
+// =====================================================
+// DURASI AKTIF PANIC BUTTON
+// =====================================================
+
+const PANIC_DURATION = 30 * 1000; // 30 detik
+
 
 // =====================================================
 // HITUNG JARAK
@@ -487,6 +493,179 @@ function getCurrentLocation() {
 
 }
 
+// =====================================================
+// MATIKAN IOT OTOMATIS
+// =====================================================
+
+async function autoTurnOffDevice(
+    zone,
+    deviceKey,
+    panicId
+) {
+
+    console.log(
+        "================================="
+    );
+
+    console.log(
+        "AUTO-OFF TIMER DIMULAI"
+    );
+
+    console.log(
+        "Device:",
+        deviceKey
+    );
+
+    console.log(
+        "Panic ID:",
+        panicId
+    );
+
+    console.log(
+        "Durasi: 30 detik"
+    );
+
+    console.log(
+        "================================="
+    );
+
+
+    // Tunggu 30 detik
+    await new Promise(resolve => {
+        setTimeout(
+            resolve,
+            PANIC_DURATION
+        );
+    });
+
+
+    try {
+
+        const deviceRef = ref(
+            db2,
+            `panicChannels/${zone}/${deviceKey}`
+        );
+
+
+        // Baca kondisi terbaru terlebih dahulu
+        const snapshot = await get(
+            deviceRef
+        );
+
+
+        if (!snapshot.exists()) {
+
+            console.warn(
+                "Device tidak ditemukan saat auto-off:",
+                deviceKey
+            );
+
+            return;
+        }
+
+
+        const deviceData =
+            snapshot.val();
+
+
+        // =================================================
+        // PENTING
+        // Jangan mematikan device jika sudah digunakan
+        // untuk panic lain.
+        // =================================================
+
+        if (
+            deviceData.assigned_panic_id &&
+            deviceData.assigned_panic_id !== panicId
+        ) {
+
+            console.warn(
+                "Auto-off dibatalkan karena device sudah digunakan oleh panic lain."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // MATIKAN IOT
+        // =================================================
+
+        await update(
+            deviceRef,
+            {
+
+                active: false,
+
+                assigned_panic_id: "",
+
+                panic_latitude: null,
+
+                panic_longitude: null,
+
+                last_update: Date.now()
+
+            }
+        );
+
+
+        // =================================================
+        // UPDATE PUBLIC PANIC
+        // =================================================
+
+        const panicRef = ref(
+            db2,
+            `public_panics/${panicId}`
+        );
+
+
+        await update(
+            panicRef,
+            {
+
+                status: "completed",
+
+                updated_at: Date.now(),
+
+                device_auto_off: true
+
+            }
+        );
+
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "IOT OTOMATIS DIMATIKAN"
+        );
+
+        console.log(
+            "Device:",
+            deviceKey
+        );
+
+        console.log(
+            "Panic ID:",
+            panicId
+        );
+
+        console.log(
+            "================================="
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            "Gagal melakukan auto-off IoT:",
+            error
+        );
+
+    }
+
+}
 
 // =====================================================
 // TOMBOL PANIC
@@ -794,6 +973,16 @@ panicButton?.addEventListener(
                         Date.now()
 
                 }
+            );
+
+            // =====================================================
+            // MULAI AUTO-OFF 30 DETIK
+            // =====================================================
+
+            autoTurnOffDevice(
+                nearestDevice.zone,
+                nearestDevice.deviceKey,
+                panicId
             );
 
 
