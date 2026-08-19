@@ -54,29 +54,17 @@
 
 
         <div class="panic-location">
+            <span class="location-label">Lokasi Anda</span>
 
-            <label for="location">
-                Lokasi Anda
-            </label>
+            <div id="location" class="location-display">
+                Mendeteksi lokasi...
+            </div>
 
-            <input
-                type="text"
-                id="location"
-                placeholder="Mendeteksi lokasi..."
-                readonly
-            >
-
-            <input
-                type="hidden"
-                id="latitude"
-            >
-
-            <input
-                type="hidden"
-                id="longitude"
-            >
-
+            <!-- Hidden input tetap dipertahankan jika Anda membutuhkannya untuk submit form ke backend -->
+            <input type="hidden" id="latitude">
+            <input type="hidden" id="longitude">
         </div>
+
 
 
         <button
