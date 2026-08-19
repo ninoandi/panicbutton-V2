@@ -217,6 +217,57 @@
       display: block;
     }
 
+    .sidebar-logout-container {
+    margin-top: auto;
+    padding: 15px 20px;
+    border-top: 1px solid #e5e7eb;
+}
+
+
+.sidebar-logout-container form {
+    width: 100%;
+}
+
+
+.sidebar-logout {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 12px 15px;
+
+    border: none;
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #dc2626;
+
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+}
+
+
+.sidebar-logout i {
+    width: 20px;
+    text-align: center;
+    font-size: 16px;
+}
+
+
+.sidebar-logout:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
     /* Main Content */
     .main-content {
     margin-left: 0;

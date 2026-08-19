@@ -59,3 +59,47 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const logoutButton =
+        document.getElementById('adminLogoutButton');
+
+    const logoutForm =
+        document.getElementById('adminLogoutForm');
+
+
+    // Kalau elemen logout tidak ada, jangan lakukan apa-apa
+    if (!logoutButton || !logoutForm) {
+        return;
+    }
+
+
+    logoutButton.addEventListener('click', function () {
+
+        Swal.fire({
+
+            title: 'Logout?',
+            text: 'Apakah Anda yakin ingin keluar dari sistem?',
+            icon: 'warning',
+
+            showCancelButton: true,
+
+            confirmButtonText: 'Ya, Logout',
+            cancelButtonText: 'Batal',
+
+            reverseButtons: true
+
+        }).then((result) => {
+
+            if (result.isConfirmed) {
+
+                logoutForm.submit();
+
+            }
+
+        });
+
+    });
+
+});

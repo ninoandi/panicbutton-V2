@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'firebase' => [
+
+    'perumahan_url' => env(
+        'FIREBASE_PERUMAHAN_URL'
+    ),
+
+    'public_url' => env(
+        'FIREBASE_PUBLIC_URL'
+    ),
+
+],
 ];

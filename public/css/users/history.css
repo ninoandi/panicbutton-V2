@@ -1,0 +1,469 @@
+/* =========================================================
+   HISTORY USER
+========================================================= */
+
+.history-page {
+    width: 100%;
+    min-height: 100%;
+    padding: 30px;
+    background: #f5f7fb;
+    color: #222;
+    font-family:
+        'Segoe UI',
+        Arial,
+        sans-serif;
+}
+
+
+/* =========================================================
+   HISTORY CARD
+========================================================= */
+
+.history-page .dashboard-card {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 25px;
+
+    border: 1px solid #edf0f4;
+
+    box-shadow:
+        0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+
+/* =========================================================
+   CARD HEADER
+========================================================= */
+
+.history-page .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+
+    border-bottom: 1px solid #edf0f4;
+}
+
+
+.history-page .card-header h2 {
+    margin: 0;
+
+    color: #173f70;
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+
+.history-page .card-header p {
+    margin: 6px 0 0;
+
+    color: #777;
+
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   HISTORY CONTAINER
+========================================================= */
+
+.history-page .history-container {
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+
+    width: 100%;
+}
+
+
+/* =========================================================
+   HISTORY ITEM
+========================================================= */
+
+.history-page .history-item {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 25px;
+
+    width: 100%;
+
+    padding: 20px;
+
+    background: #ffffff;
+
+    border: 1px solid #e7ebf0;
+
+    border-radius: 12px;
+
+    transition:
+        transform .2s ease,
+        box-shadow .2s ease,
+        border-color .2s ease;
+}
+
+
+.history-page .history-item:hover {
+    transform: translateY(-2px);
+
+    border-color: #d6dde7;
+
+    box-shadow:
+        0 5px 18px rgba(0, 0, 0, 0.07);
+}
+
+
+/* =========================================================
+   HISTORY MAIN
+========================================================= */
+
+.history-page .history-main {
+    flex: 1;
+    min-width: 0;
+}
+
+
+.history-page .history-main strong {
+    display: block;
+
+    margin-bottom: 9px;
+
+    color: #173f70;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   HISTORY DETAILS
+========================================================= */
+
+.history-page .history-details {
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 8px 18px;
+
+    color: #777;
+
+    font-size: 13px;
+}
+
+
+.history-page .history-details span {
+    display: inline-flex;
+
+    align-items: center;
+
+    min-width: 0;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   DETAIL PEMISAH
+========================================================= */
+
+.history-page .history-details span:not(:last-child)::after {
+    content: "•";
+
+    margin-left: 18px;
+
+    color: #c4c9d1;
+}
+
+
+/* =========================================================
+   STATUS BADGE
+========================================================= */
+
+.history-page .status-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    min-width: 130px;
+
+    padding: 8px 14px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    line-height: 1.2;
+
+    white-space: nowrap;
+}
+
+
+/* Status: Tidak Ada */
+
+.history-page .status-none {
+    background: #eeeeee;
+    color: #666666;
+}
+
+
+/* Status: Aktif */
+
+.history-page .status-active {
+    background: #ffe1e1;
+    color: #c62828;
+}
+
+
+/* Status: Diterima */
+
+.history-page .status-received {
+    background: #fff0d5;
+    color: #9a6200;
+}
+
+
+/* Status: Ditangani */
+
+.history-page .status-handling {
+    background: #e2edff;
+    color: #1769aa;
+}
+
+
+/* Status: Selesai */
+
+.history-page .status-completed {
+    background: #e1f5e8;
+    color: #198754;
+}
+
+
+/* =========================================================
+   EMPTY STATE
+========================================================= */
+
+.history-page .empty-state {
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 250px;
+
+    padding: 40px 20px;
+
+    text-align: center;
+
+    color: #777;
+}
+
+
+.history-page .empty-icon {
+    margin-bottom: 12px;
+
+    font-size: 45px;
+    line-height: 1;
+}
+
+
+.history-page .empty-state h3 {
+    margin: 0 0 8px;
+
+    color: #444;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+
+.history-page .empty-state p {
+    max-width: 500px;
+
+    margin: 0;
+
+    color: #777;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.history-page .loading-state {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    min-height: 180px;
+
+    padding: 30px;
+
+    color: #777;
+
+    font-size: 14px;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   RESPONSIVE TABLET
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .history-page {
+        padding: 25px;
+    }
+
+    .history-page .dashboard-card {
+        padding: 22px;
+    }
+
+    .history-page .history-item {
+        gap: 18px;
+    }
+
+    .history-page .status-badge {
+        min-width: 115px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+    .history-page {
+        padding: 18px;
+    }
+
+
+    .history-page .dashboard-card {
+        padding: 18px;
+
+        border-radius: 12px;
+    }
+
+
+    .history-page .card-header {
+        align-items: flex-start;
+
+        padding-bottom: 16px;
+        margin-bottom: 16px;
+    }
+
+
+    .history-page .card-header h2 {
+        font-size: 20px;
+    }
+
+
+    .history-page .history-item {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 15px;
+
+        padding: 17px;
+    }
+
+
+    .history-page .history-main {
+        width: 100%;
+    }
+
+
+    .history-page .history-details {
+        flex-direction: column;
+
+        align-items: flex-start;
+
+        gap: 5px;
+    }
+
+
+    .history-page .history-details span::after {
+        display: none !important;
+    }
+
+
+    .history-page .status-badge {
+        min-width: 0;
+
+        width: auto;
+    }
+
+
+    .history-page .empty-state {
+        min-height: 220px;
+    }
+
+}
+
+
+/* =========================================================
+   RESPONSIVE SMALL MOBILE
+========================================================= */
+
+@media (max-width: 450px) {
+
+    .history-page {
+        padding: 12px;
+    }
+
+
+    .history-page .dashboard-card {
+        padding: 15px;
+    }
+
+
+    .history-page .history-item {
+        padding: 15px;
+    }
+
+
+    .history-page .history-main strong {
+        font-size: 15px;
+    }
+
+
+    .history-page .history-details {
+        font-size: 12px;
+    }
+
+
+    .history-page .status-badge {
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+
+}
