@@ -74,13 +74,13 @@
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <span class="stat-badge-users">
-                    Warga Aktif
+                    Terdata
                 </span>
             </div>
             <div class="stat-card-body">
                 <span class="stat-label">Total Pengguna</span>
                 <strong class="stat-count" id="totalUsers">0</strong>
-                <span class="stat-desc">Keseluruhan akun warga terdaftar</span>
+                <span class="stat-desc">Keseluruhan akun user perumahan & publik</span>
             </div>
         </div>
 
