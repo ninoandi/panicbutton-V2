@@ -1,5 +1,5 @@
 /* =========================================================
-   REKAP DATA PERUMAHAN - MODERN DESIGN SYSTEM
+   QUICK MESSAGE - MODERN EMERGENCY TEMPLATE DESIGN SYSTEM
    Harmonized with Admin & User Dashboard Design Tokens
 ========================================================= */
 
@@ -86,7 +86,7 @@
     --dash-shadow-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.6);
 }
 
-.rekap-page {
+.quick-message-page {
     min-height: calc(100vh - var(--admin-navbar-height, 58px));
     padding: 24px 30px;
     background: var(--dash-bg);
@@ -118,7 +118,7 @@
    1. HEADER BANNER
 ========================================================= */
 
-.rekap-header-card {
+.qm-header-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -135,41 +135,41 @@
     transition: background 0.25s ease, border-color 0.25s ease;
 }
 
-.rekap-header-card::after {
+.qm-header-card::after {
     content: '';
     position: absolute;
     top: -40px;
     right: -40px;
     width: 150px;
     height: 150px;
-    background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
 }
 
-.rekap-header-badge {
+.qm-header-badge {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     padding: 4px 12px;
-    background: var(--dash-success-bg);
-    border: 1px solid var(--dash-success-border);
+    background: var(--dash-primary-bg);
+    border: 1px solid var(--dash-primary-light);
     border-radius: 20px;
-    color: var(--dash-success);
+    color: var(--dash-primary);
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 8px;
 }
 
-.pulse-dot-green {
+.pulse-dot-blue {
     width: 8px;
     height: 8px;
-    background: #10b981;
+    background: #2563eb;
     border-radius: 50%;
     animation: pulseDot 2s infinite;
 }
 
-.rekap-header-text h1 {
+.qm-header-text h1 {
     margin: 0 0 6px;
     color: var(--dash-text-main);
     font-size: 22px;
@@ -177,44 +177,44 @@
     letter-spacing: -0.01em;
 }
 
-.rekap-header-text p {
+.qm-header-text p {
     margin: 0;
     color: var(--dash-text-muted);
     font-size: 13.5px;
     line-height: 1.5;
 }
 
-.btn-add-perumahan {
+.btn-add-message {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     padding: 11px 20px;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    background: linear-gradient(135deg, #173f70 0%, #0f2b4d 100%);
     color: #ffffff;
     border-radius: 10px;
     border: none;
     font-size: 13.5px;
     font-weight: 700;
     white-space: nowrap;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 14px rgba(23, 63, 112, 0.3);
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
 }
 
-[data-theme="dark"] .btn-add-perumahan {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35);
+[data-theme="dark"] .btn-add-message {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
 
-.btn-add-perumahan:hover {
+.btn-add-message:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+    box-shadow: 0 6px 20px rgba(23, 63, 112, 0.45);
     color: #ffffff;
 }
 
-.btn-add-perumahan:active {
+.btn-add-message:active {
     transform: scale(0.98);
 }
 
@@ -222,14 +222,14 @@
    2. TOP METRICS SUMMARY (3 CARDS)
 ========================================================= */
 
-.rekap-summary {
+.qm-summary {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
     margin-bottom: 24px;
 }
 
-.rekap-summary-card {
+.qm-summary-card {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -245,20 +245,20 @@
     animation: fadeInUp 0.5s ease-out;
 }
 
-.rekap-summary-card:hover {
+.qm-summary-card:hover {
     transform: translateY(-4px);
     background: var(--dash-card-hover-bg);
     box-shadow: var(--dash-shadow-hover);
 }
 
-.rekap-summary-header {
+.qm-summary-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     margin-bottom: 14px;
 }
 
-.rekap-summary-icon {
+.qm-summary-icon {
     width: 42px;
     height: 42px;
     display: flex;
@@ -270,23 +270,23 @@
     transition: transform 0.25s ease;
 }
 
-.rekap-summary-card:hover .rekap-summary-icon {
+.qm-summary-card:hover .qm-summary-icon {
     transform: scale(1.08);
 }
 
-/* Card 1: Total Perumahan */
-.rekap-card-total {
+/* Card 1: Total Messages */
+.qm-card-total {
     border-color: var(--dash-profile-border);
 }
-.rekap-card-total:hover {
+.qm-card-total:hover {
     box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.16);
 }
-.rekap-icon-total {
+.qm-icon-total {
     background: var(--dash-profile-bg);
     color: var(--dash-profile);
     border: 1px solid var(--dash-profile-border);
 }
-.rekap-badge-total {
+.qm-badge-total {
     padding: 4px 10px;
     background: var(--dash-profile-bg);
     color: var(--dash-profile);
@@ -296,19 +296,19 @@
     border: 1px solid var(--dash-profile-border);
 }
 
-/* Card 2: Status Integrasi */
-.rekap-card-status {
+/* Card 2: Status Mode Siaga */
+.qm-card-status {
     border-color: var(--dash-success-border);
 }
-.rekap-card-status:hover {
+.qm-card-status:hover {
     box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.16);
 }
-.rekap-icon-status {
+.qm-icon-status {
     background: var(--dash-success-bg);
     color: var(--dash-success);
     border: 1px solid var(--dash-success-border);
 }
-.rekap-badge-status {
+.qm-badge-status {
     display: inline-flex;
     align-items: center;
     gap: 6px;
@@ -322,18 +322,18 @@
 }
 
 /* Card 3: Realtime Cloud */
-.rekap-card-sync {
+.qm-card-sync {
     border-color: var(--dash-history-border);
 }
-.rekap-card-sync:hover {
+.qm-card-sync:hover {
     box-shadow: 0 10px 25px -4px rgba(79, 70, 229, 0.16);
 }
-.rekap-icon-sync {
+.qm-icon-sync {
     background: var(--dash-history-bg);
     color: var(--dash-history);
     border: 1px solid var(--dash-history-border);
 }
-.rekap-badge-sync {
+.qm-badge-sync {
     padding: 4px 10px;
     background: var(--dash-history-bg);
     color: var(--dash-history);
@@ -343,19 +343,19 @@
     border: 1px solid var(--dash-history-border);
 }
 
-.rekap-summary-body {
+.qm-summary-body {
     display: flex;
     flex-direction: column;
 }
 
-.rekap-summary-label {
+.qm-summary-label {
     font-size: 13px;
     font-weight: 600;
     color: var(--dash-text-muted);
     margin-bottom: 2px;
 }
 
-.rekap-summary-count {
+.qm-summary-count {
     font-size: 30px;
     font-weight: 800;
     color: var(--dash-text-main);
@@ -364,17 +364,17 @@
     letter-spacing: -0.02em;
 }
 
-.rekap-summary-desc {
+.qm-summary-desc {
     font-size: 11.5px;
     color: var(--dash-text-muted);
     line-height: 1.3;
 }
 
 /* =========================================================
-   3. SEARCH BAR
+   3. SEARCH & ACTION FILTER BAR
 ========================================================= */
 
-.rekap-filter-card {
+.qm-filter-card {
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
@@ -385,14 +385,13 @@
     transition: background 0.25s ease, border-color 0.25s ease;
 }
 
-.search-container {
+.search-input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
-    width: 100%;
 }
 
-.search-container i {
+.search-input-wrapper i {
     position: absolute;
     left: 14px;
     color: var(--dash-text-muted);
@@ -400,7 +399,7 @@
     pointer-events: none;
 }
 
-.search-input {
+.search-input-field {
     width: 100%;
     height: 42px;
     padding: 0 14px 0 40px;
@@ -414,22 +413,22 @@
     transition: all 0.2s ease;
 }
 
-.search-input:focus {
+.search-input-field:focus {
     border-color: var(--dash-primary);
     background: var(--dash-card-bg);
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-.search-input::placeholder {
+.search-input-field::placeholder {
     color: var(--dash-text-muted);
     opacity: 0.8;
 }
 
 /* =========================================================
-   4. MODERN REALTIME TABLE CARD
+   4. MODERN REALTIME QUICK MESSAGE TABLE CARD
 ========================================================= */
 
-.rekap-table-card {
+.qm-table-card {
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
@@ -439,7 +438,7 @@
     transition: background 0.25s ease, border-color 0.25s ease;
 }
 
-.rekap-table-header {
+.qm-table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -448,40 +447,40 @@
     border-bottom: 1px solid var(--dash-border);
 }
 
-.rekap-table-header-title {
+.qm-table-header-title {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.rekap-table-header-icon {
+.qm-table-header-icon {
     width: 36px;
     height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--dash-success-bg);
-    color: var(--dash-success);
+    background: var(--dash-primary-bg);
+    color: var(--dash-primary);
     border-radius: 10px;
     font-size: 16px;
     flex-shrink: 0;
-    border: 1px solid var(--dash-success-border);
+    border: 1px solid var(--dash-primary-light);
 }
 
-.rekap-table-header h2 {
+.qm-table-header h2 {
     margin: 0;
     font-size: 17px;
     font-weight: 700;
     color: var(--dash-text-main);
 }
 
-.rekap-table-header p {
+.qm-table-header p {
     margin: 2px 0 0;
     color: var(--dash-text-muted);
     font-size: 12.5px;
 }
 
-/* Connection Badge */
+/* Connection / Status Badge */
 .connection-badge {
     display: inline-flex;
     align-items: center;
@@ -504,19 +503,19 @@
 }
 
 /* Table Wrapper */
-.table-wrapper {
+.qm-table-wrapper {
     width: 100%;
     overflow-x: auto;
 }
 
-table {
+.qm-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 780px;
+    min-width: 680px;
     text-align: left;
 }
 
-table th {
+.qm-table th {
     background: var(--dash-bg);
     color: var(--dash-text-muted);
     font-size: 12px;
@@ -527,7 +526,7 @@ table th {
     border-bottom: 1px solid var(--dash-border);
 }
 
-table td {
+.qm-table td {
     padding: 16px 20px;
     font-size: 13.5px;
     color: var(--dash-text-main);
@@ -536,38 +535,47 @@ table td {
     transition: background 0.15s ease;
 }
 
-table tbody tr:hover td {
+.qm-table tbody tr:hover td {
     background: var(--dash-primary-bg);
 }
 
-/* Perumahan Name Cell */
-.perumahan-cell {
+/* Message Cell */
+.msg-text-cell {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
+    font-weight: 600;
+    color: var(--dash-text-main);
+    line-height: 1.5;
 }
 
-.perumahan-icon-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: var(--dash-success-bg);
-    color: var(--dash-success);
+.msg-icon-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--dash-primary-bg);
+    color: var(--dash-primary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
     flex-shrink: 0;
-    border: 1px solid var(--dash-success-border);
+    border: 1px solid var(--dash-primary-light);
 }
 
-.perumahan-title-text {
-    font-weight: 700;
-    color: var(--dash-text-main);
-    font-size: 14px;
+.char-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--dash-text-muted);
 }
 
-/* Action & Detail Buttons */
+/* Action Buttons */
 .action-buttons-group {
     display: inline-flex;
     align-items: center;
@@ -577,295 +585,317 @@ table tbody tr:hover td {
     white-space: nowrap;
 }
 
-.btn-edit,
-.btn-delete,
-.btn-detail {
+.btn-action-edit {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 6px;
-    padding: 7px 12px;
+    padding: 7px 14px;
     height: 32px;
     box-sizing: border-box;
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
-    text-decoration: none;
     white-space: nowrap;
-    border: none;
     transition: all 0.2s ease;
-    margin: 0;
 }
 
-.btn-edit {
-    background: var(--dash-profile-bg);
-    color: var(--dash-profile);
-    border: 1px solid var(--dash-profile-border);
-}
-
-.btn-edit:hover {
+.btn-action-edit:hover {
     background: var(--dash-profile);
     color: #ffffff;
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
 }
 
-.btn-delete {
+.btn-action-delete {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    height: 32px;
+    box-sizing: border-box;
     background: var(--dash-emergency-bg);
     color: var(--dash-emergency);
     border: 1px solid var(--dash-emergency-border);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
 }
 
-.btn-delete:hover {
+.btn-action-delete:hover {
     background: var(--dash-emergency);
     color: #ffffff;
     transform: translateY(-1px);
     box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25);
 }
 
-.btn-detail {
-    background: var(--dash-primary);
-    color: #ffffff;
-    border: 1px solid var(--dash-primary);
-    box-shadow: 0 2px 8px rgba(23, 63, 112, 0.2);
-}
-
-.btn-detail:hover {
-    background: var(--dash-primary-dark);
-    color: #ffffff;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(23, 63, 112, 0.35);
-}
-
 /* Loading & Empty State */
-td.loading {
+.qm-loading,
+.qm-empty {
     text-align: center !important;
     padding: 45px 20px !important;
     color: var(--dash-text-muted) !important;
 }
 
 /* =========================================================
-   5. MOBILE CARD CONTAINER (HIDDEN ON DESKTOP)
+   5. GLASSMORPHISM MODAL TAMBAH & EDIT PESAN
 ========================================================= */
 
-.card-container {
+.qm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
     display: none;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 16px;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(11, 19, 41, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
-.perumahan-card {
+.qm-modal {
+    width: 100%;
+    max-width: 540px;
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 18px 20px;
-    box-shadow: var(--dash-shadow);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    transition: all 0.2s ease;
+    border-radius: 20px;
+    box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    animation: fadeInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.perumahan-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--dash-shadow-hover);
-}
-
-.card-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--dash-text-main);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.card-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--dash-text-muted);
-}
-
-.card-info strong {
-    color: var(--dash-text-main);
-}
-
-.card-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px solid var(--dash-border);
-    margin-top: 4px;
-}
-
-/* =========================================================
-   6. PAGINATION
-========================================================= */
-
-.pagination {
-    background: var(--dash-card-bg);
-    border: 1px solid var(--dash-border);
-    border-radius: 16px;
-    padding: 16px 24px;
+.qm-modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: var(--dash-shadow);
-    margin-top: 24px;
-    animation: fadeInUp 0.6s ease-out;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--dash-border);
+    background: linear-gradient(135deg, var(--dash-card-bg) 0%, var(--dash-bg) 100%);
 }
 
-.pagination-info {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--dash-text-muted);
-}
-
-.pagination-controls {
+.qm-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--dash-text-main);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
-.btn-pagination {
-    display: inline-flex;
+.qm-close-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 9px 18px;
-    border-radius: 10px;
-    font-size: 13px;
-    font-weight: 700;
+    justify-content: center;
+    border-radius: 8px;
     border: 1px solid var(--dash-border);
+    background: var(--dash-card-bg);
+    color: var(--dash-text-muted);
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-#prevBtn {
+.qm-close-btn:hover {
+    background: var(--dash-emergency-bg);
+    border-color: var(--dash-emergency-border);
+    color: var(--dash-emergency);
+    transform: rotate(90deg);
+}
+
+.qm-modal-body {
+    padding: 24px;
+}
+
+.qm-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qm-form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dash-text-muted);
+}
+
+.qm-input-field {
+    width: 100%;
+    height: 46px;
+    padding: 0 16px;
     background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    color: var(--dash-text-main);
+    font-size: 14.5px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.qm-input-field:focus {
+    border-color: var(--dash-primary);
+    background: var(--dash-card-bg);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.qm-hint-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--dash-primary-bg);
+    border: 1px solid var(--dash-primary-light);
+    border-radius: 10px;
+    font-size: 12.5px;
+    color: var(--dash-text-muted);
+    line-height: 1.5;
+    margin-top: 4px;
+}
+
+.qm-hint-box i {
+    color: var(--dash-primary);
+    font-size: 14px;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.qm-hint-box strong {
+    color: var(--dash-primary);
+}
+
+.qm-textarea-field {
+    width: 100%;
+    min-height: 110px;
+    padding: 14px;
+    background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    color: var(--dash-text-main);
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.5;
+    outline: none;
+    resize: vertical;
+    transition: all 0.2s ease;
+}
+
+.qm-textarea-field:focus {
+    border-color: var(--dash-primary);
+    background: var(--dash-card-bg);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.qm-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px;
+    border-top: 1px solid var(--dash-border);
+    background: var(--dash-card-bg);
+}
+
+.btn-qm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-qm-cancel {
+    background: var(--dash-bg);
+    color: var(--dash-text-muted);
+    border: 1px solid var(--dash-border);
+}
+
+.btn-qm-cancel:hover {
+    background: var(--dash-border);
     color: var(--dash-text-main);
 }
 
-#prevBtn:hover:not(:disabled) {
-    background: var(--dash-border);
-    transform: translateY(-1px);
-}
-
-#nextBtn {
-    background: var(--dash-primary);
+.btn-qm-save {
+    background: linear-gradient(135deg, #173f70 0%, #0f2b4d 100%);
     color: #ffffff;
-    border-color: var(--dash-primary);
-    box-shadow: 0 2px 8px rgba(23, 63, 112, 0.25);
+    box-shadow: 0 4px 14px rgba(23, 63, 112, 0.3);
 }
 
-#nextBtn:hover:not(:disabled) {
-    background: var(--dash-primary-dark);
+[data-theme="dark"] .btn-qm-save {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-qm-save:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(23, 63, 112, 0.35);
-}
-
-.btn-pagination:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: none !important;
+    box-shadow: 0 6px 20px rgba(23, 63, 112, 0.45);
 }
 
 /* =========================================================
-   7. SWEETALERT2 CUSTOM FORM STYLING
-========================================================= */
-
-.swal-form {
-    display: flex;
-    flex-direction: column;
-    text-align: left;
-    gap: 12px;
-    padding: 6px 4px;
-}
-
-.swal-form label {
-    font-size: 12.5px;
-    font-weight: 600;
-    color: #475569;
-    margin-bottom: 2px;
-}
-
-.swal-form input {
-    width: 100% !important;
-    height: 42px !important;
-    padding: 0 14px !important;
-    margin: 0 !important;
-    border-radius: 10px !important;
-    border: 1px solid #cbd5e1 !important;
-    font-size: 13.5px !important;
-    box-sizing: border-box !important;
-}
-
-.swal-form input:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
-}
-
-/* =========================================================
-   8. RESPONSIVE BREAKPOINTS
+   6. RESPONSIVE BREAKPOINTS
 ========================================================= */
 
 @media (max-width: 1024px) {
-    .rekap-summary {
+    .qm-summary {
         grid-template-columns: repeat(2, 1fr);
     }
 
-    .rekap-card-sync {
+    .qm-card-sync {
         grid-column: span 2;
     }
 }
 
 @media (max-width: 768px) {
-    .rekap-page {
+    .quick-message-page {
         padding: 18px 16px;
     }
 
-    .rekap-header-card {
+    .qm-header-card {
         flex-direction: column;
         align-items: flex-start;
         gap: 16px;
         padding: 20px;
     }
 
-    .btn-add-perumahan {
+    .btn-add-message {
         width: 100%;
     }
 
-    .rekap-summary {
+    .qm-summary {
         grid-template-columns: 1fr;
         gap: 14px;
     }
 
-    .rekap-card-sync {
+    .qm-card-sync {
         grid-column: span 1;
     }
 
-    .table-wrapper {
-        display: none;
-    }
-
-    .card-container {
-        display: flex;
-    }
-
-    .pagination {
+    .qm-table-header {
         flex-direction: column;
-        gap: 14px;
-        align-items: center;
-        text-align: center;
+        align-items: flex-start;
+        gap: 12px;
     }
 
-    .pagination-controls {
+    .qm-modal-footer {
+        flex-direction: column;
+    }
+
+    .qm-modal-footer .btn-qm {
         width: 100%;
-        justify-content: center;
     }
 }

@@ -1,111 +1,172 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Perumahan')
+@section('title', 'Detail Perumahan - Panic Button')
+
+@section('page-title', 'Detail Perumahan')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/detail-perumahan.css') }}">
 @endpush
 
 @section('content')
-
 <div class="monitor-page">
 
-    {{-- Header --}}
-    <div class="monitor-header">
-
-        <div class="monitor-header-left">
+    {{-- =========================================================
+         1. HEADER BANNER
+    ========================================================== --}}
+    <section class="monitor-header-card">
+        <div class="monitor-header-text">
+            <div class="monitor-header-badge">
+                <span class="pulse-dot-blue"></span>
+                <span>Log Aktivitas & Monitor Wilayah</span>
+            </div>
             <h1 id="title">Detail Perumahan</h1>
+            <p>Riwayat panggilan panic button, status penanganan insiden, dan catatan monitor darurat di kawasan perumahan ini.</p>
         </div>
 
-        <div class="monitor-header-right">
+        <div class="monitor-header-actions">
             <a href="{{ url('/perumahan') }}" class="btn-back">
-                ← Kembali
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>Kembali</span>
             </a>
 
-            <button id="clearAllBtn" class="btn-delete">
-                🗑️ Hapus Semua Monitor
+            <button type="button" id="clearAllBtn" class="btn-clear-all">
+                <i class="fa-solid fa-trash-can"></i>
+                <span>Hapus Semua Monitor</span>
             </button>
         </div>
+    </section>
 
-    </div>
+    {{-- =========================================================
+         2. MODERN FILTER CONTROLS (NO EMOJIS)
+    ========================================================== --}}
+    <section class="monitor-filter-card">
+        <div id="filterControls" class="filter-controls-grid">
 
+            {{-- 1. Search Input --}}
+            <div class="filter-group filter-search-group">
+                <label for="search" class="filter-label">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <span>Pencarian Riwayat</span>
+                </label>
+                <div class="search-input-wrapper">
+                    <i class="fa-solid fa-search"></i>
+                    <input
+                        type="text"
+                        id="search"
+                        class="search-input-field"
+                        placeholder="Cari nama warga, no rumah, pesan, atau lokasi..."
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
 
-    {{-- Filter --}}
-    <div id="filterControls" class="filter-controls">
+            {{-- 2. Status Filter --}}
+            <div class="filter-group">
+                <label for="statusFilter" class="filter-label">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Status Penanganan</span>
+                </label>
+                <div class="custom-select-wrapper">
+                    <select id="statusFilter" class="custom-select-field">
+                        <option value="">Semua Status</option>
+                        <option value="Proses">Proses</option>
+                        <option value="Selesai">Selesai</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+            </div>
 
-        <div class="search-wrapper">
-            <input
-                type="text"
-                id="search"
-                placeholder="Cari data..."
-                autocomplete="off"
-            >
+            {{-- 3. Prioritas Filter --}}
+            <div class="filter-group">
+                <label for="priorityFilter" class="filter-label">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Tingkat Prioritas</span>
+                </label>
+                <div class="custom-select-wrapper">
+                    <select id="priorityFilter" class="custom-select-field">
+                        <option value="">Semua Prioritas</option>
+                        <option value="Biasa">Biasa</option>
+                        <option value="Penting">Penting</option>
+                        <option value="Darurat">Darurat</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+            </div>
+
+            {{-- 4. Sort Order --}}
+            <div class="filter-group">
+                <label for="sortOrder" class="filter-label">
+                    <i class="fa-solid fa-arrow-down-wide-short"></i>
+                    <span>Urutan Waktu</span>
+                </label>
+                <div class="custom-select-wrapper">
+                    <select id="sortOrder" class="custom-select-field">
+                        <option value="desc">Waktu: Terbaru</option>
+                        <option value="asc">Waktu: Terlama</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    {{-- =========================================================
+         3. MODERN REALTIME MONITOR TABLE CARD
+    ========================================================== --}}
+    <section class="monitor-table-card">
+        <div class="monitor-table-header">
+            <div class="monitor-table-header-title">
+                <div class="monitor-table-header-icon">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <h2>Log Monitor Insiden Kawasan</h2>
+                    <p>Daftar aktivitas darurat perumahan yang terekam di sistem</p>
+                </div>
+            </div>
+
+            <div class="connection-badge">
+                <span class="connection-dot"></span>
+                <span>Realtime Log</span>
+            </div>
         </div>
 
-        <select id="statusFilter">
-            <option value="">Status: Semua</option>
-            <option value="Proses">Proses</option>
-            <option value="Selesai">Selesai</option>
-        </select>
+        <div class="table-wrapper">
+            <table id="monitorTable" class="monitor-table">
+                <thead>
+                    <tr>
+                        <th>Nama Pengguna</th>
+                        <th style="width: 110px;">No Rumah</th>
+                        <th>Pesan Darurat</th>
+                        <th style="width: 120px;">Prioritas</th>
+                        <th style="width: 120px;">Status</th>
+                        <th style="width: 170px;">Waktu Kejadian</th>
+                        <th>Titik Lokasi</th>
+                    </tr>
+                </thead>
+                <tbody id="monitorTableBody">
+                    <tr>
+                        <td colspan="7" class="loading-state">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Memuat data monitor...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-        <select id="priorityFilter">
-            <option value="">Prioritas: Semua</option>
-            <option value="Biasa">Biasa</option>
-            <option value="Penting">Penting</option>
-            <option value="Darurat">Darurat</option>
-        </select>
-
-        <select id="sortOrder">
-            <option value="desc">Waktu: Terbaru</option>
-            <option value="asc">Waktu: Terlama</option>
-        </select>
-
-    </div>
-
-
-    {{-- Table --}}
-    <div class="table-wrapper">
-
-        <table id="monitorTable">
-
-            <thead>
-                <tr>
-                    <th>Nama</th>
-                    <th>No Rumah</th>
-                    <th>Pesan</th>
-                    <th>Prioritas</th>
-                    <th>Status</th>
-                    <th>Waktu</th>
-                    <th>Lokasi</th>
-                </tr>
-            </thead>
-
-            <tbody id="monitorTableBody">
-
-                <tr>
-                    <td colspan="7" class="loading-state">
-                        Memuat data monitor...
-                    </td>
-                </tr>
-
-            </tbody>
-
-        </table>
-
-    </div>
-
-
-    {{-- Pagination --}}
-    <div id="pagination"></div>
+    {{-- =========================================================
+         4. PAGINATION
+    ========================================================== --}}
+    <div id="pagination" class="pagination-wrapper"></div>
 
 </div>
-
 @endsection
 
-
 @push('scripts')
-
-    {{-- SweetAlert --}}
+    {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     {{-- Kirim key Laravel ke JavaScript --}}
@@ -116,5 +177,4 @@
 
     {{-- JavaScript halaman --}}
     <script type="module" src="{{ asset('js/detail-perumahan.js') }}"></script>
-
 @endpush

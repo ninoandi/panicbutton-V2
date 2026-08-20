@@ -183,6 +183,20 @@ Route::middleware(['user.auth', 'role:admin'])->group(function () {
 
     })->name('monitoring-iot');
 
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | QUICK MESSAGE
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/quick-message', function () {
+
+        return view('quick-message.index');
+
+    })->name('quick-message');
+
 });
 
 
