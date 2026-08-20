@@ -51,6 +51,13 @@
                     'active' => request()->routeIs('perumahan*')
                 ],
                 [
+                    'label' => 'Recap Data Public',
+                    'route' => 'recap-public',
+                    'url' => route('recap-public'),
+                    'icon' => 'fa-solid fa-bullhorn',
+                    'active' => request()->routeIs('recap-public*')
+                ],
+                [
                     'label' => 'Statistik',
                     'route' => 'statistik',
                     'url' => route('statistik'),
