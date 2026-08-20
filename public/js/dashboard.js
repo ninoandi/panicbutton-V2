@@ -50,7 +50,7 @@ const publicPanicCountBadge =
     document.getElementById("publicPanicCountBadge");
 
 const publicPanicAlert =
-    document.getElementById("publicPanicAlert");
+    document.getElementById("adminPublicPanicAlert");
 
 
 /*
@@ -65,17 +65,24 @@ const perumahanRef =
         "perumahan"
     );
 
-const panicPublicRef =
-    ref(
-        db2,
-        "panicChannels"
-    );
+
+const panicChannelsRef =
+    ref(db2, "panicChannels");
+
 
 const publicPanicsRef =
-    ref(
-        db2,
-        "public_panics"
-    );
+    ref(db2, "public_panics");
+
+
+/*
+|--------------------------------------------------------------------------
+| In-Memory State for Public Panics & Notifications
+|--------------------------------------------------------------------------
+*/
+
+let currentChannelsData = {};
+let currentPublicPanicsData = {};
+const notifiedPanicIds = new Set();
 
 
 /*
@@ -156,17 +163,27 @@ function logPerformance(
         performance.now() -
         startTime;
 
-    console.log(
-        `${label}: ${duration.toFixed(0)} ms`
-    );
-}
+
+        if (statusCard) {
+            statusCard.classList.remove("darurat", "penting", "biasa", "standby");
+            if (priority === "darurat") {
+                statusCard.classList.add("darurat");
+            } else if (priority === "penting") {
+                statusCard.classList.add("penting");
+            } else {
+                statusCard.classList.add("biasa");
+            }
+        }
 
 
-/*
-|--------------------------------------------------------------------------
-| ESCAPE HTML
-|--------------------------------------------------------------------------
-*/
+
+
+        if (statusCard) {
+            statusCard.classList.remove("darurat", "penting", "biasa");
+            statusCard.classList.add("standby");
+            statusCard.style.borderColor = "";
+        }
+
 
 function escapeHtml(
     str = ""
@@ -262,90 +279,40 @@ function formatPublicPanicTime(
 
 /*
 |--------------------------------------------------------------------------
-| GET MONITOR TIMESTAMP
-|--------------------------------------------------------------------------
-|
-| Urutan prioritas:
-|
-| 1. timestamp
-| 2. created_at
-| 3. time dengan format:
-|    2025-10-17 waktu 10:35
-|
+
+| FIREBASE LISTENERS - PANIC PUBLIK (IoT ZONA & PUBLIC PANICS)
 |--------------------------------------------------------------------------
 */
 
-function getMonitorTimestamp(
-    monitor
-) {
-
-    if (
-        !monitor ||
-        typeof monitor !== "object"
-    ) {
-
-        return 0;
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRIORITAS 1
-    | timestamp
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        monitor.timestamp !== undefined &&
-        monitor.timestamp !== null
-    ) {
-
-        const value =
-            Number(
-                monitor.timestamp
-            );
-
-
-        if (
-            Number.isFinite(
-                value
-            )
-        ) {
-
-            return value;
-
+// 1. Listener Channel Perangkat IoT
+onValue(
+    panicChannelsRef,
+    (snapshot) => {
+        try {
+            currentChannelsData = snapshot.val() || {};
+            processPublicPanicData();
+        } catch (error) {
+            console.error("Error membaca panicChannels:", error);
         }
-
+    },
+    (error) => {
+        console.error("Firebase panicChannels error:", error);
     }
+);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRIORITAS 2
-    | created_at
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        monitor.created_at
-    ) {
-
-        const value =
-            new Date(
-                monitor.created_at
-            ).getTime();
-
-
-        if (
-            Number.isFinite(
-                value
-            )
-        ) {
-
-            return value;
-
+// 2. Listener Detail Laporan Akun Pengirim Panic Publik
+onValue(
+    publicPanicsRef,
+    (snapshot) => {
+        try {
+            currentPublicPanicsData = snapshot.val() || {};
+            processPublicPanicData();
+        } catch (error) {
+            console.error("Error membaca public_panics:", error);
         }
+    },
+    (error) => {
+        console.error("Firebase public_panics error:", error);
 
     }
 
@@ -406,7 +373,142 @@ function getMonitorTimestamp(
 
 /*
 |--------------------------------------------------------------------------
-| FORMAT MONITOR TIME
+
+| PROSES & GABUNGKAN DATA PANIC PUBLIK DENGAN AKUN PENGIRIM
+|--------------------------------------------------------------------------
+*/
+
+function processPublicPanicData() {
+    const activePanics = [];
+    const pairedReportIds = new Set();
+    const now = Date.now();
+    const maxActiveAge = 24 * 60 * 60 * 1000; // 24 jam terakhir
+
+    // A. Periksa perangkat yang aktif di panicChannels
+    Object.entries(currentChannelsData).forEach(([zoneName, zoneData]) => {
+        if (!zoneData || typeof zoneData !== "object") return;
+
+        Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
+            if (!deviceData || typeof deviceData !== "object") return;
+
+            if (deviceData.active === true) {
+                const assignedPanicId = deviceData.assigned_panic_id || "";
+                let report = null;
+
+                if (assignedPanicId && currentPublicPanicsData[assignedPanicId]) {
+                    report = currentPublicPanicsData[assignedPanicId];
+                    pairedReportIds.add(assignedPanicId);
+                } else {
+                    // Coba cari laporan publik aktif yang cocok dengan perangkat/zona
+                    const matchingEntry = Object.entries(currentPublicPanicsData).find(([repId, repData]) => {
+                        if (!repData || repData.status !== "active") return false;
+                        if (pairedReportIds.has(repId)) return false;
+                        return (repData.assigned_device === deviceData.device || repData.assigned_zone === zoneName);
+                    });
+
+                    if (matchingEntry) {
+                        report = matchingEntry[1];
+                        pairedReportIds.add(matchingEntry[0]);
+                    }
+                }
+
+                // Tentukan nama pengirim & info akun
+                let senderName = "Pengguna Publik";
+                let username = "-";
+                let phone = "-";
+                let email = "-";
+                let isGuest = false;
+                let isHardware = false;
+
+                if (report) {
+                    senderName = report.name || report.username || "Pengguna Publik";
+                    username = report.username ? `@${report.username.replace('@', '')}` : "-";
+                    phone = report.phone || "-";
+                    email = report.email || "-";
+                    isGuest = Boolean(report.is_guest || (!report.user_id || report.user_id === "guest"));
+                } else if (!assignedPanicId) {
+                    senderName = "Tombol Fisik IoT / Hardware";
+                    isHardware = true;
+                }
+
+                const latitude = report?.latitude || deviceData.panic_latitude || null;
+                const longitude = report?.longitude || deviceData.panic_longitude || null;
+                const address = report?.address || deviceData.lokasi || "-";
+                const locationUrl = report?.location_url || (latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : null);
+                const createdAt = report?.created_at || deviceData.last_update || now;
+
+                activePanics.push({
+                    id: assignedPanicId || `${zoneName}_${deviceKey}`,
+                    device: deviceData.device || deviceKey,
+                    zona: deviceData.zona || zoneName,
+                    lokasi: deviceData.lokasi || "-",
+                    active: true,
+                    last_update: deviceData.last_update || createdAt,
+                    createdAt: createdAt,
+                    senderName: senderName,
+                    username: username,
+                    phone: phone,
+                    email: email,
+                    isGuest: isGuest,
+                    isHardware: isHardware,
+                    address: address,
+                    latitude: latitude,
+                    longitude: longitude,
+                    locationUrl: locationUrl
+                });
+            }
+        });
+    });
+
+    // B. Periksa jika ada laporan public_panics dengan status 'active' yang belum terdaftar di atas
+    Object.entries(currentPublicPanicsData).forEach(([repId, report]) => {
+        if (!report || typeof report !== "object") return;
+        if (report.status === "active" && !pairedReportIds.has(repId)) {
+            const isRecent = !report.created_at || (report.created_at >= (now - maxActiveAge));
+            if (isRecent) {
+                const senderName = report.name || report.username || "Pengguna Publik";
+                const username = report.username ? `@${report.username.replace('@', '')}` : "-";
+                const isGuest = Boolean(report.is_guest || (!report.user_id || report.user_id === "guest"));
+                const locationUrl = report.location_url || (report.latitude && report.longitude ? `https://www.google.com/maps?q=${report.latitude},${report.longitude}` : null);
+
+                activePanics.push({
+                    id: repId,
+                    device: report.assigned_device || "Device Publik",
+                    zona: report.assigned_zone || "Zona Umum",
+                    lokasi: report.assigned_location || report.address || "-",
+                    active: true,
+                    last_update: report.created_at || now,
+                    createdAt: report.created_at || now,
+                    senderName: senderName,
+                    username: username,
+                    phone: report.phone || "-",
+                    email: report.email || "-",
+                    isGuest: isGuest,
+                    isHardware: false,
+                    address: report.address || "-",
+                    latitude: report.latitude || null,
+                    longitude: report.longitude || null,
+                    locationUrl: locationUrl
+                });
+            }
+        }
+    });
+
+    // Urutkan dari update / waktu kejadian terbaru
+    activePanics.sort((a, b) => (b.createdAt || b.last_update || 0) - (a.createdAt || a.last_update || 0));
+
+    // Render ke tampilan dashboard
+    renderPublicPanic(activePanics);
+
+    // C. Pemicu Notifikasi Mengambang di Pojok Kanan Atas (2-3 detik)
+    handlePanicNotificationAlert(activePanics);
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| RENDER PANIC PUBLIK DENGAN INFORMASI AKUN PENGIRIM
+
 |--------------------------------------------------------------------------
 */
 
@@ -465,6 +567,15 @@ function formatMonitorTime(
                 }
             );
 
+
+    if (publicPanicCountBadge) {
+        if (activePanics.length === 0) {
+            publicPanicCountBadge.className = "status-badge status-none";
+            publicPanicCountBadge.textContent = "0 Perangkat";
+        } else {
+            publicPanicCountBadge.className = "status-badge status-darurat";
+            publicPanicCountBadge.textContent = `${activePanics.length} Sinyal Aktif`;
+
         }
 
     }
@@ -512,7 +623,252 @@ function formatMonitorTime(
     }
 
 
-    return String(time);
+    publicPanicAlert.innerHTML = `
+        <div class="public-panic-grid">
+            ${activePanics.map(panic => {
+        const initial = (panic.senderName && panic.senderName.length > 0)
+            ? panic.senderName.charAt(0).toUpperCase()
+            : "P";
+
+        let accountBadgeHtml = "";
+        if (panic.isHardware) {
+            accountBadgeHtml = `<span class="public-panic-account-pill hardware"><i class="fa-solid fa-microchip"></i> Hardware IoT</span>`;
+        } else if (panic.isGuest) {
+            accountBadgeHtml = `<span class="public-panic-account-pill guest"><i class="fa-solid fa-user-clock"></i> Tamu (Guest)</span>`;
+        } else {
+            accountBadgeHtml = `<span class="public-panic-account-pill"><i class="fa-solid fa-circle-check"></i> Warga Terdaftar</span>`;
+        }
+
+        let mapsButtonHtml = "";
+        if (panic.locationUrl) {
+            mapsButtonHtml = `
+                        <a
+                            href="${panic.locationUrl}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn-location-map"
+                        >
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <span>Buka Google Maps</span>
+                        </a>
+                    `;
+        } else if (panic.latitude && panic.longitude) {
+            mapsButtonHtml = `
+                        <a
+                            href="https://www.google.com/maps?q=${panic.latitude},${panic.longitude}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn-location-map"
+                        >
+                            <i class="fa-solid fa-map-location-dot"></i>
+                            <span>Buka Google Maps</span>
+                        </a>
+                    `;
+        } else {
+            mapsButtonHtml = `<span style="font-size:12.5px; color:var(--dash-text-muted);"><i class="fa-solid fa-location-crosshairs"></i> Koordinat tidak tersedia</span>`;
+        }
+
+        const formattedTime = formatPublicPanicTime(panic.createdAt || panic.last_update);
+
+        return `
+                    <div class="public-panic-card">
+                        <div class="public-panic-card-header">
+                            <div class="public-panic-user-badge">
+                                <div class="public-panic-user-avatar">
+                                    ${escapeHtml(initial)}
+                                </div>
+                                <div class="public-panic-user-info">
+                                    <div class="public-panic-user-name">
+                                        <span>${escapeHtml(panic.senderName)}</span>
+                                        ${accountBadgeHtml}
+                                    </div>
+                                    <div class="public-panic-user-sub">
+                                        <span><i class="fa-regular fa-user"></i> ${escapeHtml(panic.username)}</span>
+                                        <span>•</span>
+                                        <span><i class="fa-solid fa-phone"></i> ${escapeHtml(panic.phone)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="public-panic-badges">
+                                <span class="public-panic-device">
+                                    <span class="pulse-dot-red"></span>
+                                    ${escapeHtml(panic.device)}
+                                </span>
+                                <span class="status-badge status-darurat" style="font-size:11px; padding:4px 10px;">
+                                    SIAGA AKTIF
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="public-panic-info-grid">
+                            <div class="public-panic-info-cell">
+                                <span class="public-panic-info-label">Nama Pengirim</span>
+                                <strong class="public-panic-info-value" style="color:var(--dash-emergency);">
+                                    ${escapeHtml(panic.senderName)}
+                                </strong>
+                            </div>
+                            <div class="public-panic-info-cell">
+                                <span class="public-panic-info-label">Kontak / Email</span>
+                                <span class="public-panic-info-value">
+                                    ${escapeHtml(panic.email !== "-" ? panic.email : panic.phone)}
+                                </span>
+                            </div>
+                            <div class="public-panic-info-cell">
+                                <span class="public-panic-info-label">Perangkat & Zona</span>
+                                <span class="public-panic-info-value">
+                                    ${escapeHtml(panic.device)} (${escapeHtml(panic.zona)})
+                                </span>
+                            </div>
+                            <div class="public-panic-info-cell">
+                                <span class="public-panic-info-label">Waktu Pengaktifan</span>
+                                <span class="public-panic-info-value">
+                                    ${escapeHtml(formattedTime)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="public-panic-address-box">
+                            <strong>Lokasi / Titik Kejadian:</strong>
+                            <p>
+                                <i class="fa-solid fa-location-dot" style="color:var(--dash-emergency); margin-right:4px;"></i>
+                                ${escapeHtml(panic.address && panic.address !== "-" ? panic.address : panic.lokasi)}
+                            </p>
+                        </div>
+
+                        <div class="public-panic-actions-bar">
+                            ${mapsButtonHtml}
+                        </div>
+                    </div>
+                `;
+    }).join("")}
+        </div>
+    `;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| NOTIFIKASI MENGAMBANG DI POJOK KANAN ATAS (TOAST 10 DETIK)
+|--------------------------------------------------------------------------
+*/
+
+function handlePanicNotificationAlert(activePanics) {
+    if (!activePanics || activePanics.length === 0) {
+        // Bersihkan cache saat tidak ada panic aktif
+        notifiedPanicIds.clear();
+        return;
+    }
+
+    // Urutkan dari terlama ke terbaru agar saat di-prepend, panic terbaru berada paling atas
+    const unnotifiedPanics = [];
+    activePanics.forEach((panic) => {
+        const uniqueKey = `${panic.id}_${panic.createdAt || panic.last_update}`;
+        if (!notifiedPanicIds.has(uniqueKey)) {
+            notifiedPanicIds.add(uniqueKey);
+            unnotifiedPanics.push(panic);
+        }
+    });
+
+    // Balik urutan sebelum prepend agar panic terbaru berakhir di paling atas
+    unnotifiedPanics.reverse().forEach((panic) => {
+        showTopPanicToast(panic);
+    });
+}
+
+function showTopPanicToast(panic) {
+    const container = document.getElementById("topToastContainer") || createToastContainer();
+
+    const toast = document.createElement("div");
+    toast.className = "emergency-toast";
+    toast.setAttribute("role", "alert");
+
+    const formattedTime = formatPublicPanicTime(panic.createdAt || panic.last_update);
+    const locationText = panic.address && panic.address !== "-" ? panic.address : panic.lokasi;
+
+    toast.innerHTML = `
+        <div class="emergency-toast-header">
+            <div class="emergency-toast-title">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Sinyal Panic Button Aktif!</span>
+            </div>
+            <button type="button" class="emergency-toast-close" title="Tutup Notifikasi" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="emergency-toast-body">
+            Panic button diaktifkan oleh <strong>${escapeHtml(panic.senderName)}</strong> pada <strong>${escapeHtml(panic.device)}</strong> (${escapeHtml(panic.zona)}).
+        </div>
+        <div class="emergency-toast-meta">
+            <span><i class="fa-solid fa-location-dot" style="color:var(--dash-emergency);"></i> ${escapeHtml(locationText || "Zona Siaga")}</span>
+            <span><i class="fa-regular fa-clock"></i> ${formattedTime}</span>
+        </div>
+        <div class="emergency-toast-progress"></div>
+    `;
+
+    // Sisipkan di posisi paling atas sehingga notifikasi lama bergeser ke bawah
+    container.prepend(toast);
+
+    // Mainkan nada audio alert lembut
+    playEmergencyBeep();
+
+    // Auto dismiss dalam durasi 10 detik
+    const dismissTimer = setTimeout(() => {
+        dismissToast(toast);
+    }, 10000);
+
+    const closeBtn = toast.querySelector(".emergency-toast-close");
+    if (closeBtn) {
+        closeBtn.addEventListener("click", () => {
+            clearTimeout(dismissTimer);
+            dismissToast(toast);
+        });
+    }
+}
+
+function dismissToast(toast) {
+    if (!toast || toast.classList.contains("hide")) return;
+    toast.classList.add("hide");
+    setTimeout(() => {
+        if (toast && toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+        }
+    }, 320);
+}
+
+function createToastContainer() {
+    let container = document.getElementById("topToastContainer");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "topToastContainer";
+        container.className = "top-toast-container";
+        document.body.appendChild(container);
+    }
+    return container;
+}
+
+function playEmergencyBeep() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        if (ctx.state === "suspended") {
+            ctx.resume();
+        }
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(587.33, ctx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.12, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.22);
+    } catch (e) {
+        // Abaikan jika browser memblokir audio sebelum interaksi
+    }
+
 }
 
 

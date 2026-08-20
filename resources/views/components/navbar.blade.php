@@ -62,19 +62,21 @@
                 </div>
             </a>
         @else
-            <div
+            <a
+                href="{{ route('profil') }}"
                 class="navbar-user navbar-admin"
-                title="Akun Administrator"
+                id="navbarAdminPill"
+                title="Lihat Profil Administrator"
             >
-                <div class="navbar-avatar navbar-avatar-admin">
+                <div class="navbar-avatar navbar-avatar-admin" id="navbarAdminAvatar">
                     {{ $userInitial ?: 'A' }}
                 </div>
 
                 <div class="navbar-user-info">
-                    <strong>{{ $userName }}</strong>
+                    <strong id="navbarAdminName">{{ $userName }}</strong>
                     <span>{{ $roleLabel }}</span>
                 </div>
-            </div>
+            </a>
         @endif
 
     </div>

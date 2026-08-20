@@ -100,6 +100,17 @@
     </div>
 
 
+    <script>
+        window.currentUserId = @json(session('web_user_id'));
+        window.currentUser = {
+            id: @json(session('web_user_id')),
+            name: @json(session('web_user_name')),
+            email: @json(session('web_user_email')),
+            phone: @json(session('web_user_phone')),
+            role: @json(session('web_role'))
+        };
+    </script>
+
     {{-- SweetAlert2 --}}
     <script
         src="https://cdn.jsdelivr.net/npm/sweetalert2@11"
