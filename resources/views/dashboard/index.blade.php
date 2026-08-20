@@ -77,13 +77,13 @@
                     <i class="fa-solid fa-users"></i>
                 </div>
                 <span class="stat-badge-users">
-                    Warga Aktif
+                    Terdata
                 </span>
             </div>
             <div class="stat-card-body">
                 <span class="stat-label">Total Pengguna</span>
                 <strong class="stat-count" id="totalUsers">0</strong>
-                <span class="stat-desc">Keseluruhan akun warga terdaftar</span>
+                <span class="stat-desc">Keseluruhan akun user perumahan & publik</span>
             </div>
         </div>
 
@@ -234,6 +234,23 @@
 
 </div>
 @endsection
+
+<script>
+    window.currentUser = {
+        userId: @json(session('web_user_id')),
+        username: @json(session('web_user_username')),
+        name: @json(session('web_user_name')),
+        email: @json(session('web_user_email')),
+        phone: @json(session('web_user_phone')),
+        perumahanId: @json(session('web_user_perumahan_id')),
+        perumahan: @json(session('web_user_perumahan'))
+    };
+
+    console.log("====================================");
+    console.log("CURRENT USER DARI BLADE:");
+    console.log(window.currentUser);
+    console.log("====================================");
+</script>
 
 @push('scripts')
 <script type="module" src="{{ asset('js/dashboard.js') }}"></script>

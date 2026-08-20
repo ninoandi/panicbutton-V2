@@ -31,6 +31,7 @@
                 </div>
             </a>
 
+
             {{-- DESKTOP NAVIGATION --}}
             <nav class="landing-nav" id="desktopNav">
                 <a href="#beranda" class="nav-link active">
@@ -64,6 +65,7 @@
                     <i class="fa-solid fa-sun theme-icon-sun"></i>
                     <i class="fa-solid fa-moon theme-icon-moon"></i>
                 </button>
+
 
                 {{-- LOGIN CTA --}}
                 <a
