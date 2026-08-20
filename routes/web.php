@@ -197,6 +197,20 @@ Route::middleware(['user.auth', 'role:admin'])->group(function () {
 
     })->name('quick-message');
 
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RECAP DATA PUBLIC
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/recap-public', function () {
+
+        return view('recap-public.index');
+
+    })->name('recap-public');
+
 });
 
 
