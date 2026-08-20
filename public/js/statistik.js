@@ -153,14 +153,12 @@ function renderTable(filteredData) {
 
                 <td>
                     <span style="display:inline-flex; align-items:center; gap:6px;">
-                        <i class="fa-solid fa-phone" style="font-size:12px; color:var(--dash-primary);"></i>
                         ${escapeHtml(info.kontak || "-")}
                     </span>
                 </td>
 
                 <td>
                     <span style="display:inline-flex; align-items:center; gap:6px; color:var(--dash-text-muted);">
-                        <i class="fa-solid fa-location-dot" style="font-size:12px; color:var(--dash-emergency);"></i>
                         ${escapeHtml(info.lokasi || "-")}
                     </span>
                 </td>

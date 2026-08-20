@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ----------------------------------------------------
-       3. LOGOUT CONFIRMATION (SWEETALERT2 MODERN MODAL)
+       3. LOGOUT CONFIRMATION (SWEETALERT2 MODERN ACCESSIBLE MODAL)
     ---------------------------------------------------- */
     const logoutBtn = document.getElementById('logoutButton') || document.getElementById('adminLogoutButton');
     const logoutForm = document.getElementById('logoutForm') || document.getElementById('adminLogoutForm');
@@ -156,6 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     cancelButtonText: '<i class="fa-solid fa-xmark"></i> <span>Batal</span>',
                     buttonsStyling: false,
                     reverseButtons: true,
+                    focusCancel: true,
+                    allowEnterKey: true,
                     customClass: {
                         container: 'custom-swal-logout-backdrop',
                         popup: 'custom-swal-logout-popup',
@@ -168,6 +170,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                     hideClass: {
                         popup: 'swal-logout-animate-out'
+                    },
+                    didOpen: (popup) => {
+                        const cancelBtn = popup.querySelector('.btn-swal-logout-cancel');
+                        const confirmBtn = popup.querySelector('.btn-swal-logout-confirm');
+
+                        if (cancelBtn) {
+                            cancelBtn.setAttribute('tabindex', '1');
+                            cancelBtn.focus();
+                        }
+                        if (confirmBtn) {
+                            confirmBtn.setAttribute('tabindex', '2');
+                        }
+
+                        // Tab key cycling trap
+                        popup.addEventListener('keydown', (event) => {
+                            if (event.key === 'Tab') {
+                                if (event.shiftKey) {
+                                    if (document.activeElement === cancelBtn) {
+                                        event.preventDefault();
+                                        if (confirmBtn) confirmBtn.focus();
+                                    }
+                                } else {
+                                    if (document.activeElement === confirmBtn) {
+                                        event.preventDefault();
+                                        if (cancelBtn) cancelBtn.focus();
+                                    }
+                                }
+                            }
+                        });
                     }
                 }).then((result) => {
                     if (result.isConfirmed) {
@@ -180,6 +211,50 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+    }
+
+    /* ----------------------------------------------------
+       4. NAVBAR ADMIN REAL-TIME NAME & AVATAR SYNC
+    ---------------------------------------------------- */
+    const navbarAdminName = document.getElementById('navbarAdminName');
+    const navbarAdminAvatar = document.getElementById('navbarAdminAvatar');
+
+    function applyNavbarProfile(name, photoUrl) {
+        if (name && navbarAdminName) {
+            navbarAdminName.textContent = name;
+        }
+        if (navbarAdminAvatar) {
+            if (photoUrl && String(photoUrl).trim() !== '') {
+                navbarAdminAvatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;">`;
+            } else if (name) {
+                const initial = name.trim().charAt(0).toUpperCase() || 'A';
+                navbarAdminAvatar.textContent = initial;
+            }
+        }
+    }
+
+    // 1. Fast apply from localStorage
+    const cachedName = localStorage.getItem('admin_user_name');
+    const cachedPhoto = localStorage.getItem('admin_user_photo');
+    if (cachedName || cachedPhoto) {
+        applyNavbarProfile(cachedName, cachedPhoto);
+    }
+
+    // 2. Background sync from Firebase if logged in as admin
+    const userId = window.currentUserId;
+    if (userId && (navbarAdminName || navbarAdminAvatar)) {
+        fetch(`https://panicbttn2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${userId}.json`)
+            .then(r => r.json())
+            .then(data => {
+                if (data && typeof data === 'object') {
+                    const name = data.name || cachedName;
+                    const photo = data.photo_url || cachedPhoto;
+                    if (name) localStorage.setItem('admin_user_name', name);
+                    if (photo) localStorage.setItem('admin_user_photo', photo);
+                    applyNavbarProfile(name, photo);
+                }
+            })
+            .catch(() => {});
     }
 
 });

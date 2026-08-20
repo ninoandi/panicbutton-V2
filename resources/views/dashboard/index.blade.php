@@ -11,6 +11,9 @@
 @section('content')
 <div class="dashboard-page">
 
+    {{-- TOP-RIGHT EMERGENCY TOAST CONTAINER --}}
+    <div id="topToastContainer" class="top-toast-container" aria-live="polite"></div>
+
     {{-- 1. WELCOME HERO BANNER --}}
     <section class="welcome-card">
         <div class="welcome-text">
@@ -133,7 +136,7 @@
             </span>
         </div>
 
-        <div id="publicPanicAlert" class="public-panic-container">
+        <div id="adminPublicPanicAlert" class="public-panic-container">
             <div class="empty-state">
                 <div class="empty-state-icon public-idle">
                     <i class="fa-solid fa-satellite-dish"></i>

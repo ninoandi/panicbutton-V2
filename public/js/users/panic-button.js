@@ -715,543 +715,265 @@ async function getAddressFromCoordinates(latitude, longitude) {
     }
 }
 
+function escapeHtml(value = "") {
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // =====================================================
-// TOMBOL PANIC
+// TOMBOL PANIC DENGAN POPUP MODERN TEMA
 // =====================================================
 
 panicButton?.addEventListener(
     "click",
     async () => {
 
-
         // =================================================
-        // KONFIRMASI
+        // 1. KONFIRMASI AKTIFKAN PANIC
         // =================================================
 
-        const result =
-            await Swal.fire({
+        const result = await Swal.fire({
+            title: "Aktifkan Panic Button?",
+            html: `
+                <div class="panic-popup-body">
+                    <div class="panic-popup-icon-wrap warning">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <p class="panic-popup-desc">
+                        Laporan darurat akan dikirim seketika. Sistem akan mendeteksi lokasi GPS Anda dan mengaktifkan perangkat sirine IoT terdekat.
+                    </p>
+                    <div class="panic-popup-notice">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                        <span>Pastikan akses lokasi GPS telah diizinkan pada perangkat Anda.</span>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Aktifkan',
+            cancelButtonText: 'Batal',
+            reverseButtons: true,
+            buttonsStyling: false,
+            customClass: {
+                popup: 'panic-swal-popup',
+                title: 'panic-swal-title',
+                htmlContainer: 'panic-swal-html',
+                confirmButton: 'panic-swal-btn panic-swal-btn-danger',
+                cancelButton: 'panic-swal-btn panic-swal-btn-cancel',
+                actions: 'panic-swal-actions'
+            }
+        });
 
-                icon:
-                    "warning",
-
-                title:
-                    "Aktifkan Panic Button?",
-
-                text:
-                    "Laporan darurat akan dikirim dan perangkat IoT terdekat akan diaktifkan.",
-
-                showCancelButton:
-                    true,
-
-                confirmButtonText:
-                    "Ya, Aktifkan",
-
-                cancelButtonText:
-                    "Batal",
-
-                reverseButtons:
-                    true
-
-            });
-
-
-        if (
-            !result.isConfirmed
-        ) {
-
+        if (!result.isConfirmed) {
             return;
-
         }
 
-
-        // =================================================
-        // DISABLE BUTTON
-        // =================================================
-
-        panicButton.disabled =
-            true;
-
+        // Disable button saat proses
+        panicButton.disabled = true;
 
         try {
 
-
             // =================================================
+            // 2. LOADING: MENDETEKSI LOKASI & IOT
+            // =================================================
+
+            Swal.fire({
+                title: "Menghubungkan Sistem...",
+                html: `
+                    <div class="panic-popup-body">
+                        <div class="panic-popup-loader">
+                            <div class="panic-loader-radar"></div>
+                            <i class="fa-solid fa-satellite-dish"></i>
+                        </div>
+                        <p class="panic-popup-desc">
+                            Mendeteksi koordinat lokasi GPS dan mencari perangkat Panic Button IoT terdekat...
+                        </p>
+                    </div>
+                `,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'panic-swal-popup panic-swal-loading',
+                    title: 'panic-swal-title',
+                    htmlContainer: 'panic-swal-html'
+                }
+            });
+
             // 1. AMBIL LOKASI USER
-            // =================================================
+            const position = await getCurrentLocation();
+            const latitude = Number(position.coords.latitude);
+            const longitude = Number(position.coords.longitude);
 
-            const position =
-                await getCurrentLocation();
+            console.log("=================================");
+            console.log("Lokasi User:", latitude, longitude);
+            console.log("=================================");
 
-
-            const latitude =
-                Number(
-                    position.coords.latitude
-                );
-
-
-            const longitude =
-                Number(
-                    position.coords.longitude
-                );
-
-
-            console.log(
-                "================================="
-            );
-
-            console.log(
-                "Lokasi User:",
-                latitude,
-                longitude
-            );
-
-            console.log(
-                "================================="
-            );
-
-
-            // =================================================
             // VALIDASI LOKASI USER
-            // =================================================
-
-            if (
-                !Number.isFinite(latitude) ||
-                !Number.isFinite(longitude)
-            ) {
-
-                throw new Error(
-                    "Koordinat lokasi user tidak valid."
-                );
-
+            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                throw new Error("Koordinat lokasi user tidak valid.");
             }
 
-
-            // =================================================
             // 2. AMBIL DATA USER
-            // =================================================
+            const currentUser = window.currentUser || {};
 
-            const currentUser =
-                window.currentUser || {};
-
-
-            console.log(
-                "Current User:",
-                currentUser
-            );
-
-
-            // =================================================
             // 3. CARI IOT TERDEKAT
-            // =================================================
-            // Kita cari DEVICE TERLEBIH DAHULU.
-            //
-            // Tujuannya:
-            // jangan membuat public_panics jika ternyata
-            // tidak ada IoT yang bisa menerima laporan.
-            // =================================================
-                Swal.fire({
+            const nearestDevice = await findNearestDevice(latitude, longitude);
 
-                    title: "Mencari perangkat terdekat...",
+            console.log("Device terpilih:", nearestDevice);
 
-                    text: "Sistem sedang mencari Panic Button IoT terdekat.",
-
-                    allowOutsideClick: false,
-
-                    allowEscapeKey: false,
-
-                    didOpen: () => {
-
-                        Swal.showLoading();
-
-                    }
-
-                });
-
-            const nearestDevice =
-                await findNearestDevice(
-                    latitude,
-                    longitude
-                );
-
-
-            console.log(
-                "Device terpilih:",
-                nearestDevice
-            );
-
-            // =====================================================
             // DAPATKAN ALAMAT LOKASI
-            // =====================================================
+            const address = await getAddressFromCoordinates(latitude, longitude);
+            const locationUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
 
-            const address =
-                await getAddressFromCoordinates(
-                    latitude,
-                    longitude
-                );
-
-            console.log(
-                "Alamat lokasi user:",
-                address
-            );
-
-            const locationUrl =
-            `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-
-            // =================================================
             // 4. BUAT DATA PANIC
-            // =================================================
-
-            // =====================================================
-// WAKTU PANIC
-// =====================================================
-
             const createdAt = Date.now();
-
-            const autoOffAt =
-                createdAt + PANIC_DURATION;
+            const autoOffAt = createdAt + PANIC_DURATION;
 
             const panicData = {
-
-                user_id:
-                    currentUser.id ||
-                    "guest",
-
-                username:
-                    currentUser.username ||
-                    "",
-
-                name:
-                    currentUser.name ||
-                    "",
-
-                phone:
-                    currentUser.phone ||
-                    "",
-
-                email:
-                    currentUser.email ||
-                    "",
-
-                is_guest:
-                    !currentUser.id,
-
-                latitude:
-                    latitude,
-
-                longitude:
-                    longitude,
-
-                address:
-                    address,
-                
-                location_url:
-                     locationUrl,
-
-                status:
-                    "active",
-
-                assigned_device:
-                    nearestDevice.device,
-
-                assigned_zone:
-                    nearestDevice.zone,
-
-                assigned_location:
-                    nearestDevice.lokasi,
-
-                device_distance:
-                    Math.round(
-                        nearestDevice.distance
-                    ),
-
-                created_at:
-                    createdAt,
-
-                updated_at:
-                    createdAt,
-
-                auto_off_at:
-                    autoOffAt
-
+                user_id: currentUser.id || "guest",
+                username: currentUser.username || "",
+                name: currentUser.name || "",
+                phone: currentUser.phone || "",
+                email: currentUser.email || "",
+                is_guest: !currentUser.id,
+                latitude: latitude,
+                longitude: longitude,
+                address: address,
+                location_url: locationUrl,
+                status: "active",
+                assigned_device: nearestDevice.device,
+                assigned_zone: nearestDevice.zone,
+                assigned_location: nearestDevice.lokasi,
+                device_distance: Math.round(nearestDevice.distance),
+                created_at: createdAt,
+                updated_at: createdAt,
+                auto_off_at: autoOffAt
             };
 
-
-            console.log(
-                "Data Panic:",
-                panicData
-            );
-
-
-            // =================================================
             // 5. SIMPAN public_panics
-            // =================================================
+            const reportsRef = ref(db2, "public_panics");
+            const newReport = await push(reportsRef, panicData);
+            const panicId = newReport.key;
 
-            const reportsRef =
-                ref(
-                    db2,
-                    "public_panics"
-                );
+            console.log("PANIC ID:", panicId);
 
-
-            const newReport =
-                await push(
-                    reportsRef,
-                    panicData
-                );
-
-
-            const panicId =
-                newReport.key;
-
-
-            console.log(
-                "================================="
+            // 6. PATH IOT TERPILIH & AKTIFKAN IOT
+            const deviceRef = ref(
+                db2,
+                `panicChannels/${nearestDevice.zone}/${nearestDevice.deviceKey}`
             );
 
-            console.log(
-                "PANIC ID:",
+            await update(deviceRef, {
+                active: true,
+                assigned_panic_id: panicId,
+                panic_latitude: latitude,
+                panic_longitude: longitude,
+                last_update: Date.now()
+            });
+
+            // MULAI AUTO-OFF 30 DETIK
+            autoTurnOffDevice(
+                nearestDevice.zone,
+                nearestDevice.deviceKey,
                 panicId
             );
 
-            console.log(
-                "================================="
-            );
+            console.log("IOT BERHASIL DIAKTIFKAN:", nearestDevice.device);
 
-
-            // =================================================
-            // 6. PATH IOT TERPILIH
-            // =================================================
-
-            const deviceRef =
-                ref(
-                    db2,
-                    `panicChannels/${nearestDevice.zone}/${nearestDevice.deviceKey}`
-                );
-
+            // 7. UPDATE public_panics
+            await update(ref(db2, `public_panics/${panicId}`), {
+                assigned_device: nearestDevice.device,
+                assigned_zone: nearestDevice.zone,
+                assigned_location: nearestDevice.lokasi,
+                device_distance: Math.round(nearestDevice.distance),
+                updated_at: Date.now()
+            });
 
             // =================================================
-            // 7. AKTIFKAN IOT
-            // =================================================
-
-            await update(
-                deviceRef,
-                {
-
-                    active:
-                        true,
-
-                    assigned_panic_id:
-                        panicId,
-
-                    panic_latitude:
-                        latitude,
-
-                    panic_longitude:
-                        longitude,
-
-                    last_update:
-                        Date.now()
-
-                }
-            );
-
-        // =====================================================
-        // MULAI AUTO-OFF 30 DETIK
-        // =====================================================
-
-        autoTurnOffDevice(
-            nearestDevice.zone,
-            nearestDevice.deviceKey,
-            panicId
-        );
-
-            console.log(
-                "================================="
-            );
-
-            console.log(
-                "IOT BERHASIL DIAKTIFKAN"
-            );
-
-            console.log(
-                "================================="
-            );
-
-            console.log(
-                "Device:",
-                nearestDevice.device
-            );
-
-            console.log(
-                "Zona:",
-                nearestDevice.zone
-            );
-
-            console.log(
-                "Lokasi:",
-                nearestDevice.lokasi
-            );
-
-            console.log(
-                "Jarak:",
-                Math.round(
-                    nearestDevice.distance
-                ),
-                "meter"
-            );
-
-
-            // =================================================
-            // 8. UPDATE public_panics
-            // =================================================
-
-            await update(
-                ref(
-                    db2,
-                    `public_panics/${panicId}`
-                ),
-                {
-
-                    assigned_device:
-                        nearestDevice.device,
-
-                    assigned_zone:
-                        nearestDevice.zone,
-
-                    assigned_location:
-                        nearestDevice.lokasi,
-
-                    device_distance:
-                        Math.round(
-                            nearestDevice.distance
-                        ),
-
-                    updated_at:
-                        Date.now()
-
-                }
-            );
-
-
-            // =================================================
-            // 9. NOTIFIKASI BERHASIL
+            // 8. NOTIFIKASI BERHASIL (SUCCESS POPUP)
             // =================================================
 
             await Swal.fire({
-
-                icon:
-                    "success",
-
-                title:
-                    "Panic Button Aktif",
-
-                html:
-                    `
-                    <p>
-                        Laporan darurat berhasil dikirim.
-                    </p>
-
-                    <p>
-                        <strong>
-                            Perangkat terdekat:
-                        </strong>
-                        <br>
-                        ${nearestDevice.device}
-                    </p>
-
-                    <p>
-                        <strong>
-                            Lokasi perangkat:
-                        </strong>
-                        <br>
-                        ${nearestDevice.lokasi}
-                    </p>
-
-                    <p>
-                        <strong>
-                            Jarak:
-                        </strong>
-                        ${Math.round(
-                            nearestDevice.distance
-                        )}
-                        meter
-                    </p>
-                    `,
-
-                confirmButtonText:
-                    "OK"
-
+                title: "Panic Button Aktif",
+                html: `
+                    <div class="panic-popup-body">
+                        <div class="panic-popup-icon-wrap success">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <p class="panic-popup-desc">
+                            Laporan darurat berhasil dikirim dan perangkat sirine terdekat telah diaktifkan.
+                        </p>
+                        <div class="panic-popup-device-card">
+                            <div class="device-card-row">
+                                <span class="device-card-label"><i class="fa-solid fa-microchip"></i> Perangkat</span>
+                                <strong class="device-card-value">${escapeHtml(nearestDevice.device)}</strong>
+                            </div>
+                            <div class="device-card-row">
+                                <span class="device-card-label"><i class="fa-solid fa-location-dot"></i> Lokasi</span>
+                                <strong class="device-card-value">${escapeHtml(nearestDevice.lokasi)}</strong>
+                            </div>
+                            <div class="device-card-row">
+                                <span class="device-card-label"><i class="fa-solid fa-ruler"></i> Estimasi Jarak</span>
+                                <strong class="device-card-value">${Math.round(nearestDevice.distance)} meter</strong>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: '<i class="fa-solid fa-check"></i> Mengerti',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'panic-swal-popup',
+                    title: 'panic-swal-title',
+                    htmlContainer: 'panic-swal-html',
+                    confirmButton: 'panic-swal-btn panic-swal-btn-success',
+                    actions: 'panic-swal-actions'
+                }
             });
 
+            // SCROLL KE KEJADIAN
+            document.getElementById("kejadian")?.scrollIntoView({
+                behavior: "smooth"
+            });
+
+        } catch (error) {
+
+            console.error("PANIC BUTTON ERROR:", error);
 
             // =================================================
-            // 10. SCROLL KE KEJADIAN
+            // 9. NOTIFIKASI ERROR (ERROR POPUP)
             // =================================================
-
-            document
-                .getElementById(
-                    "kejadian"
-                )
-                ?.scrollIntoView({
-
-                    behavior:
-                        "smooth"
-
-                });
-
-
-        }
-
-        catch (error) {
-
-
-            // =================================================
-            // ERROR
-            // =================================================
-
-            console.error(
-                "================================="
-            );
-
-            console.error(
-                "PANIC BUTTON ERROR"
-            );
-
-            console.error(
-                error
-            );
-
-            console.error(
-                "================================="
-            );
-
 
             await Swal.fire({
-
-                icon:
-                    "error",
-
-                title:
-                    "Panic Button Gagal",
-
-                text:
-                    error.message ||
-                    "Laporan Panic Button gagal dikirim."
-
+                title: "Gagal Mengirim Laporan",
+                html: `
+                    <div class="panic-popup-body">
+                        <div class="panic-popup-icon-wrap error">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <p class="panic-popup-desc">
+                            ${escapeHtml(error.message || "Laporan Panic Button gagal diproses. Pastikan izin lokasi aktif dan koneksi internet stabil.")}
+                        </p>
+                    </div>
+                `,
+                confirmButtonText: 'Tutup',
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'panic-swal-popup',
+                    title: 'panic-swal-title',
+                    htmlContainer: 'panic-swal-html',
+                    confirmButton: 'panic-swal-btn panic-swal-btn-cancel',
+                    actions: 'panic-swal-actions'
+                }
             });
 
-        }
-
-        finally {
-
-
-            // =================================================
-            // ENABLE BUTTON KEMBALI
-            // =================================================
-
-            panicButton.disabled =
-                false;
-
+        } finally {
+            // Re-enable button
+            panicButton.disabled = false;
         }
 
     }

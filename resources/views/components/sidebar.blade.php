@@ -30,6 +30,13 @@
                     'active' => request()->routeIs('manajemen-user')
                 ],
                 [
+                    'label' => 'Manajemen Admin',
+                    'route' => 'manajemen-admin',
+                    'url' => route('manajemen-admin'),
+                    'icon' => 'fa-solid fa-user-shield',
+                    'active' => request()->routeIs('manajemen-admin*')
+                ],
+                [
                     'label' => 'Quick Message',
                     'route' => 'quick-message',
                     'url' => route('quick-message'),
@@ -63,6 +70,13 @@
                     'url' => route('statistik'),
                     'icon' => 'fa-solid fa-chart-pie',
                     'active' => request()->routeIs('statistik*') || request()->routeIs('detail-grafik*')
+                ],
+                [
+                    'label' => 'Profil',
+                    'route' => 'profil',
+                    'url' => route('profil'),
+                    'icon' => 'fa-solid fa-circle-user',
+                    'active' => request()->routeIs('profil*')
                 ],
             ];
         } else {
