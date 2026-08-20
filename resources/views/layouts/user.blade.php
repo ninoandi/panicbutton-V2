@@ -91,7 +91,6 @@
 
 </div>
 
-
 <script>
     window.currentUserId = @json(session('web_user_id'));
 </script>

@@ -1,13 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const userLayout = document.querySelector('.user-layout');
+    /* =====================================================
+       SIDEBAR TOGGLE
+    ===================================================== */
 
-    if (!sidebarToggle || !userLayout) {
-        console.warn('Sidebar toggle atau user layout tidak ditemukan.');
-        return;
+    const sidebarToggle =
+        document.getElementById('sidebarToggle');
+
+    const userLayout =
+        document.querySelector('.user-layout');
+
+
+    if (sidebarToggle && userLayout) {
+
+        sidebarToggle.addEventListener('click', () => {
+
+            const isCollapsed =
+                userLayout.classList.toggle(
+                    'sidebar-collapsed'
+                );
+
+
+            sidebarToggle.setAttribute(
+                'aria-expanded',
+                String(!isCollapsed)
+            );
+
+        });
+
     }
-
     const isMobile = window.innerWidth <= 768;
     const savedState = localStorage.getItem('user_sidebar_collapsed');
 
@@ -26,9 +47,25 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarToggle.addEventListener('click', (e) => {
         e.stopPropagation();
 
-        const isCollapsed =
-            userLayout.classList.toggle('sidebar-collapsed');
 
+    /* =====================================================
+       LOGOUT CONFIRMATION
+    ===================================================== */
+
+    const logoutButton =
+        document.getElementById('userLogoutButton');
+
+    const logoutForm =
+        document.getElementById('userLogoutForm');
+
+
+    if (logoutButton && logoutForm) {
+
+        logoutButton.addEventListener('click', () => {
+
+            Swal.fire({
+
+                title: 'Keluar dari akun?',
         sidebarToggle.setAttribute(
             'aria-expanded',
             String(!isCollapsed)
@@ -40,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
     });
-
     // Close sidebar on mobile when clicking content area
     const userContent = document.querySelector('.user-content');
     if (userContent) {

@@ -24,9 +24,14 @@
 
         <div class="landing-logo">
 
-            <div class="logo-icon">
+            <!-- <div class="logo-icon">
                 !
-            </div>
+            </div> -->
+            <img
+            src="{{ asset('assets/images/lifemedia_logo.png') }}"
+            alt="Life Media"
+            class="logo-icon-img"
+            >
 
             <div class="logo-text">
 

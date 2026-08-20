@@ -71,6 +71,14 @@ body {
     font-weight: 800;
 }
 
+.logo-icon-img {
+    width: 43px;
+    height: auto;
+
+    object-fit: contain;
+
+    flex-shrink: 0;
+}
 
 .logo-text {
     display: flex;
@@ -123,6 +131,10 @@ body {
     font-weight: 600;
 }
 
+.landing-nav .nav-login:hover {
+    background: #ede8e8;
+    border: 1px solid #e55c65;
+}
 
 /* =========================================================
    HERO
@@ -226,6 +238,11 @@ body {
     color: white;
 }
 
+.btn-primary:hover {
+    background: #ede8e8;
+    color: #e55c65;
+    border: 1px solid #e55c65;
+}
 
 .btn-secondary {
     background: white;
@@ -233,6 +250,7 @@ body {
 
     border: 1px solid #e55c65;
 }
+
 
 
 /* =========================================================
@@ -254,30 +272,32 @@ body {
 .panic-button {
     width: 245px;
     height: 245px;
-
     border-radius: 50%;
-
     display: flex;
     flex-direction: column;
-
     align-items: center;
     justify-content: center;
-
-    background:
-        linear-gradient(
-            145deg,
-            #ff817b,
-            #ed5964
-        );
-
+    background: linear-gradient(145deg, #ff817b, #ed5964);
     color: white;
-
-    box-shadow:
-        0 20px 50px rgba(229, 92, 101, .35);
-
+    box-shadow: 0 20px 50px rgba(229, 92, 101, .35);
     z-index: 5;
+    
+    /* Tambahan properti untuk interaksi & transisi animasi */
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+}
+.panic-button:hover {
+    transform: scale(1.08); /* Tombol membesar sedikit */
+    box-shadow: 0 30px 60px rgba(229, 92, 101, .6); /* Bayangan membesar & lebih tegas */
 }
 
+/* Animasi saat tombol diklik (Active) */
+.panic-button:active {
+    transform: scale(0.95); /* Tombol mengecil seperti ditekan */
+    box-shadow: 0 10px 20px rgba(229, 92, 101, .3);
+}
 
 .panic-symbol {
     width: 54px;
@@ -542,6 +562,83 @@ body {
     font-size: 13px;
 }
 
+/* =========================================================
+   ACTIVE PUBLIC PANIC
+========================================================= */
+
+.public-panic-item {
+    display: flex;
+    align-items: center;
+
+    gap: 16px;
+
+    padding: 16px 20px;
+
+    border-bottom: 1px solid #edf0f4;
+}
+
+.public-panic-item:last-child {
+    border-bottom: none;
+}
+
+
+/* ICON */
+
+.panic-item-icon {
+    width: 44px;
+    height: 44px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #fff0f0;
+    border-radius: 12px;
+
+    font-size: 21px;
+}
+
+
+/* CONTENT */
+
+.panic-item-content {
+    display: flex;
+    flex-direction: column;
+
+    gap: 4px;
+
+    min-width: 0;
+}
+
+
+/* TITLE */
+
+.panic-item-content strong {
+    font-size: 15px;
+    font-weight: 700;
+
+    color: #1f2937;
+}
+
+
+/* LOCATION */
+
+.panic-item-content span {
+    font-size: 13px;
+
+    color: #6b7280;
+}
+
+
+/* TIME */
+
+.panic-item-content small {
+    font-size: 12px;
+
+    color: #9aa3b2;
+}
 
 /* =========================================================
    INFO
