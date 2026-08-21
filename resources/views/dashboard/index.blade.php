@@ -200,7 +200,7 @@
             </div>
             <div class="quick-card-content">
                 <strong>Monitoring Device IoT</strong>
-                <p>Pantau status perangkat keras ESP32, sensor panic button, dan kondisi buzzer.</p>
+                <p>Pantau status perangkat keras, sensor panic button, dan kondisi buzzer.</p>
             </div>
             <div class="quick-card-footer">
                 <span class="quick-link-text">Pantau Device</span>
