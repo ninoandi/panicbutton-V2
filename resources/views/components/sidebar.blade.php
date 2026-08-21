@@ -44,13 +44,6 @@
                     'active' => request()->routeIs('quick-message')
                 ],
                 [
-                    'label' => 'Panduan SOS',
-                    'route' => 'manajemen-user',
-                    'url' => route('manajemen-user'),
-                    'icon' => 'fa-solid fa-life-ring',
-                    'active' => request()->is('panduan*')
-                ],
-                [
                     'label' => 'Rekap Data',
                     'route' => 'perumahan',
                     'url' => route('perumahan'),

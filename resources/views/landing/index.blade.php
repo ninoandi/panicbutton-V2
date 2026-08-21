@@ -149,7 +149,7 @@
 
                         <a href="{{ route('login') }}" class="btn-hero-secondary">
                             <i class="fa-solid fa-user-shield"></i>
-                            <span>Masuk Portal</span>
+                            <span>Login</span>
                         </a>
                     </div>
 
@@ -262,7 +262,7 @@
                         </div>
                         <div class="status-info">
                             <span class="status-label">Layanan Pemantauan</span>
-                            <strong class="status-value">Aktif 24/7 Jam</strong>
+                            <strong class="status-value">Aktif 24 Jam</strong>
                             <span class="status-meta">Respon terpusat</span>
                         </div>
                         <div class="status-card-glow"></div>
@@ -398,8 +398,8 @@
 
             <div class="footer-links">
                 <strong>Akses Sistem</strong>
-                <a href="{{ route('login') }}">Masuk Portal</a>
-                <a href="{{ route('register') }}">Registrasi Akun</a>
+                <a href="{{ route('login') }}">Login</a>
+                <a href="{{ route('register') }}">Registrasi</a>
                 <a href="#beranda" class="btn-scroll-top">
                     <i class="fa-solid fa-arrow-up"></i> Kembali ke Atas
                 </a>

@@ -52,6 +52,9 @@ const publicPanicCountBadge =
 const publicPanicAlert =
     document.getElementById("adminPublicPanicAlert");
 
+const loadingIndicator =
+    document.getElementById("loadingIndicator");
+
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +102,15 @@ let latestPublicPanicsData = {};
 
 const monitorCache =
     new Map();
+
+let isFirstLoad = true;
+let processTimeout = null;
+let lastUserCountUpdate = 0;
+let lastRenderTime = 0;
+const MAX_RENDER_ITEMS = 50;
+const THROTTLE_DELAY = 300;
+const USER_COUNT_INTERVAL = 5000;
+const MIN_RENDER_INTERVAL = 1000;
 
 
 /*
@@ -150,39 +162,46 @@ console.log(
 
 /*
 |--------------------------------------------------------------------------
+| LOADING INDICATOR
+|--------------------------------------------------------------------------
+*/
+
+function showLoading() {
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'flex';
+    }
+}
+
+function hideLoading() {
+    if (loadingIndicator) {
+        loadingIndicator.style.display = 'none';
+    }
+}
+
+function showInitialLoading() {
+    if (isFirstLoad) {
+        showLoading();
+    }
+}
+
+function hideInitialLoading() {
+    if (isFirstLoad) {
+        hideLoading();
+        isFirstLoad = false;
+    }
+}
+
+
+/*
+|--------------------------------------------------------------------------
 | PERFORMANCE
 |--------------------------------------------------------------------------
 */
 
-function logPerformance(
-    label,
-    startTime
-) {
-
-    const duration =
-        performance.now() -
-        startTime;
-
-
-        if (statusCard) {
-            statusCard.classList.remove("darurat", "penting", "biasa", "standby");
-            if (priority === "darurat") {
-                statusCard.classList.add("darurat");
-            } else if (priority === "penting") {
-                statusCard.classList.add("penting");
-            } else {
-                statusCard.classList.add("biasa");
-            }
-        }
-
-
-
-
-        if (statusCard) {
-            statusCard.classList.remove("darurat", "penting", "biasa");
-            statusCard.classList.add("standby");
-            statusCard.style.borderColor = "";
-        }
+function logPerformance(label, startTime) {
+    const duration = performance.now() - startTime;
+    console.log(`[${label}] selesai dalam ${duration.toFixed(2)}ms`);
+}
 
 
 function escapeHtml(
@@ -279,7 +298,6 @@ function formatPublicPanicTime(
 
 /*
 |--------------------------------------------------------------------------
-
 | FIREBASE LISTENERS - PANIC PUBLIK (IoT ZONA & PUBLIC PANICS)
 |--------------------------------------------------------------------------
 */
@@ -290,13 +308,16 @@ onValue(
     (snapshot) => {
         try {
             currentChannelsData = snapshot.val() || {};
-            processPublicPanicData();
+            // Proses dengan throttling
+            scheduleProcessPublicPanicData();
         } catch (error) {
             console.error("Error membaca panicChannels:", error);
+            hideInitialLoading();
         }
     },
     (error) => {
         console.error("Firebase panicChannels error:", error);
+        hideInitialLoading();
     }
 );
 
@@ -306,110 +327,68 @@ onValue(
     (snapshot) => {
         try {
             currentPublicPanicsData = snapshot.val() || {};
-            processPublicPanicData();
+            // Proses dengan throttling
+            scheduleProcessPublicPanicData();
+            hideInitialLoading();
         } catch (error) {
             console.error("Error membaca public_panics:", error);
+            hideInitialLoading();
         }
     },
     (error) => {
         console.error("Firebase public_panics error:", error);
-
+        hideInitialLoading();
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRIORITAS 3
-    | FORMAT DATABASE
-    |
-    | 2025-10-17 waktu 10:35
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        typeof monitor.time === "string"
-    ) {
-
-        const match =
-            monitor.time.match(
-                /^(\d{4}-\d{2}-\d{2}) waktu (\d{2}:\d{2}(?::\d{2})?)$/
-            );
-
-
-        if (
-            match
-        ) {
-
-            const date =
-                new Date(
-                    `${match[1]}T${match[2]}`
-                );
-
-
-            if (
-                !Number.isNaN(
-                    date.getTime()
-                )
-            ) {
-
-                return date.getTime();
-
-            }
-
-        }
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | FALLBACK
-    |--------------------------------------------------------------------------
-    */
-
-    return 0;
-}
+);
 
 
 /*
 |--------------------------------------------------------------------------
-
-| PROSES & GABUNGKAN DATA PANIC PUBLIK DENGAN AKUN PENGIRIM
+| PROSES & GABUNGKAN DATA PANIC PUBLIK DENGAN AKUN PENGIRIM (OPTIMASI)
 |--------------------------------------------------------------------------
 */
 
-function processPublicPanicData() {
+function scheduleProcessPublicPanicData() {
+    if (processTimeout) {
+        clearTimeout(processTimeout);
+    }
+    processTimeout = setTimeout(() => {
+        actualProcessPublicPanicData();
+        processTimeout = null;
+    }, THROTTLE_DELAY);
+}
+
+function actualProcessPublicPanicData() {
+    const startTime = performance.now();
     const activePanics = [];
-    const pairedReportIds = new Set();
     const now = Date.now();
-    const maxActiveAge = 24 * 60 * 60 * 1000; // 24 jam terakhir
+    const maxActiveAge = 24 * 60 * 60 * 1000;
 
-    // A. Periksa perangkat yang aktif di panicChannels
-    Object.entries(currentChannelsData).forEach(([zoneName, zoneData]) => {
-        if (!zoneData || typeof zoneData !== "object") return;
+    // Buat Map untuk akses cepat O(1) bukan O(n)
+    const publicPanicsMap = new Map();
+    if (currentPublicPanicsData) {
+        Object.entries(currentPublicPanicsData).forEach(([id, data]) => {
+            if (data && data.status === "active") {
+                publicPanicsMap.set(id, data);
+            }
+        });
+    }
 
-        Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
-            if (!deviceData || typeof deviceData !== "object") return;
+    // Proses channels dengan optimasi
+    if (currentChannelsData) {
+        Object.entries(currentChannelsData).forEach(([zoneName, zoneData]) => {
+            if (!zoneData || typeof zoneData !== "object") return;
 
-            if (deviceData.active === true) {
+            Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
+                if (!deviceData || typeof deviceData !== "object") return;
+                if (deviceData.active !== true) return;
+
                 const assignedPanicId = deviceData.assigned_panic_id || "";
-                let report = null;
+                const report = assignedPanicId ? publicPanicsMap.get(assignedPanicId) : null;
 
-                if (assignedPanicId && currentPublicPanicsData[assignedPanicId]) {
-                    report = currentPublicPanicsData[assignedPanicId];
-                    pairedReportIds.add(assignedPanicId);
-                } else {
-                    // Coba cari laporan publik aktif yang cocok dengan perangkat/zona
-                    const matchingEntry = Object.entries(currentPublicPanicsData).find(([repId, repData]) => {
-                        if (!repData || repData.status !== "active") return false;
-                        if (pairedReportIds.has(repId)) return false;
-                        return (repData.assigned_device === deviceData.device || repData.assigned_zone === zoneName);
-                    });
-
-                    if (matchingEntry) {
-                        report = matchingEntry[1];
-                        pairedReportIds.add(matchingEntry[0]);
-                    }
+                // Skip jika sudah mencapai batas maksimum
+                if (activePanics.length >= MAX_RENDER_ITEMS * 2) {
+                    return;
                 }
 
                 // Tentukan nama pengirim & info akun
@@ -456,221 +435,179 @@ function processPublicPanicData() {
                     longitude: longitude,
                     locationUrl: locationUrl
                 });
-            }
+            });
         });
-    });
+    }
 
-    // B. Periksa jika ada laporan public_panics dengan status 'active' yang belum terdaftar di atas
-    Object.entries(currentPublicPanicsData).forEach(([repId, report]) => {
-        if (!report || typeof report !== "object") return;
-        if (report.status === "active" && !pairedReportIds.has(repId)) {
+    // B. Periksa laporan public_panics yang belum terdaftar
+    if (currentPublicPanicsData) {
+        Object.entries(currentPublicPanicsData).forEach(([repId, report]) => {
+            if (!report || typeof report !== "object") return;
+            if (report.status !== "active") return;
+            if (activePanics.some(p => p.id === repId)) return;
+
             const isRecent = !report.created_at || (report.created_at >= (now - maxActiveAge));
-            if (isRecent) {
-                const senderName = report.name || report.username || "Pengguna Publik";
-                const username = report.username ? `@${report.username.replace('@', '')}` : "-";
-                const isGuest = Boolean(report.is_guest || (!report.user_id || report.user_id === "guest"));
-                const locationUrl = report.location_url || (report.latitude && report.longitude ? `https://www.google.com/maps?q=${report.latitude},${report.longitude}` : null);
+            if (!isRecent) return;
 
-                activePanics.push({
-                    id: repId,
-                    device: report.assigned_device || "Device Publik",
-                    zona: report.assigned_zone || "Zona Umum",
-                    lokasi: report.assigned_location || report.address || "-",
-                    active: true,
-                    last_update: report.created_at || now,
-                    createdAt: report.created_at || now,
-                    senderName: senderName,
-                    username: username,
-                    phone: report.phone || "-",
-                    email: report.email || "-",
-                    isGuest: isGuest,
-                    isHardware: false,
-                    address: report.address || "-",
-                    latitude: report.latitude || null,
-                    longitude: report.longitude || null,
-                    locationUrl: locationUrl
-                });
+            // Skip jika sudah mencapai batas maksimum
+            if (activePanics.length >= MAX_RENDER_ITEMS * 2) {
+                return;
             }
-        }
-    });
+
+            const senderName = report.name || report.username || "Pengguna Publik";
+            const username = report.username ? `@${report.username.replace('@', '')}` : "-";
+            const isGuest = Boolean(report.is_guest || (!report.user_id || report.user_id === "guest"));
+            const locationUrl = report.location_url || (report.latitude && report.longitude ? `https://www.google.com/maps?q=${report.latitude},${report.longitude}` : null);
+
+            activePanics.push({
+                id: repId,
+                device: report.assigned_device || "Device Publik",
+                zona: report.assigned_zone || "Zona Umum",
+                lokasi: report.assigned_location || report.address || "-",
+                active: true,
+                last_update: report.created_at || now,
+                createdAt: report.created_at || now,
+                senderName: senderName,
+                username: username,
+                phone: report.phone || "-",
+                email: report.email || "-",
+                isGuest: isGuest,
+                isHardware: false,
+                address: report.address || "-",
+                latitude: report.latitude || null,
+                longitude: report.longitude || null,
+                locationUrl: locationUrl
+            });
+        });
+    }
 
     // Urutkan dari update / waktu kejadian terbaru
     activePanics.sort((a, b) => (b.createdAt || b.last_update || 0) - (a.createdAt || a.last_update || 0));
 
-    // Render ke tampilan dashboard
-    renderPublicPanic(activePanics);
+    // Batasi jumlah yang dirender
+    const limitedPanics = activePanics.slice(0, MAX_RENDER_ITEMS);
 
-    // C. Pemicu Notifikasi Mengambang di Pojok Kanan Atas (2-3 detik)
-    handlePanicNotificationAlert(activePanics);
+    // Render dengan interval minimum untuk mencegah render berlebihan
+    const nowTime = Date.now();
+    if (nowTime - lastRenderTime >= MIN_RENDER_INTERVAL || isFirstLoad) {
+        renderPublicPanic(limitedPanics);
+        handlePanicNotificationAlert(limitedPanics);
+        lastRenderTime = nowTime;
+    } else {
+        // Schedule render berikutnya
+        setTimeout(() => {
+            renderPublicPanic(limitedPanics);
+            handlePanicNotificationAlert(limitedPanics);
+            lastRenderTime = Date.now();
+        }, MIN_RENDER_INTERVAL - (nowTime - lastRenderTime));
+    }
+
+    logPerformance("processPublicPanicData", startTime);
 }
 
 
 /*
 |--------------------------------------------------------------------------
 | RENDER PANIC PUBLIK DENGAN INFORMASI AKUN PENGIRIM
-
 |--------------------------------------------------------------------------
 */
 
-function formatMonitorTime(
-    time
-) {
-
-    if (
-        time === null ||
-        time === undefined ||
-        time === ""
-    ) {
-
-        return "-";
-
+function formatMonitorTime(time) {
+    if (time === null || time === undefined || time === "") return "-";
+    
+    const numericTime = Number(time);
+    if (Number.isFinite(numericTime)) {
+        const date = new Date(numericTime);
+        if (!Number.isNaN(date.getTime())) {
+            return date.toLocaleString("id-ID", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+        }
     }
+    
+    if (typeof time === "string") {
+        const match = time.match(/^(\d{4})-(\d{2})-(\d{2}) waktu (.+)$/);
+        if (match) {
+            return `${match[3]}-${match[2]}-${match[1]} pukul ${match[4]}`;
+        }
+    }
+    
+    return String(time);
+}
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | TIMESTAMP ANGKA
-    |--------------------------------------------------------------------------
-    */
+function renderPublicPanic(activePanics) {
+    if (!publicPanicAlert) return;
 
-    const numericTime =
-        Number(time);
-
-
-    if (
-        Number.isFinite(
-            numericTime
-        )
-    ) {
-
-        const date =
-            new Date(
-                numericTime
-            );
-
-
-        if (
-            !Number.isNaN(
-                date.getTime()
-            )
-        ) {
-
-            return date.toLocaleString(
-                "id-ID",
-                {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit"
-                }
-            );
-
-
+    // Badge
     if (publicPanicCountBadge) {
         if (activePanics.length === 0) {
             publicPanicCountBadge.className = "status-badge status-none";
             publicPanicCountBadge.textContent = "0 Perangkat";
         } else {
             publicPanicCountBadge.className = "status-badge status-darurat";
-            publicPanicCountBadge.textContent = `${activePanics.length} Sinyal Aktif`;
-
+            publicPanicCountBadge.textContent = `${activePanics.length} Perangkat Aktif`;
         }
-
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT:
-    |
-    | 2025-10-17 waktu 10:35
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        typeof time === "string"
-    ) {
-
-        const match =
-            time.match(
-                /^(\d{4})-(\d{2})-(\d{2}) waktu (.+)$/
-            );
-
-
-        if (
-            match
-        ) {
-
-            const year =
-                match[1];
-
-            const month =
-                match[2];
-
-            const day =
-                match[3];
-
-            const clock =
-                match[4];
-
-
-            return `${day}-${month}-${year} pukul ${clock}`;
-
-        }
-
+    // Tidak ada public panic
+    if (activePanics.length === 0) {
+        publicPanicAlert.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon public-idle">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                </div>
+                <h3>Tidak Ada Alarm Publik Aktif</h3>
+                <p>Perangkat IoT panic publik berada dalam kondisi standby dan terpantau aktif.</p>
+            </div>
+        `;
+        return;
     }
 
-
+    // Device aktif dengan detail lengkap
     publicPanicAlert.innerHTML = `
         <div class="public-panic-grid">
             ${activePanics.map(panic => {
-        const initial = (panic.senderName && panic.senderName.length > 0)
-            ? panic.senderName.charAt(0).toUpperCase()
-            : "P";
+                const initial = (panic.senderName && panic.senderName.length > 0)
+                    ? panic.senderName.charAt(0).toUpperCase()
+                    : "P";
 
-        let accountBadgeHtml = "";
-        if (panic.isHardware) {
-            accountBadgeHtml = `<span class="public-panic-account-pill hardware"><i class="fa-solid fa-microchip"></i> Hardware IoT</span>`;
-        } else if (panic.isGuest) {
-            accountBadgeHtml = `<span class="public-panic-account-pill guest"><i class="fa-solid fa-user-clock"></i> Tamu (Guest)</span>`;
-        } else {
-            accountBadgeHtml = `<span class="public-panic-account-pill"><i class="fa-solid fa-circle-check"></i> Warga Terdaftar</span>`;
-        }
+                let accountBadgeHtml = "";
+                if (panic.isHardware) {
+                    accountBadgeHtml = `<span class="public-panic-account-pill hardware"><i class="fa-solid fa-microchip"></i> Hardware IoT</span>`;
+                } else if (panic.isGuest) {
+                    accountBadgeHtml = `<span class="public-panic-account-pill guest"><i class="fa-solid fa-user-clock"></i> Tamu (Guest)</span>`;
+                } else {
+                    accountBadgeHtml = `<span class="public-panic-account-pill"><i class="fa-solid fa-circle-check"></i> Warga Terdaftar</span>`;
+                }
 
-        let mapsButtonHtml = "";
-        if (panic.locationUrl) {
-            mapsButtonHtml = `
-                        <a
-                            href="${panic.locationUrl}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="btn-location-map"
-                        >
+                let mapsButtonHtml = "";
+                if (panic.locationUrl) {
+                    mapsButtonHtml = `
+                        <a href="${panic.locationUrl}" target="_blank" rel="noopener noreferrer" class="btn-location-map">
                             <i class="fa-solid fa-map-location-dot"></i>
                             <span>Buka Google Maps</span>
                         </a>
                     `;
-        } else if (panic.latitude && panic.longitude) {
-            mapsButtonHtml = `
-                        <a
-                            href="https://www.google.com/maps?q=${panic.latitude},${panic.longitude}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="btn-location-map"
-                        >
+                } else if (panic.latitude && panic.longitude) {
+                    mapsButtonHtml = `
+                        <a href="https://www.google.com/maps?q=${panic.latitude},${panic.longitude}" target="_blank" rel="noopener noreferrer" class="btn-location-map">
                             <i class="fa-solid fa-map-location-dot"></i>
                             <span>Buka Google Maps</span>
                         </a>
                     `;
-        } else {
-            mapsButtonHtml = `<span style="font-size:12.5px; color:var(--dash-text-muted);"><i class="fa-solid fa-location-crosshairs"></i> Koordinat tidak tersedia</span>`;
-        }
+                } else {
+                    mapsButtonHtml = `<span style="font-size:12.5px; color:var(--dash-text-muted);"><i class="fa-solid fa-location-crosshairs"></i> Koordinat tidak tersedia</span>`;
+                }
 
-        const formattedTime = formatPublicPanicTime(panic.createdAt || panic.last_update);
+                const formattedTime = formatPublicPanicTime(panic.createdAt || panic.last_update);
 
-        return `
+                return `
                     <div class="public-panic-card">
                         <div class="public-panic-card-header">
                             <div class="public-panic-user-badge">
@@ -740,7 +677,7 @@ function formatMonitorTime(
                         </div>
                     </div>
                 `;
-    }).join("")}
+            }).join("")}
         </div>
     `;
 }
@@ -754,12 +691,10 @@ function formatMonitorTime(
 
 function handlePanicNotificationAlert(activePanics) {
     if (!activePanics || activePanics.length === 0) {
-        // Bersihkan cache saat tidak ada panic aktif
         notifiedPanicIds.clear();
         return;
     }
 
-    // Urutkan dari terlama ke terbaru agar saat di-prepend, panic terbaru berada paling atas
     const unnotifiedPanics = [];
     activePanics.forEach((panic) => {
         const uniqueKey = `${panic.id}_${panic.createdAt || panic.last_update}`;
@@ -769,7 +704,6 @@ function handlePanicNotificationAlert(activePanics) {
         }
     });
 
-    // Balik urutan sebelum prepend agar panic terbaru berakhir di paling atas
     unnotifiedPanics.reverse().forEach((panic) => {
         showTopPanicToast(panic);
     });
@@ -805,13 +739,9 @@ function showTopPanicToast(panic) {
         <div class="emergency-toast-progress"></div>
     `;
 
-    // Sisipkan di posisi paling atas sehingga notifikasi lama bergeser ke bawah
     container.prepend(toast);
-
-    // Mainkan nada audio alert lembut
     playEmergencyBeep();
 
-    // Auto dismiss dalam durasi 10 detik
     const dismissTimer = setTimeout(() => {
         dismissToast(toast);
     }, 10000);
@@ -868,13 +798,12 @@ function playEmergencyBeep() {
     } catch (e) {
         // Abaikan jika browser memblokir audio sebelum interaksi
     }
-
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| HITUNG TOTAL USER UNIK DB1 + DB2
+| HITUNG TOTAL USER UNIK DB1 + DB2 (OPTIMASI DENGAN SET)
 |--------------------------------------------------------------------------
 */
 
@@ -893,80 +822,21 @@ function getTotalUniqueUsers(
     |--------------------------------------------------------------------------
     */
 
-    Object.entries(
-        perumahanData || {}
-    ).forEach(
-        ([
-            perumahanId,
-            perumahan
-        ]) => {
+    if (perumahanData) {
+        Object.entries(perumahanData).forEach(([perumahanId, perumahan]) => {
+            if (!perumahan || typeof perumahan !== "object") return;
 
-            if (
-                !perumahan ||
-                typeof perumahan !== "object"
-            ) {
+            const users = perumahan.users || {};
+            Object.entries(users).forEach(([userKey, userData]) => {
+                if (!userData || typeof userData !== "object") return;
 
-                return;
-
-            }
-
-
-            const users =
-                perumahan.users || {};
-
-
-            Object.entries(
-                users
-            ).forEach(
-                ([
-                    userKey,
-                    userData
-                ]) => {
-
-                    if (
-                        !userData ||
-                        typeof userData !== "object"
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | PRIORITAS IDENTITAS USER
-                    |--------------------------------------------------------------------------
-                    */
-
-                    const userId =
-                        userData.user_id ||
-                        userData.id ||
-                        userKey;
-
-
-                    if (
-                        !userId
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    uniqueUsers.add(
-                        String(
-                            userId
-                        )
-                            .trim()
-                            .toLowerCase()
-                    );
-
+                const userId = userData.user_id || userData.id || userKey;
+                if (userId) {
+                    uniqueUsers.add(String(userId).trim().toLowerCase());
                 }
-            );
-
-        }
-    );
+            });
+        });
+    }
 
 
     /*
@@ -975,57 +845,16 @@ function getTotalUniqueUsers(
     |--------------------------------------------------------------------------
     */
 
-    Object.entries(
-        publicPanicData || {}
-    ).forEach(
-        ([
-            panicKey,
-            panic
-        ]) => {
+    if (publicPanicData) {
+        Object.entries(publicPanicData).forEach(([panicKey, panic]) => {
+            if (!panic || typeof panic !== "object") return;
 
-            if (
-                !panic ||
-                typeof panic !== "object"
-            ) {
-
-                return;
-
+            const userId = panic.user_id || panic.userId || panic.username || panic.email;
+            if (userId) {
+                uniqueUsers.add(String(userId).trim().toLowerCase());
             }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | JANGAN PAKAI panicKey SEBAGAI USER
-            | KECUALI MEMANG TIDAK ADA IDENTITAS LAIN
-            |--------------------------------------------------------------------------
-            */
-
-            const userId =
-                panic.user_id ||
-                panic.userId ||
-                panic.username ||
-                panic.email;
-
-
-            if (
-                !userId
-            ) {
-
-                return;
-
-            }
-
-
-            uniqueUsers.add(
-                String(
-                    userId
-                )
-                    .trim()
-                    .toLowerCase()
-            );
-
-        }
-    );
+        });
+    }
 
 
     return uniqueUsers.size;
@@ -1034,47 +863,26 @@ function getTotalUniqueUsers(
 
 /*
 |--------------------------------------------------------------------------
-| UPDATE TOTAL USERS
+| UPDATE TOTAL USERS (DENGAN CACHING)
 |--------------------------------------------------------------------------
 */
 
 function updateTotalUsers() {
+    const now = Date.now();
+    if (now - lastUserCountUpdate < USER_COUNT_INTERVAL) return;
+    lastUserCountUpdate = now;
 
-    const total =
-        getTotalUniqueUsers(
-            latestPerumahanData,
-            latestPublicPanicsData
-        );
-
-
-    if (
-        totalUsers
-    ) {
-
-        totalUsers.textContent =
-            total.toLocaleString(
-                "id-ID"
-            );
-
+    const total = getTotalUniqueUsers(latestPerumahanData, latestPublicPanicsData);
+    if (totalUsers) {
+        totalUsers.textContent = total.toLocaleString("id-ID");
     }
-
-
-    console.log(
-        "TOTAL USER UNIK DB1 + DB2:",
-        total
-    );
+    console.log("TOTAL USER UNIK DB1 + DB2:", total);
 }
 
 
 /*
 |--------------------------------------------------------------------------
 | GET LATEST MONITOR
-|--------------------------------------------------------------------------
-|
-| Mengambil monitor paling baru dari:
-|
-| perumahan/{perumahanId}/monitor
-|
 |--------------------------------------------------------------------------
 */
 
@@ -1097,12 +905,6 @@ async function getLatestMonitor(
                 monitorRef
             );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | MONITOR TIDAK ADA
-        |--------------------------------------------------------------------------
-        */
 
         if (
             !snapshot.exists()
@@ -1136,12 +938,6 @@ async function getLatestMonitor(
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | CARI MONITOR TERBARU
-        |--------------------------------------------------------------------------
-        */
-
         let latest =
             null;
 
@@ -1170,12 +966,6 @@ async function getLatestMonitor(
                 );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | MONITOR PERTAMA
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 !latest
             ) {
@@ -1198,12 +988,6 @@ async function getLatestMonitor(
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | TIMESTAMP LEBIH BARU
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 timestamp >
@@ -1228,13 +1012,6 @@ async function getLatestMonitor(
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | JIKA TIMESTAMP SAMA
-            | GUNAKAN KEY FIREBASE
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 timestamp ===
@@ -1261,12 +1038,6 @@ async function getLatestMonitor(
 
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CACHE
-        |--------------------------------------------------------------------------
-        */
 
         if (
             latest
@@ -1308,6 +1079,48 @@ async function getLatestMonitor(
 
 /*
 |--------------------------------------------------------------------------
+| GET MONITOR TIMESTAMP
+|--------------------------------------------------------------------------
+*/
+
+function getMonitorTimestamp(monitor) {
+    if (monitor.timestamp) {
+        const ts = Number(monitor.timestamp);
+        if (Number.isFinite(ts) && ts > 0) {
+            return ts;
+        }
+    }
+
+    if (monitor.created_at) {
+        const ts = Number(monitor.created_at);
+        if (Number.isFinite(ts) && ts > 0) {
+            return ts;
+        }
+    }
+
+    if (typeof monitor.time === "string") {
+        const match = monitor.time.match(/^(\d{4}-\d{2}-\d{2}) waktu (\d{2}:\d{2}(?::\d{2})?)$/);
+        if (match) {
+            const date = new Date(`${match[1]}T${match[2]}`);
+            if (!Number.isNaN(date.getTime())) {
+                return date.getTime();
+            }
+        }
+    }
+
+    if (monitor.time) {
+        const ts = Number(monitor.time);
+        if (Number.isFinite(ts) && ts > 0) {
+            return ts;
+        }
+    }
+
+    return 0;
+}
+
+
+/*
+|--------------------------------------------------------------------------
 | RENDER LIVE ALERT PERUMAHAN
 |--------------------------------------------------------------------------
 */
@@ -1328,12 +1141,6 @@ function renderLiveAlert(
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NORMALISASI
-    |--------------------------------------------------------------------------
-    */
-
     mainState =
         String(
             mainState || "off"
@@ -1349,12 +1156,6 @@ function renderLiveAlert(
             .toLowerCase()
             .trim();
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | TIDAK ADA BUZZER AKTIF
-    |--------------------------------------------------------------------------
-    */
 
     if (
         mainState !== "on"
@@ -1387,12 +1188,6 @@ function renderLiveAlert(
 
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | BUZZER ON TAPI MONITOR TIDAK ADA
-    |--------------------------------------------------------------------------
-    */
 
     if (
         !latestMonitor
@@ -1430,12 +1225,6 @@ function renderLiveAlert(
 
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA MONITOR
-    |--------------------------------------------------------------------------
-    */
 
     const monitor =
         latestMonitor.monitor ||
@@ -1485,12 +1274,6 @@ function renderLiveAlert(
         "Tidak Diketahui";
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DATA PERUMAHAN
-    |--------------------------------------------------------------------------
-    */
-
     const info =
         latestPerumahan?.info ||
         {};
@@ -1510,12 +1293,6 @@ function renderLiveAlert(
         "Tidak Diketahui";
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | KOORDINAT
-    |--------------------------------------------------------------------------
-    */
-
     const lat =
         parseFloat(
             latitude
@@ -1526,12 +1303,6 @@ function renderLiveAlert(
             longitude
         );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | GOOGLE MAPS
-    |--------------------------------------------------------------------------
-    */
 
     let mapsLink = `
 
@@ -1583,12 +1354,6 @@ function renderLiveAlert(
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | PRIORITY
-    |--------------------------------------------------------------------------
-    */
-
     let priorityClass =
         "priority-biasa";
 
@@ -1621,23 +1386,11 @@ function renderLiveAlert(
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | FORMAT WAKTU
-    |--------------------------------------------------------------------------
-    */
-
     const formattedTime =
         formatMonitorTime(
             time
         );
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | INITIAL USER
-    |--------------------------------------------------------------------------
-    */
 
     const initial =
         name &&
@@ -1654,12 +1407,6 @@ function renderLiveAlert(
 
             : "W";
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | RENDER
-    |--------------------------------------------------------------------------
-    */
 
     liveAlertBox.innerHTML = `
 
@@ -1914,12 +1661,6 @@ function updateStatusBuzzer(
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | NORMALISASI
-    |--------------------------------------------------------------------------
-    */
-
     mainState =
         String(
             mainState || "off"
@@ -1935,12 +1676,6 @@ function updateStatusBuzzer(
             .toLowerCase()
             .trim();
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | BUZZER ON
-    |--------------------------------------------------------------------------
-    */
 
     if (
         mainState === "on"
@@ -1959,12 +1694,6 @@ function updateStatusBuzzer(
 
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DARURAT
-        |--------------------------------------------------------------------------
-        */
 
         if (
             priority === "darurat"
@@ -2025,12 +1754,6 @@ function updateStatusBuzzer(
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | PENTING
-        |--------------------------------------------------------------------------
-        */
-
         else if (
             priority === "penting"
         ) {
@@ -2089,12 +1812,6 @@ function updateStatusBuzzer(
 
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | BIASA
-        |--------------------------------------------------------------------------
-        */
 
         else {
 
@@ -2157,12 +1874,6 @@ function updateStatusBuzzer(
 
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | BUZZER OFF
-    |--------------------------------------------------------------------------
-    */
 
     statusText.textContent =
         "OFF";
@@ -2287,12 +1998,6 @@ function getActivePublicPanics(
             }
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | HANYA ACTIVE TRUE
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 deviceData.active === true
             ) {
@@ -2327,12 +2032,6 @@ function getActivePublicPanics(
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | SORT TERBARU
-    |--------------------------------------------------------------------------
-    */
-
     activePanics.sort(
         (
             a,
@@ -2358,237 +2057,6 @@ function getActivePublicPanics(
 
 /*
 |--------------------------------------------------------------------------
-| RENDER PUBLIC PANIC
-|--------------------------------------------------------------------------
-*/
-
-function renderPublicPanic(
-    activePanics
-) {
-
-    if (
-        !publicPanicAlert
-    ) {
-
-        return;
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | BADGE
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        publicPanicCountBadge
-    ) {
-
-        if (
-            activePanics.length === 0
-        ) {
-
-            publicPanicCountBadge.className =
-                "status-badge status-none";
-
-            publicPanicCountBadge.textContent =
-                "0 Perangkat";
-
-        }
-
-        else {
-
-            publicPanicCountBadge.className =
-                "status-badge status-darurat";
-
-            publicPanicCountBadge.textContent =
-                `${activePanics.length} Perangkat Aktif`;
-
-        }
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | TIDAK ADA PUBLIC PANIC
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        activePanics.length === 0
-    ) {
-
-        publicPanicAlert.innerHTML = `
-
-            <div
-                class="empty-state"
-            >
-
-                <div
-                    class="
-                        empty-state-icon
-                        public-idle
-                    "
-                >
-
-                    <i
-                        class="
-                            fa-solid
-                            fa-satellite-dish
-                        "
-                    ></i>
-
-                </div>
-
-
-                <h3>
-                    Tidak Ada Alarm Publik Aktif
-                </h3>
-
-
-                <p>
-                    Perangkat IoT panic publik berada
-                    dalam kondisi standby dan terpantau aktif.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEVICE AKTIF
-    |--------------------------------------------------------------------------
-    */
-
-    publicPanicAlert.innerHTML = `
-
-        <div
-            class="public-panic-grid"
-        >
-
-            ${activePanics
-                .map(
-                    (
-                        panic
-                    ) => `
-
-                    <div
-                        class="
-                            public-panic-card
-                        "
-                    >
-
-                        <div
-                            class="
-                                public-panic-card-header
-                            "
-                        >
-
-                            <span
-                                class="
-                                    public-panic-device
-                                "
-                            >
-
-                                <span
-                                    class="
-                                        pulse-dot-red
-                                    "
-                                ></span>
-
-
-                                ${escapeHtml(
-                                    panic.device
-                                )}
-
-                            </span>
-
-
-                            <span
-                                class="
-                                    status-badge
-                                    status-darurat
-                                "
-                                style="
-                                    font-size:10px;
-                                    padding:3px 8px;
-                                "
-                            >
-                                AKTIF
-                            </span>
-
-                        </div>
-
-
-                        <div
-                            class="
-                                public-panic-details
-                            "
-                        >
-
-                            <div>
-
-                                <strong>
-                                    Zona:
-                                </strong>
-
-                                ${escapeHtml(
-                                    panic.zona
-                                )}
-
-                            </div>
-
-
-                            <div>
-
-                                <strong>
-                                    Lokasi:
-                                </strong>
-
-                                ${escapeHtml(
-                                    panic.lokasi
-                                )}
-
-                            </div>
-
-
-                            <div>
-
-                                <strong>
-                                    Waktu:
-                                </strong>
-
-                                ${formatPublicPanicTime(
-                                    panic.last_update
-                                )}
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                `
-                )
-                .join("")}
-
-        </div>
-
-    `;
-
-}
-
-
-/*
-|--------------------------------------------------------------------------
 | DB1 - LISTENER PERUMAHAN
 |--------------------------------------------------------------------------
 */
@@ -2604,12 +2072,8 @@ onValue(
         const startTime =
             performance.now();
 
+        showInitialLoading();
 
-        /*
-        |--------------------------------------------------------------------------
-        | VERSI REQUEST
-        |--------------------------------------------------------------------------
-        */
 
         const currentVersion =
             ++db1Version;
@@ -2617,44 +2081,16 @@ onValue(
 
         try {
 
-            /*
-            |--------------------------------------------------------------------------
-            | DATA DB1
-            |--------------------------------------------------------------------------
-            */
-
             const perumahanData =
                 snapshot.val() || {};
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | SIMPAN CACHE
-            |--------------------------------------------------------------------------
-            */
 
             latestPerumahanData =
                 perumahanData;
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE TOTAL USER
-            |--------------------------------------------------------------------------
-            */
-
             updateTotalUsers();
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | TENTUKAN PERUMAHAN USER
-            |--------------------------------------------------------------------------
-            |
-            | User hanya memproses perumahan miliknya.
-            |
-            |--------------------------------------------------------------------------
-            */
 
            const perumahanIds = Object.entries(perumahanData)
     .filter(([key, value]) => {
@@ -2669,12 +2105,6 @@ onValue(
     .map(([key]) => key);
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | TOTAL PERUMAHAN
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 totalPerumahan
             ) {
@@ -2687,12 +2117,6 @@ onValue(
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | DEBUG
-            |--------------------------------------------------------------------------
-            */
 
             console.log(
                 "===================================="
@@ -2727,12 +2151,6 @@ onValue(
             );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | TIDAK ADA PERUMAHAN
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 perumahanIds.length === 0
             ) {
@@ -2756,17 +2174,12 @@ onValue(
                     startTime
                 );
 
+                hideInitialLoading();
 
                 return;
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | AMBIL MONITOR
-            |--------------------------------------------------------------------------
-            */
 
             const monitorPromises =
                 perumahanIds.map(
@@ -2801,12 +2214,6 @@ onValue(
                 );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | ABAIKAN DATA LAMA
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 currentVersion !==
                 db1Version
@@ -2816,16 +2223,12 @@ onValue(
                     "Hasil DB1 lama diabaikan."
                 );
 
+                hideInitialLoading();
+
                 return;
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | CARI BUZZER YANG ON
-            |--------------------------------------------------------------------------
-            */
 
             let activeBuzzerResult =
                 null;
@@ -2886,22 +2289,9 @@ onValue(
                 );
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | HANYA BUZZER ON
-                |--------------------------------------------------------------------------
-                */
-
                 if (
                     state === "on"
                 ) {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Jika ada lebih dari satu,
-                    | pilih monitor dengan timestamp terbaru.
-                    |--------------------------------------------------------------------------
-                    */
 
                     if (
                         !activeBuzzerResult
@@ -2938,12 +2328,6 @@ onValue(
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | TIDAK ADA BUZZER AKTIF
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 !activeBuzzerResult
@@ -2987,17 +2371,12 @@ onValue(
                     }`
                 );
 
+                hideInitialLoading();
 
                 return;
 
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | DATA AKTIF
-            |--------------------------------------------------------------------------
-            */
 
             const latestMonitor =
                 activeBuzzerResult;
@@ -3034,12 +2413,6 @@ onValue(
                     .trim();
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | DEBUG STATUS
-            |--------------------------------------------------------------------------
-            */
-
             console.log(
                 "===================================="
             );
@@ -3073,23 +2446,11 @@ onValue(
             );
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE STATUS
-            |--------------------------------------------------------------------------
-            */
-
             updateStatusBuzzer(
                 mainState,
                 priority
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | RENDER LIVE ALERT
-            |--------------------------------------------------------------------------
-            */
 
             renderLiveAlert(
                 latestMonitor,
@@ -3098,12 +2459,6 @@ onValue(
                 priority
             );
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | PERFORMANCE
-            |--------------------------------------------------------------------------
-            */
 
             logPerformance(
                 "DB1 dashboard",
@@ -3124,6 +2479,8 @@ onValue(
                 }`
             );
 
+            hideInitialLoading();
+
         }
 
         catch (
@@ -3134,6 +2491,8 @@ onValue(
                 "Error memproses DB1:",
                 error
             );
+
+            hideInitialLoading();
 
         }
 
@@ -3148,6 +2507,8 @@ onValue(
             error
         );
 
+        hideInitialLoading();
+
     }
 
 );
@@ -3161,7 +2522,7 @@ onValue(
 
 onValue(
 
-    panicPublicRef,
+    panicChannelsRef,
 
     (
         snapshot
@@ -3169,6 +2530,8 @@ onValue(
 
         const startTime =
             performance.now();
+
+        showInitialLoading();
 
 
         try {
@@ -3198,6 +2561,8 @@ onValue(
                 startTime
             );
 
+            hideInitialLoading();
+
         }
 
         catch (
@@ -3208,6 +2573,8 @@ onValue(
                 "Error membaca panicChannels:",
                 error
             );
+
+            hideInitialLoading();
 
         }
 
@@ -3221,6 +2588,8 @@ onValue(
             "Firebase panicChannels listener error:",
             error
         );
+
+        hideInitialLoading();
 
     }
 
@@ -3244,6 +2613,8 @@ onValue(
         const startTime =
             performance.now();
 
+        showInitialLoading();
+
 
         try {
 
@@ -3254,12 +2625,6 @@ onValue(
             latestPublicPanicsData =
                 publicPanicData;
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE TOTAL USER
-            |--------------------------------------------------------------------------
-            */
 
             updateTotalUsers();
 
@@ -3286,6 +2651,8 @@ onValue(
                 startTime
             );
 
+            hideInitialLoading();
+
         }
 
         catch (
@@ -3296,6 +2663,8 @@ onValue(
                 "Error membaca public_panics:",
                 error
             );
+
+            hideInitialLoading();
 
         }
 
@@ -3309,6 +2678,8 @@ onValue(
             "Firebase public_panics listener error:",
             error
         );
+
+        hideInitialLoading();
 
     }
 

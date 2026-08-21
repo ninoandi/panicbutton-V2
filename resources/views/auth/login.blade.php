@@ -118,7 +118,7 @@
                     class="btn-login"
                 >
                     <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Masuk ke Akun</span>
+                    <span>Login</span>
                 </button>
             </form>
 
@@ -126,7 +126,7 @@
             <div class="register-section">
                 <span>Belum memiliki akun?</span>
                 <a href="{{ route('register') }}" class="register-link">
-                    <span>Daftar sebagai User Publik</span>
+                    <span>Daftar Sekarang</span>
                     <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
@@ -135,7 +135,7 @@
             <div class="back-section">
                 <a href="{{ route('landing') }}" class="back-link">
                     <i class="fa-solid fa-arrow-left"></i>
-                    <span>Kembali ke Halaman Publik</span>
+                    <span>Kembali ke Beranda</span>
                 </a>
             </div>
 

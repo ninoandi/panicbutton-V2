@@ -193,7 +193,7 @@
             <div class="back-section">
 
                 <a href="{{ route('landing') }}">
-                    ← Kembali ke Panic Publik
+                    ← Kembali ke Beranda
                 </a>
 
             </div>

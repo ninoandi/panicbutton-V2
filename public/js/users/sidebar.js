@@ -4,82 +4,49 @@ document.addEventListener('DOMContentLoaded', () => {
        SIDEBAR TOGGLE
     ===================================================== */
 
-    const sidebarToggle =
-        document.getElementById('sidebarToggle');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const userLayout = document.querySelector('.user-layout');
 
-    const userLayout =
-        document.querySelector('.user-layout');
+    // Fungsi untuk toggle sidebar
+    function toggleSidebar() {
+        if (!userLayout || !sidebarToggle) return;
 
-
-    if (sidebarToggle && userLayout) {
-
-        sidebarToggle.addEventListener('click', () => {
-
-            const isCollapsed =
-                userLayout.classList.toggle(
-                    'sidebar-collapsed'
-                );
-
-
-            sidebarToggle.setAttribute(
-                'aria-expanded',
-                String(!isCollapsed)
-            );
-
-        });
-
-    }
-    const isMobile = window.innerWidth <= 768;
-    const savedState = localStorage.getItem('user_sidebar_collapsed');
-
-    // Terapkan state awal
-    if (isMobile) {
-        userLayout.classList.add('sidebar-collapsed');
-        sidebarToggle.setAttribute('aria-expanded', 'false');
-    } else if (savedState === 'true') {
-        userLayout.classList.add('sidebar-collapsed');
-        sidebarToggle.setAttribute('aria-expanded', 'false');
-    } else {
-        userLayout.classList.remove('sidebar-collapsed');
-        sidebarToggle.setAttribute('aria-expanded', 'true');
-    }
-
-    sidebarToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-
-
-    /* =====================================================
-       LOGOUT CONFIRMATION
-    ===================================================== */
-
-    const logoutButton =
-        document.getElementById('userLogoutButton');
-
-    const logoutForm =
-        document.getElementById('userLogoutForm');
-
-
-    if (logoutButton && logoutForm) {
-
-        logoutButton.addEventListener('click', () => {
-
-            Swal.fire({
-
-                title: 'Keluar dari akun?',
-        sidebarToggle.setAttribute(
-            'aria-expanded',
-            String(!isCollapsed)
-        );
+        const isCollapsed = userLayout.classList.toggle('sidebar-collapsed');
+        sidebarToggle.setAttribute('aria-expanded', String(!isCollapsed));
 
         // Simpan preferensi pengguna ke localStorage (khusus tampilan desktop)
         if (window.innerWidth > 768) {
             localStorage.setItem('user_sidebar_collapsed', isCollapsed ? 'true' : 'false');
         }
+    }
 
-    });
+    // Inisialisasi state sidebar
+    if (sidebarToggle && userLayout) {
+        const isMobile = window.innerWidth <= 768;
+        const savedState = localStorage.getItem('user_sidebar_collapsed');
+
+        // Terapkan state awal
+        if (isMobile) {
+            userLayout.classList.add('sidebar-collapsed');
+            sidebarToggle.setAttribute('aria-expanded', 'false');
+        } else if (savedState === 'true') {
+            userLayout.classList.add('sidebar-collapsed');
+            sidebarToggle.setAttribute('aria-expanded', 'false');
+        } else {
+            userLayout.classList.remove('sidebar-collapsed');
+            sidebarToggle.setAttribute('aria-expanded', 'true');
+        }
+
+        // Event listener toggle
+        sidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebar();
+        });
+    }
+
     // Close sidebar on mobile when clicking content area
     const userContent = document.querySelector('.user-content');
-    if (userContent) {
+    if (userContent && userLayout && sidebarToggle) {
         userContent.addEventListener('click', () => {
             if (window.innerWidth <= 768 && !userLayout.classList.contains('sidebar-collapsed')) {
                 userLayout.classList.add('sidebar-collapsed');
@@ -88,19 +55,52 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Sync profile alert dot
-    const profileAlertDot = document.getElementById('profileAlertDot');
-    if (profileAlertDot) {
-        function updateDot(percentage) {
-            if (percentage < 100) {
-                profileAlertDot.style.display = 'block';
-                profileAlertDot.setAttribute('title', `Informasi profil belum lengkap (${percentage}%)`);
-            } else {
-                profileAlertDot.style.display = 'none';
-            }
-        }
+    /* =====================================================
+       LOGOUT CONFIRMATION
+    ===================================================== */
 
+    const logoutButton = document.getElementById('userLogoutButton');
+    const logoutForm = document.getElementById('userLogoutForm');
+
+    if (logoutButton && logoutForm) {
+        logoutButton.addEventListener('click', () => {
+            Swal.fire({
+                title: 'Keluar dari akun?',
+                text: 'Anda akan keluar dari sesi ini. Apakah Anda yakin?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, keluar!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    logoutForm.submit();
+                }
+            });
+        });
+    }
+
+    /* =====================================================
+       SYNC PROFILE ALERT DOT
+    ===================================================== */
+
+    const profileAlertDot = document.getElementById('profileAlertDot');
+
+    function updateDot(percentage) {
+        if (!profileAlertDot) return;
+
+        if (percentage < 100) {
+            profileAlertDot.style.display = 'block';
+            profileAlertDot.setAttribute('title', `Informasi profil belum lengkap (${percentage}%)`);
+        } else {
+            profileAlertDot.style.display = 'none';
+        }
+    }
+
+    if (profileAlertDot) {
         const completeness = localStorage.getItem('profile_completeness');
+
         if (completeness !== null) {
             updateDot(parseInt(completeness, 10));
         } else if (window.currentUserId) {
@@ -142,4 +142,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-});
+}); // ← AKHIR DOMContentLoaded
