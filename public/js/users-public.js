@@ -218,11 +218,15 @@ function populateDeviceSelect() {
         const statusText = device.online !== false ? '🟢 Online' : '🔴 Offline';
         const activeText = device.active === true ? ' ⚠️ ACTIVE' : '';
         option.textContent = `${device.name} (${device.zone} - ${device.lokasi}) ${statusText}${activeText}`;
+        // Simpan data zone di option
+        option.dataset.zone = device.zone || '';
         deviceSelect.appendChild(option);
     });
     
     if (currentValue) {
         deviceSelect.value = currentValue;
+        // Auto-fill zona jika ada nilai default
+        setTimeout(autoFillZona, 100);
     }
 }
 
@@ -434,6 +438,29 @@ function updatePagination() {
 
 
 // ======================================================
+// AUTO-FILL ZONA
+// ======================================================
+
+function autoFillZona() {
+    if (deviceSelect && deviceSelect.value && zonaInput) {
+        const selectedDevice = devicesList.find(device => device.name === deviceSelect.value);
+        if (selectedDevice && selectedDevice.zone) {
+            zonaInput.value = selectedDevice.zone;
+            console.log(`✅ Zona otomatis terisi: ${selectedDevice.zone}`);
+            
+            // Efek visual
+            zonaInput.style.borderColor = 'var(--dash-success)';
+            zonaInput.style.backgroundColor = 'var(--dash-success-bg)';
+            setTimeout(() => {
+                zonaInput.style.borderColor = '';
+                zonaInput.style.backgroundColor = '';
+            }, 1500);
+        }
+    }
+}
+
+
+// ======================================================
 // MODAL FUNCTIONS
 // ======================================================
 
@@ -461,6 +488,9 @@ function openModal() {
         modal.style.display = 'flex';
         modal.classList.add('show');
         console.log('✅ Modal dibuka');
+        
+        // Auto-fill zona setelah modal terbuka
+        setTimeout(autoFillZona, 100);
     } else {
         console.error('❌ Modal TIDAK ditemukan!');
         const fallbackModal = document.querySelector('.modal');
@@ -468,6 +498,7 @@ function openModal() {
             fallbackModal.style.display = 'flex';
             fallbackModal.classList.add('show');
             console.log('✅ Modal ditemukan dengan fallback');
+            setTimeout(autoFillZona, 100);
         }
     }
 }
@@ -555,6 +586,9 @@ window.editUser = function(userId) {
         modal.style.display = 'flex';
         modal.classList.add('show');
         console.log('✅ Modal edit dibuka');
+        
+        // Auto-fill zona setelah modal terbuka
+        setTimeout(autoFillZona, 150);
     }
 };
 
@@ -729,6 +763,44 @@ if (saveBtnElement) {
     saveBtnElement.addEventListener('click', function(e) {
         e.preventDefault();
         saveUser();
+    });
+}
+
+// ======================================================
+// ✅ AUTO-FILL ZONA SAAT PERANGKAT DIPILIH
+// ======================================================
+
+if (deviceSelect) {
+    console.log('✅ Menambahkan event listener untuk auto-fill zona');
+    deviceSelect.addEventListener('change', function() {
+        const selectedDeviceName = this.value;
+        console.log('🔄 Perangkat dipilih:', selectedDeviceName);
+        
+        if (!selectedDeviceName) {
+            if (zonaInput) zonaInput.value = '';
+            console.log('ℹ️ Perangkat dihapus, zona dikosongkan');
+            return;
+        }
+        
+        const selectedDevice = devicesList.find(device => device.name === selectedDeviceName);
+        console.log('📦 Data perangkat ditemukan:', selectedDevice);
+        
+        if (selectedDevice && selectedDevice.zone) {
+            if (zonaInput) {
+                zonaInput.value = selectedDevice.zone;
+                console.log(`✅ Zona otomatis terisi: ${selectedDevice.zone}`);
+                
+                zonaInput.style.borderColor = 'var(--dash-success)';
+                zonaInput.style.backgroundColor = 'var(--dash-success-bg)';
+                setTimeout(() => {
+                    zonaInput.style.borderColor = '';
+                    zonaInput.style.backgroundColor = '';
+                }, 1500);
+            }
+        } else {
+            if (zonaInput) zonaInput.value = '';
+            console.warn('⚠️ Zona tidak ditemukan untuk perangkat:', selectedDeviceName);
+        }
     });
 }
 
