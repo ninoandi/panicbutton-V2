@@ -208,7 +208,7 @@
 
                     <div class="panic-helper-badge">
                         <i class="fa-solid fa-fingerprint"></i>
-                        <span>Klik tombol di atas untuk memicu sinyal darurat</span>
+                        <span>Klik tombol untuk memicu sinyal darurat</span>
                     </div>
                 </div>
 

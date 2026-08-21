@@ -225,6 +225,15 @@ Route::middleware(['user.auth', 'role:admin'])->group(function () {
 
     })->name('recap-public');
 
+      /*
+  |--------------------------------------------------------------------------
+    | MANAJEMEN USER PUBLIK (DB2) - TANPA CONTROLLER
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/manajemen-user-publik', function () {
+        return view('manajemen-user-public.index');
+    })->name('manajemen-user-publik');
+
 });
 
 

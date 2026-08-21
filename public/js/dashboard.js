@@ -112,6 +112,13 @@ const THROTTLE_DELAY = 300;
 const USER_COUNT_INTERVAL = 5000;
 const MIN_RENDER_INTERVAL = 1000;
 
+// ======================================================
+// ✅ TAMBAHKAN CACHE UNTUK TOTAL USER
+// ======================================================
+let cachedTotalUsers = 0;
+let isUserCountCalculating = false;
+let pendingUserCountUpdate = false;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -329,6 +336,8 @@ onValue(
             currentPublicPanicsData = snapshot.val() || {};
             // Proses dengan throttling
             scheduleProcessPublicPanicData();
+            // ✅ Update user count dengan throttling
+            scheduleUserCountUpdate();
             hideInitialLoading();
         } catch (error) {
             console.error("Error membaca public_panics:", error);
@@ -803,80 +812,125 @@ function playEmergencyBeep() {
 
 /*
 |--------------------------------------------------------------------------
-| HITUNG TOTAL USER UNIK DB1 + DB2 (OPTIMASI DENGAN SET)
+| ✅ HITUNG TOTAL USER UNIK DB1 + DB2 (OPTIMASI DENGAN CACHE)
 |--------------------------------------------------------------------------
 */
+
+// ✅ Fungsi untuk menjadwalkan update user count
+let userCountTimeout = null;
+
+function scheduleUserCountUpdate() {
+    if (userCountTimeout) {
+        clearTimeout(userCountTimeout);
+    }
+    userCountTimeout = setTimeout(() => {
+        updateTotalUsers();
+        userCountTimeout = null;
+    }, 500); // Tunggu 500ms sebelum menghitung
+}
 
 function getTotalUniqueUsers(
     perumahanData,
     publicPanicData
 ) {
+    const startTime = performance.now();
+    
+    // ✅ Gunakan Set untuk menghindari duplikasi
+    const uniqueUsers = new Set();
 
-    const uniqueUsers =
-        new Set();
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | DB1 USERS
-    |--------------------------------------------------------------------------
-    */
-
+    // ✅ Proses DB1 USERS dengan optimasi
     if (perumahanData) {
-        Object.entries(perumahanData).forEach(([perumahanId, perumahan]) => {
-            if (!perumahan || typeof perumahan !== "object") return;
+        const perumahanEntries = Object.entries(perumahanData);
+        for (let i = 0; i < perumahanEntries.length; i++) {
+            const [perumahanId, perumahan] = perumahanEntries[i];
+            if (!perumahan || typeof perumahan !== "object") continue;
 
             const users = perumahan.users || {};
-            Object.entries(users).forEach(([userKey, userData]) => {
-                if (!userData || typeof userData !== "object") return;
+            const userEntries = Object.entries(users);
+            for (let j = 0; j < userEntries.length; j++) {
+                const [userKey, userData] = userEntries[j];
+                if (!userData || typeof userData !== "object") continue;
 
                 const userId = userData.user_id || userData.id || userKey;
                 if (userId) {
                     uniqueUsers.add(String(userId).trim().toLowerCase());
                 }
-            });
-        });
+            }
+        }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | DB2 PUBLIC PANICS
-    |--------------------------------------------------------------------------
-    */
-
+    // ✅ Proses DB2 PUBLIC PANICS dengan optimasi
     if (publicPanicData) {
-        Object.entries(publicPanicData).forEach(([panicKey, panic]) => {
-            if (!panic || typeof panic !== "object") return;
+        const panicEntries = Object.entries(publicPanicData);
+        for (let i = 0; i < panicEntries.length; i++) {
+            const [panicKey, panic] = panicEntries[i];
+            if (!panic || typeof panic !== "object") continue;
 
             const userId = panic.user_id || panic.userId || panic.username || panic.email;
             if (userId) {
                 uniqueUsers.add(String(userId).trim().toLowerCase());
             }
-        });
+        }
     }
 
-
-    return uniqueUsers.size;
+    const result = uniqueUsers.size;
+    const duration = performance.now() - startTime;
+    console.log(`[getTotalUniqueUsers] Selesai dalam ${duration.toFixed(2)}ms, total: ${result}`);
+    
+    return result;
 }
 
 
 /*
 |--------------------------------------------------------------------------
-| UPDATE TOTAL USERS (DENGAN CACHING)
+| ✅ UPDATE TOTAL USERS (DENGAN CACHING & THROTTLING)
 |--------------------------------------------------------------------------
 */
 
 function updateTotalUsers() {
+    // ✅ Cegah update jika sedang dalam proses
+    if (isUserCountCalculating) {
+        pendingUserCountUpdate = true;
+        return;
+    }
+
     const now = Date.now();
-    if (now - lastUserCountUpdate < USER_COUNT_INTERVAL) return;
+    // ✅ Throttle: hanya update setiap 5 detik
+    if (now - lastUserCountUpdate < USER_COUNT_INTERVAL) {
+        return;
+    }
+
+    isUserCountCalculating = true;
     lastUserCountUpdate = now;
 
-    const total = getTotalUniqueUsers(latestPerumahanData, latestPublicPanicsData);
-    if (totalUsers) {
-        totalUsers.textContent = total.toLocaleString("id-ID");
-    }
-    console.log("TOTAL USER UNIK DB1 + DB2:", total);
+    // ✅ Gunakan setTimeout agar tidak blocking UI
+    setTimeout(() => {
+        try {
+            const total = getTotalUniqueUsers(
+                latestPerumahanData,
+                latestPublicPanicsData
+            );
+            
+            // ✅ Update cache
+            cachedTotalUsers = total;
+            
+            if (totalUsers) {
+                totalUsers.textContent = total.toLocaleString("id-ID");
+            }
+            console.log("TOTAL USER UNIK DB1 + DB2:", total);
+            
+        } catch (error) {
+            console.error("Error calculating total users:", error);
+        } finally {
+            isUserCountCalculating = false;
+            
+            // ✅ Proses pending update jika ada
+            if (pendingUserCountUpdate) {
+                pendingUserCountUpdate = false;
+                updateTotalUsers();
+            }
+        }
+    }, 100); // Delay 100ms agar tidak blocking
 }
 
 
@@ -2089,7 +2143,8 @@ onValue(
                 perumahanData;
 
 
-            updateTotalUsers();
+            // ✅ Schedule user count update (tidak langsung dihitung)
+            scheduleUserCountUpdate();
 
 
            const perumahanIds = Object.entries(perumahanData)
@@ -2626,7 +2681,8 @@ onValue(
                 publicPanicData;
 
 
-            updateTotalUsers();
+            // ✅ Schedule user count update (tidak langsung dihitung)
+            scheduleUserCountUpdate();
 
 
             console.log(

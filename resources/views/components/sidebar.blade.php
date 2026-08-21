@@ -29,6 +29,14 @@
                     'icon' => 'fa-solid fa-users',
                     'active' => request()->routeIs('manajemen-user')
                 ],
+                            [
+                'label' => 'User Publik',
+                'route' => 'manajemen-user-publik',
+                'url' => route('manajemen-user-publik'),
+                'icon' => 'fa-solid fa-users-gear',
+                'active' => request()->routeIs('manajemen-user-publik')
+            ],
+
                 [
                     'label' => 'Manajemen Admin',
                     'route' => 'manajemen-admin',
