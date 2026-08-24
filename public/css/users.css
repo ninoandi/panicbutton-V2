@@ -1296,11 +1296,6 @@
 /* Row khusus password dengan background berbeda */
 .user-password-row {
     background: var(--dash-warning-bg, #fffbeb) !important;
-    border-left: 3px solid var(--dash-warning, #d97706);
-}
-
-.user-password-row i {
-    color: var(--dash-warning, #d97706) !important;
 }
 
 /* Password wrapper - flex untuk menampung password dan tombol */
@@ -1323,13 +1318,10 @@
 /* Password visible state (tampak jelas) */
 .password-visible {
     font-family: 'Courier New', monospace;
-    color: var(--dash-warning, #d97706);
     font-weight: 700;
     font-size: 13px;
-    background: var(--dash-warning-bg, #fffbeb);
     padding: 2px 10px;
     border-radius: 6px;
-    border: 1px solid var(--dash-warning-border, #fde68a);
     word-break: break-all;
 }
 
@@ -1372,17 +1364,6 @@
 
 [data-theme="dark"] .user-password-row {
     background: rgba(245, 158, 11, 0.12) !important;
-    border-left-color: var(--dash-warning, #fbbf24);
-}
-
-[data-theme="dark"] .user-password-row i {
-    color: var(--dash-warning, #fbbf24) !important;
-}
-
-[data-theme="dark"] .password-visible {
-    background: rgba(245, 158, 11, 0.15);
-    border-color: rgba(251, 191, 36, 0.35);
-    color: var(--dash-warning, #fbbf24);
 }
 
 [data-theme="dark"] .password-toggle-btn:hover {
