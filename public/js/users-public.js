@@ -336,7 +336,7 @@ function renderCards(users) {
                     </div>
                 </div>
                 
-                <div class="user-detail-row" style="background: var(--dash-primary-bg); border-left: 3px solid var(--dash-primary);">
+                <div class="user-detail-row">
                     <i class="fa-solid fa-microchip" style="color: var(--dash-primary);"></i>
                     <div class="user-detail-text">
                         <span class="user-detail-label">Perangkat IoT</span>
@@ -346,7 +346,7 @@ function renderCards(users) {
                     </div>
                 </div>
                 
-                <div class="user-detail-row" style="background: var(--dash-primary-bg); border-left: 3px solid var(--dash-primary);">
+                <div class="user-detail-row">
                     <i class="fa-solid fa-location-dot" style="color: var(--dash-primary);"></i>
                     <div class="user-detail-text">
                         <span class="user-detail-label">Zona</span>
