@@ -114,6 +114,22 @@
     }
 }
 
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 /* =========================================================
    1. HEADER BANNER
 ========================================================= */
@@ -368,7 +384,7 @@
 }
 
 /* =========================================================
-   3. CUSTOM AESTHETIC FILTER & SEARCH BAR (NO EMOJIS)
+   3. CUSTOM AESTHETIC FILTER & SEARCH BAR
 ========================================================= */
 
 .users-filter-card {
@@ -409,7 +425,6 @@
     color: var(--dash-primary);
 }
 
-/* Search input with icon */
 .search-input-wrapper {
     position: relative;
     display: flex;
@@ -449,7 +464,6 @@
     opacity: 0.8;
 }
 
-/* Custom Aesthetic Dropdown (No Emojis) */
 .custom-select-wrapper {
     position: relative;
     display: flex;
@@ -533,7 +547,6 @@
     box-shadow: var(--dash-shadow-hover);
 }
 
-/* Role-based subtle border accents */
 .user-card.admin-card {
     border-color: var(--dash-emergency-border);
 }
@@ -548,7 +561,6 @@
     box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.15);
 }
 
-/* User Card Header */
 .user-card-header {
     display: flex;
     align-items: center;
@@ -612,7 +624,6 @@
     color: var(--dash-text-muted);
 }
 
-/* Role Badges */
 .role-badge {
     display: inline-flex;
     align-items: center;
@@ -644,7 +655,6 @@
     border: 1px solid var(--dash-border);
 }
 
-/* User Card Body Details */
 .user-card-body {
     display: flex;
     flex-direction: column;
@@ -776,7 +786,7 @@
 }
 
 /* =========================================================
-   6. MODAL TAMBAH USER (GLASSMORPHISM)
+   6. MODAL - DENGAN SCROLL
 ========================================================= */
 
 .modal {
@@ -798,10 +808,13 @@
     border: 1px solid var(--dash-border);
     border-radius: 20px;
     width: 100%;
-    max-width: 520px;
+    max-width: 560px;
+    max-height: 90vh;
     box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.4);
     overflow: hidden;
     animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
@@ -811,6 +824,7 @@
     padding: 20px 24px;
     border-bottom: 1px solid var(--dash-border);
     background: linear-gradient(135deg, var(--dash-card-bg) 0%, var(--dash-bg) 100%);
+    flex-shrink: 0;
 }
 
 .modal-header h3 {
@@ -830,7 +844,7 @@
     border: 1px solid var(--dash-border);
     background: var(--dash-card-bg);
     color: var(--dash-text-muted);
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -847,18 +861,67 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+    overflow-y: auto;
+    flex: 1;
+    max-height: calc(90vh - 160px);
 }
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: var(--dash-bg);
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--dash-border);
+    border-radius: 10px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--dash-text-muted);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--dash-border);
+    background: var(--dash-card-bg);
+    flex-shrink: 0;
+}
+
+/* =========================================================
+   7. FORM GROUP
+========================================================= */
 
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .form-group label {
-    font-size: 12.5px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--dash-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group label i {
+    font-size: 14px;
+    color: var(--dash-primary);
+}
+
+.form-group label .required {
+    color: var(--dash-emergency);
+    margin-left: 2px;
 }
 
 .form-group input,
@@ -883,19 +946,30 @@
     box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
-.custom-role-input {
-    margin-top: 8px;
+.form-group input[readonly] {
+    background: var(--dash-bg);
+    cursor: default;
+    opacity: 0.8;
 }
 
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    gap: 12px;
-    padding: 18px 24px;
-    border-top: 1px solid var(--dash-border);
-    background: var(--dash-card-bg);
+.form-group input[readonly]:focus {
+    border-color: var(--dash-border);
+    box-shadow: none;
 }
+
+.form-group small {
+    font-size: 11px;
+    color: var(--dash-text-muted);
+    line-height: 1.4;
+}
+
+.custom-role-input {
+    margin-top: 0;
+}
+
+/* =========================================================
+   8. BUTTONS
+========================================================= */
 
 .btn {
     display: inline-flex;
@@ -934,7 +1008,143 @@
 }
 
 /* =========================================================
-   7. RESPONSIVE BREAKPOINTS
+   9. BUTTON EDIT & HAPUS - STYLE SEPERTI DI KANAN
+========================================================= */
+
+.btn-card-edit {
+    background: var(--dash-profile-bg, #f0f9ff);
+    color: var(--dash-profile, #0284c7);
+    border: 1px solid var(--dash-profile-border, #bae6fd);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.btn-card-edit:hover {
+    background: var(--dash-profile, #0284c7);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.30);
+}
+
+.btn-card-edit:active {
+    transform: translateY(0px);
+    box-shadow: none;
+}
+
+.btn-card-delete {
+    background: var(--dash-emergency-bg, #fef2f2);
+    color: var(--dash-emergency, #dc2626);
+    border: 1px solid var(--dash-emergency-border, #fecaca);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+}
+
+.btn-card-delete:hover {
+    background: var(--dash-emergency, #dc2626);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.30);
+}
+
+.btn-card-delete:active {
+    transform: translateY(0px);
+    box-shadow: none;
+}
+
+.user-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 14px;
+    margin-top: auto;
+    border-top: 1px solid var(--dash-border, #e2e8f0);
+}
+
+/* =========================================================
+   10. DARK MODE
+========================================================= */
+
+[data-theme="dark"] .modal-content {
+    background: var(--dash-card-bg);
+    border-color: var(--dash-border);
+}
+
+[data-theme="dark"] .modal-body::-webkit-scrollbar-track {
+    background: var(--dash-bg);
+}
+
+[data-theme="dark"] .modal-body::-webkit-scrollbar-thumb {
+    background: var(--dash-border);
+}
+
+[data-theme="dark"] .modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--dash-text-muted);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .custom-select-field {
+    background: var(--dash-bg);
+    border-color: var(--dash-border);
+    color: var(--dash-text-main);
+}
+
+[data-theme="dark"] .form-group input:focus,
+[data-theme="dark"] .form-group select:focus,
+[data-theme="dark"] .custom-select-field:focus {
+    background: var(--dash-card-bg);
+    border-color: var(--dash-primary);
+}
+
+[data-theme="dark"] .btn-card-edit {
+    background: var(--dash-profile-bg, rgba(2, 132, 199, 0.18));
+    color: var(--dash-profile, #38bdf8);
+    border-color: var(--dash-profile-border, rgba(56, 189, 248, 0.35));
+}
+
+[data-theme="dark"] .btn-card-edit:hover {
+    background: var(--dash-profile, #38bdf8);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-card-delete {
+    background: var(--dash-emergency-bg, rgba(220, 38, 38, 0.18));
+    color: var(--dash-emergency, #f87171);
+    border-color: var(--dash-emergency-border, rgba(248, 113, 113, 0.35));
+}
+
+[data-theme="dark"] .btn-card-delete:hover {
+    background: var(--dash-emergency, #f87171);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-save {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+[data-theme="dark"] .btn-save:hover {
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
+}
+
+/* =========================================================
+   11. RESPONSIVE
 ========================================================= */
 
 @media (max-width: 1100px) {
@@ -1018,5 +1228,212 @@
 
     .modal-footer .btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: 16px;
+    }
+    
+    .modal-body {
+        max-height: calc(95vh - 140px);
+        padding: 18px 16px;
+    }
+    
+    .modal-header {
+        padding: 16px 18px;
+    }
+    
+    .modal-header h3 {
+        font-size: 16px;
+    }
+    
+    .modal-footer {
+        padding: 14px 16px;
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .custom-select-field {
+        height: 38px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-body {
+        padding: 14px 12px;
+        gap: 12px;
+        max-height: calc(95vh - 130px);
+    }
+    
+    .form-group label {
+        font-size: 12px;
+    }
+    
+    .form-group small {
+        font-size: 10px;
+    }
+}
+
+/* =========================================================
+   PASSWORD TOGGLE STYLING
+========================================================= */
+
+/* Row khusus password dengan background berbeda */
+.user-password-row {
+    background: var(--dash-warning-bg, #fffbeb) !important;
+    border-left: 3px solid var(--dash-warning, #d97706);
+}
+
+.user-password-row i {
+    color: var(--dash-warning, #d97706) !important;
+}
+
+/* Password wrapper - flex untuk menampung password dan tombol */
+.user-password-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Password hidden state (bintang-bintang) */
+.password-hidden {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    color: var(--dash-text-muted);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Password visible state (tampak jelas) */
+.password-visible {
+    font-family: 'Courier New', monospace;
+    color: var(--dash-warning, #d97706);
+    font-weight: 700;
+    font-size: 13px;
+    background: var(--dash-warning-bg, #fffbeb);
+    padding: 2px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--dash-warning-border, #fde68a);
+    word-break: break-all;
+}
+
+/* Toggle button (mata) */
+.password-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--dash-text-muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    font-size: 13px;
+    border-radius: 6px;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+}
+
+.password-toggle-btn:hover {
+    background: var(--dash-bg);
+    color: var(--dash-primary);
+    transform: scale(1.1);
+}
+
+.password-toggle-btn:active {
+    transform: scale(0.9);
+}
+
+.password-toggle-btn i {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* =========================================================
+   DARK MODE - PASSWORD TOGGLE
+========================================================= */
+
+[data-theme="dark"] .user-password-row {
+    background: rgba(245, 158, 11, 0.12) !important;
+    border-left-color: var(--dash-warning, #fbbf24);
+}
+
+[data-theme="dark"] .user-password-row i {
+    color: var(--dash-warning, #fbbf24) !important;
+}
+
+[data-theme="dark"] .password-visible {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(251, 191, 36, 0.35);
+    color: var(--dash-warning, #fbbf24);
+}
+
+[data-theme="dark"] .password-toggle-btn:hover {
+    background: var(--dash-border);
+    color: var(--dash-primary-light);
+}
+
+/* =========================================================
+   RESPONSIVE - PASSWORD TOGGLE
+========================================================= */
+
+@media (max-width: 768px) {
+    .user-password-wrapper {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .password-visible {
+        font-size: 12px;
+        padding: 2px 8px;
+        word-break: break-all;
+        max-width: 100%;
+    }
+    
+    .password-toggle-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+    
+    .password-toggle-btn i {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-password-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .password-visible {
+        font-size: 11px;
+        padding: 2px 6px;
+        width: 100%;
+        word-break: break-all;
+    }
+    
+    .password-toggle-btn {
+        align-self: flex-start;
+        margin-top: 2px;
     }
 }

@@ -206,7 +206,7 @@
 
             <div class="form-group">
                 <label for="password">Password Akun</label>
-                <input type="text" id="password" placeholder="Masukkan password">
+                <input type="password" id="password" placeholder="Masukkan password">
             </div>
 
             <div class="form-group">
@@ -225,6 +225,56 @@
                     placeholder="Tuliskan nama role kustom..."
                 >
             </div>
+
+
+            <!-- ====================================================== -->
+<!-- FIELD PERANGKAT IOT (Tambahan) -->
+<!-- ====================================================== -->
+
+<div class="form-group">
+    <label for="userDeviceSelect">
+        <i class="fa-solid fa-microchip"></i> Perangkat IoT
+    </label>
+    <div class="custom-select-wrapper">
+        <select class="custom-select-field" id="userDeviceSelect">
+            <option value="">-- Pilih Perangkat --</option>
+            <!-- Options akan diisi oleh JavaScript -->
+        </select>
+        <i class="fa-solid fa-chevron-down select-arrow"></i>
+    </div>
+    <small style="font-size: 11px; color: var(--dash-text-muted);">
+        Pilih perangkat IoT yang akan ditugaskan ke pengguna ini
+    </small>
+</div>
+
+<div class="form-group">
+    <label for="userZonaInput">
+        <i class="fa-solid fa-location-dot"></i> Zona
+    </label>
+    <input 
+        type="text" 
+        class="form-control" 
+        id="userZonaInput" 
+        placeholder="Zona akan terisi otomatis saat perangkat dipilih"
+        readonly
+        style="background: var(--dash-bg); cursor: default;"
+    />
+    <small style="font-size: 11px; color: var(--dash-text-muted);">
+        Zona akan terisi otomatis berdasarkan perangkat yang dipilih
+    </small>
+</div>
+
+<div class="form-group">
+    <label for="userPhoneNumber">
+        <i class="fa-solid fa-phone"></i> Nomor HP / WhatsApp
+    </label>
+    <input 
+        type="text" 
+        class="form-control" 
+        id="userPhoneNumber" 
+        placeholder="Contoh: 08123456789"
+    />
+</div>
         </div>
 
         <div class="modal-footer">

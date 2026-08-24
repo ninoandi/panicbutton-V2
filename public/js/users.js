@@ -9,7 +9,8 @@ import {
     get,
     push,
     set,
-    remove
+    remove,
+    update
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
@@ -40,9 +41,24 @@ const passwordInput = document.getElementById("password");
 const roleSelect = document.getElementById("roleSelect");
 const customRoleInput = document.getElementById("customRoleInput");
 
+// ======================================================
+// ELEMENT DOM UNTUK PERANGKAT IOT
+// ======================================================
+
+const deviceSelect = document.getElementById("userDeviceSelect");
+const zonaInput = document.getElementById("userZonaInput");
+const phoneNumberInput = document.getElementById("userPhoneNumber");
+
 const prevPage = document.getElementById("prevPage");
 const nextPage = document.getElementById("nextPage");
 const paginationInfo = document.getElementById("paginationInfo");
+
+// ======================================================
+// ELEMENT DOM UNTUK MODAL EDIT (BARU)
+// ======================================================
+
+const modalTitle = document.getElementById("modalTitle");
+const saveBtnText = document.getElementById("saveBtnText");
 
 
 // ======================================================
@@ -52,6 +68,9 @@ const paginationInfo = document.getElementById("paginationInfo");
 let allUsers = [];
 let filteredUsers = [];
 let perumahanNames = [];
+let devicesList = [];
+let editingUserId = null;
+let editingPerumahanKey = null;
 
 let currentPage = 1;
 const usersPerPage = 9;
@@ -84,6 +103,7 @@ function escapeHtml(value) {
 
 const daftarPerumahanRef = ref(db1, "daftar_perumahan");
 const perumahanRef = ref(db1, "perumahan");
+const devicesRef = ref(db2, "panicChannels");
 
 
 // ======================================================
@@ -120,17 +140,103 @@ function populatePerumahanSelect(data) {
 
 
 // ======================================================
-// AMBIL DATA USER DARI FIREBASE (OPTIMASI)
+// AMBIL DATA PERANGKAT DARI DB2 UNTUK DROPDOWN
+// ======================================================
+
+function loadDevices() {
+    onValue(devicesRef, (snapshot) => {
+        const data = snapshot.val() || {};
+        devicesList = [];
+        const deviceOptions = new Set();
+        
+        Object.entries(data).forEach(([zoneName, zoneData]) => {
+            if (zoneData && typeof zoneData === 'object') {
+                Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
+                    if (deviceData && typeof deviceData === 'object') {
+                        const deviceName = deviceData.device || deviceKey;
+                        if (!deviceOptions.has(deviceName)) {
+                            deviceOptions.add(deviceName);
+                            devicesList.push({
+                                key: deviceKey,
+                                name: deviceName,
+                                zone: zoneName,
+                                lokasi: deviceData.lokasi || '-',
+                                online: deviceData.online !== false,
+                                active: deviceData.active === true,
+                                ...deviceData
+                            });
+                        }
+                    }
+                });
+            }
+        });
+        
+        populateDeviceSelect();
+        
+        console.log(`Total perangkat IoT: ${devicesList.length}`);
+    }, (error) => {
+        console.error('Error loading devices:', error);
+    });
+}
+
+// ======================================================
+// POPULATE DEVICE SELECT
+// ======================================================
+
+function populateDeviceSelect() {
+    if (!deviceSelect) return;
+    
+    const currentValue = deviceSelect.value;
+    deviceSelect.innerHTML = '<option value="">-- Pilih Perangkat --</option>';
+    
+    devicesList.sort((a, b) => a.name.localeCompare(b.name));
+    
+    devicesList.forEach(device => {
+        const option = document.createElement('option');
+        option.value = device.name;
+        const statusText = device.online !== false ? '🟢 Online' : '🔴 Offline';
+        const activeText = device.active === true ? ' ⚠️ ACTIVE' : '';
+        option.textContent = `${device.name} (${device.zone} - ${device.lokasi}) ${statusText}${activeText}`;
+        option.dataset.zone = device.zone || '';
+        deviceSelect.appendChild(option);
+    });
+    
+    if (currentValue) {
+        deviceSelect.value = currentValue;
+        setTimeout(autoFillZona, 100);
+    }
+}
+
+// ======================================================
+// AUTO-FILL ZONA
+// ======================================================
+
+function autoFillZona() {
+    if (deviceSelect && deviceSelect.value && zonaInput) {
+        const selectedDevice = devicesList.find(device => device.name === deviceSelect.value);
+        if (selectedDevice && selectedDevice.zone) {
+            zonaInput.value = selectedDevice.zone;
+            console.log(`✅ Zona otomatis terisi: ${selectedDevice.zone}`);
+            
+            zonaInput.style.borderColor = 'var(--dash-success)';
+            zonaInput.style.backgroundColor = 'var(--dash-success-bg)';
+            setTimeout(() => {
+                zonaInput.style.borderColor = '';
+                zonaInput.style.backgroundColor = '';
+            }, 1500);
+        }
+    }
+}
+
+
+// ======================================================
+// AMBIL DATA USER DARI FIREBASE
 // ======================================================
 
 let loadTimeout = null;
-let isFirstLoad = true;
 
 function loadUsers() {
-    // Gunakan once() untuk data besar, bukan onValue() agar tidak terus-menerus
-    // Tapi kita tetap pakai onValue untuk realtime, dengan throttling
     onValue(perumahanRef, (snapshot) => {
-        // Throttle: hindari proses berulang terlalu cepat
         if (loadTimeout) {
             clearTimeout(loadTimeout);
         }
@@ -146,20 +252,16 @@ function processUserData(snapshot) {
     const startTime = performance.now();
     const data = snapshot.val();
     
-    // Reset data
     allUsers = [];
     const perumahanNamesSet = new Set();
-    const userMap = new Map(); // Gunakan Map untuk akses lebih cepat
+    const userMap = new Map();
 
     if (data) {
-        // Loop perumahan
         Object.entries(data).forEach(([perumahanKey, perumahanData]) => {
             const users = perumahanData.users || {};
             const perumahanName = perumahanData.info?.nama || perumahanKey;
 
-            // Loop users
             Object.entries(users).forEach(([userId, userInfo]) => {
-                // Gunakan Map untuk menghindari duplikasi jika ada
                 const userKey = `${perumahanKey}_${userId}`;
                 if (!userMap.has(userKey)) {
                     userMap.set(userKey, {
@@ -173,18 +275,15 @@ function processUserData(snapshot) {
             });
         });
         
-        // Konversi Map ke Array
         allUsers = Array.from(userMap.values());
         perumahanNames = Array.from(perumahanNamesSet);
     }
 
-    // Update UI
     updateSummaryMetrics();
     populatePerumahanOptions(perumahanNames);
     applyFilters();
     
     isDataLoaded = true;
-    isFirstLoad = false;
     
     const endTime = performance.now();
     console.log(`Data user loaded in ${(endTime - startTime).toFixed(2)}ms, total: ${allUsers.length} users`);
@@ -199,7 +298,6 @@ function updateSummaryMetrics() {
     const total = allUsers.length;
     let adminCount = 0;
     
-    // Gunakan loop biasa untuk performa lebih baik
     for (let i = 0; i < allUsers.length; i++) {
         if ((allUsers[i].role || "").toLowerCase() === "admin") {
             adminCount++;
@@ -238,13 +336,12 @@ function populatePerumahanOptions(names) {
 
 
 // ======================================================
-// RENDER USER CARD GRID (OPTIMASI)
+// RENDER USER CARD GRID (DENGAN PASSWORD HIDDEN)
 // ======================================================
 
 function renderCards(users) {
     if (!cardContainer) return;
 
-    // Jika tidak ada data
     if (users.length === 0) {
         cardContainer.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; color: var(--dash-text-muted); padding: 50px 20px;">
@@ -256,7 +353,6 @@ function renderCards(users) {
         return;
     }
 
-    // Build HTML menggunakan array join untuk performa lebih baik
     const cardHtml = [];
     const startIndex = (currentPage - 1) * usersPerPage;
     
@@ -280,6 +376,20 @@ function renderCards(users) {
             : "U";
 
         const globalIndex = startIndex + index + 1;
+
+        const deviceDisplay = user.assigned_device && user.assigned_device !== '-' 
+            ? `<span style="color: var(--dash-primary); font-weight: 600;">${escapeHtml(user.assigned_device)}</span>`
+            : '<span style="color: var(--dash-text-muted); font-style: italic;">Belum terdaftar</span>';
+        
+        const zoneDisplay = user.assigned_zone && user.assigned_zone !== '-' 
+            ? escapeHtml(user.assigned_zone)
+            : '-';
+
+        // ================================================
+        // BAGIAN PASSWORD - TERSEMBUNYI DENGAN TOGGLE
+        // ================================================
+        const passwordId = `pass_${user.perumahanKey}_${user.id}`;
+        const hasPassword = user.password && user.password !== '-';
 
         cardHtml.push(`
             <div class="user-card ${isAdmin ? "admin-card" : "user-card-role"}">
@@ -317,12 +427,44 @@ function renderCards(users) {
                         </div>
                     </div>
 
-                    <div class="user-detail-row">
+                    <!-- ========================================== -->
+                    <!-- PASSWORD - TERSEMBUNYI (HIDDEN) -->
+                    <!-- ========================================== -->
+                    <div class="user-detail-row user-password-row">
                         <i class="fa-solid fa-key"></i>
                         <div class="user-detail-text">
                             <span class="user-detail-label">Password Akun</span>
-                            <strong class="user-detail-value">
-                                <span class="password-pill">${escapeHtml(user.password || "-")}</span>
+                            <strong class="user-detail-value user-password-wrapper">
+                                <span class="password-hidden" id="${passwordId}">
+                                    ${hasPassword ? '••••••••' : '-'}
+                                </span>
+                                ${hasPassword ? `
+                                    <button class="password-toggle-btn" 
+                                            onclick="window.togglePassword('${passwordId}', '${escapeHtml(user.password)}')" 
+                                            title="Klik untuk melihat password">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                ` : ''}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="user-detail-row" style="background: var(--dash-primary-bg); border-left: 3px solid var(--dash-primary);">
+                        <i class="fa-solid fa-microchip" style="color: var(--dash-primary);"></i>
+                        <div class="user-detail-text">
+                            <span class="user-detail-label">Perangkat IoT</span>
+                            <strong class="user-detail-value" style="color: var(--dash-primary);">
+                                ${deviceDisplay}
+                            </strong>
+                        </div>
+                    </div>
+
+                    <div class="user-detail-row" style="background: var(--dash-primary-bg); border-left: 3px solid var(--dash-primary);">
+                        <i class="fa-solid fa-location-dot" style="color: var(--dash-primary);"></i>
+                        <div class="user-detail-text">
+                            <span class="user-detail-label">Zona</span>
+                            <strong class="user-detail-value" style="color: var(--dash-primary);">
+                                ${zoneDisplay}
                             </strong>
                         </div>
                     </div>
@@ -335,6 +477,15 @@ function renderCards(users) {
                         </div>
                     </div>
                 </div>
+
+                <div class="user-card-footer">
+                    <button class="btn-card-action btn-card-edit" onclick="window.editUser('${user.perumahanKey}', '${user.id}')">
+                        <i class="fa-solid fa-pen"></i> Edit
+                    </button>
+                    <button class="btn-card-action btn-card-delete" onclick="window.deleteUser('${user.perumahanKey}', '${user.id}')">
+                        <i class="fa-solid fa-trash"></i> Hapus
+                    </button>
+                </div>
             </div>
         `);
     });
@@ -342,48 +493,78 @@ function renderCards(users) {
     cardContainer.innerHTML = cardHtml.join("");
 }
 
+// ======================================================
+// TOGGLE PASSWORD SHOW/HIDE - GLOBAL FUNCTION
+// ======================================================
+
+window.togglePassword = function(elementId, passwordValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const isHidden = element.classList.contains('password-hidden');
+    const wrapper = element.closest('.user-password-wrapper');
+    const button = wrapper ? wrapper.querySelector('.password-toggle-btn') : null;
+    
+    if (isHidden) {
+        // Tampilkan password
+        element.textContent = passwordValue;
+        element.classList.remove('password-hidden');
+        element.classList.add('password-visible');
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+            button.title = 'Klik untuk menyembunyikan password';
+        }
+    } else {
+        // Sembunyikan password
+        element.textContent = '••••••••';
+        element.classList.remove('password-visible');
+        element.classList.add('password-hidden');
+        if (button) {
+            button.innerHTML = '<i class="fa-solid fa-eye"></i>';
+            button.title = 'Klik untuk melihat password';
+        }
+    }
+};
+
 
 // ======================================================
-// FILTER DATA (OPTIMASI)
+// FILTER DATA
 // ======================================================
-
-let filterTimeout = null;
 
 function applyFilters() {
     const role = (roleFilter?.value || "").trim().toLowerCase();
     const perumahan = (perumahanFilter?.value || "").trim().toLowerCase();
     const keyword = (searchInput?.value || "").trim().toLowerCase();
 
-    // Jika keyword kosong dan filter default, tampilkan semua dengan cepat
     if (!keyword && !role && !perumahan) {
-        filteredUsers = allUsers.slice(); // Copy cepat
+        filteredUsers = allUsers.slice();
     } else {
-        // Filter dengan loop biasa untuk performa
         filteredUsers = [];
         const keywordLower = keyword;
         
         for (let i = 0; i < allUsers.length; i++) {
             const user = allUsers[i];
             
-            // Role filter
             if (role && (user.role || "").toLowerCase() !== role) {
                 continue;
             }
             
-            // Perumahan filter
             if (perumahan && (user.perumahanName || "").toLowerCase() !== perumahan) {
                 continue;
             }
             
-            // Keyword search
             if (keywordLower) {
                 const userName = (user.name || "").toLowerCase();
                 const userHouse = (user.houseNumber || "").toString().toLowerCase();
                 const userPhone = (user.phoneNumber || "").toString().toLowerCase();
+                const userDevice = (user.assigned_device || "").toLowerCase();
+                const userZone = (user.assigned_zone || "").toLowerCase();
                 
                 if (!userName.includes(keywordLower) && 
                     !userHouse.includes(keywordLower) && 
-                    !userPhone.includes(keywordLower)) {
+                    !userPhone.includes(keywordLower) &&
+                    !userDevice.includes(keywordLower) &&
+                    !userZone.includes(keywordLower)) {
                     continue;
                 }
             }
@@ -420,12 +601,191 @@ function updatePagination() {
 
 
 // ======================================================
+// EDIT USER - GLOBAL FUNCTION (BARU)
+// ======================================================
+
+window.editUser = function(perumahanKey, userId) {
+    console.log('🟡 editUser() dipanggil untuk userId:', userId, 'perumahanKey:', perumahanKey);
+    
+    const user = allUsers.find(u => u.id === userId && u.perumahanKey === perumahanKey);
+    if (!user) {
+        console.log('❌ User tidak ditemukan');
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: 'error',
+                title: 'User Tidak Ditemukan',
+                text: 'Data user tidak ditemukan di database.'
+            });
+        }
+        return;
+    }
+    
+    if ((user.role || "").toLowerCase() === "admin") {
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Tidak Dapat Mengedit',
+                text: 'Tidak dapat mengedit akun admin!'
+            });
+        }
+        return;
+    }
+    
+    console.log('✅ User ditemukan:', user);
+    
+    editingUserId = userId;
+    editingPerumahanKey = perumahanKey;
+    
+    // Update modal title
+    if (modalTitle) modalTitle.textContent = 'Edit Pengguna';
+    if (saveBtnText) saveBtnText.textContent = 'Update Pengguna';
+    if (saveUserBtn) saveUserBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Pengguna';
+    
+    // Isi form dengan data user
+    if (perumahanSelect) perumahanSelect.value = perumahanKey;
+    if (userNameInput) userNameInput.value = user.name || '';
+    if (houseNumberInput) houseNumberInput.value = user.houseNumber || '';
+    if (passwordInput) passwordInput.value = user.password || '';
+    if (phoneNumberInput) phoneNumberInput.value = user.phoneNumber || '';
+    
+    // Set role
+    const userRole = (user.role || "").toLowerCase();
+    if (roleSelect) {
+        if (userRole === "admin" || userRole === "user") {
+            roleSelect.value = userRole;
+        } else {
+            roleSelect.value = "custom";
+            if (customRoleInput) {
+                customRoleInput.style.display = "block";
+                customRoleInput.value = userRole;
+            }
+        }
+    }
+    
+    // Set device dan zona
+    if (deviceSelect) {
+        deviceSelect.value = user.assigned_device || '';
+        // Load devices jika belum ada
+        if (devicesList.length === 0) {
+            loadDevices();
+        }
+        setTimeout(() => {
+            if (deviceSelect) deviceSelect.value = user.assigned_device || '';
+            if (zonaInput) zonaInput.value = user.assigned_zone || '';
+        }, 300);
+    }
+    
+    // Buka modal
+    if (addUserModal) {
+        addUserModal.style.display = "flex";
+        console.log('✅ Modal edit dibuka');
+        
+        // Auto-fill zona setelah modal terbuka
+        setTimeout(autoFillZona, 150);
+    }
+};
+
+// ======================================================
+// DELETE USER - GLOBAL FUNCTION (BARU)
+// ======================================================
+
+window.deleteUser = async function(perumahanKey, userId) {
+    console.log('🔴 deleteUser() dipanggil untuk userId:', userId, 'perumahanKey:', perumahanKey);
+    
+    const user = allUsers.find(u => u.id === userId && u.perumahanKey === perumahanKey);
+    if (!user) return;
+    
+    if ((user.role || "").toLowerCase() === "admin") {
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                icon: 'error',
+                title: 'Tidak Dapat Menghapus',
+                text: 'Tidak dapat menghapus akun admin!'
+            });
+        }
+        return;
+    }
+    
+    if (typeof Swal !== "undefined") {
+        const result = await Swal.fire({
+            title: 'Hapus Pengguna?',
+            text: `Anda yakin ingin menghapus pengguna "${user.name || 'ini'}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                // Hapus dari database utama (db1)
+                await remove(ref(db1, `perumahan/${perumahanKey}/users/${userId}`));
+                
+                // Hapus juga dari db2 jika ada sinkronisasi
+                try {
+                    await remove(ref(db2, `users/${userId}`));
+                    console.log('✅ User juga dihapus dari DB2');
+                } catch (syncError) {
+                    console.warn('⚠️ Gagal menghapus dari DB2:', syncError);
+                }
+                
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: 'Pengguna berhasil dihapus',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Gagal menghapus pengguna: ' + error.message
+                    });
+                }
+            }
+        }
+    } else {
+        // Fallback jika SweetAlert tidak tersedia
+        if (confirm(`Hapus pengguna "${user.name || 'ini'}"?`)) {
+            try {
+                await remove(ref(db1, `perumahan/${perumahanKey}/users/${userId}`));
+                alert('Pengguna berhasil dihapus!');
+            } catch (error) {
+                alert('Gagal menghapus pengguna: ' + error.message);
+            }
+        }
+    }
+};
+
+
+// ======================================================
 // MODAL - BUKA & TUTUP
 // ======================================================
 
 if (openAddUserModal && addUserModal) {
     openAddUserModal.addEventListener("click", () => {
+        // Reset edit state
+        editingUserId = null;
+        editingPerumahanKey = null;
+        
+        // Reset modal title
+        if (modalTitle) modalTitle.textContent = 'Tambah Pengguna Baru';
+        if (saveBtnText) saveBtnText.textContent = 'Simpan Pengguna';
+        if (saveUserBtn) saveUserBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Pengguna';
+        
+        // Reset form
+        resetForm();
+        
         addUserModal.style.display = "flex";
+        loadDevices();
+        setTimeout(autoFillZona, 150);
     });
 }
 
@@ -435,6 +795,8 @@ if (addUserModal) {
             btn.addEventListener("click", () => {
                 addUserModal.style.display = "none";
                 resetForm();
+                editingUserId = null;
+                editingPerumahanKey = null;
             });
         }
     });
@@ -443,6 +805,8 @@ if (addUserModal) {
         if (event.target === addUserModal) {
             addUserModal.style.display = "none";
             resetForm();
+            editingUserId = null;
+            editingPerumahanKey = null;
         }
     });
 }
@@ -466,6 +830,41 @@ if (roleSelect && customRoleInput) {
 
 
 // ======================================================
+// AUTO-FILL ZONA SAAT PERANGKAT DIPILIH
+// ======================================================
+
+if (deviceSelect) {
+    deviceSelect.addEventListener('change', function() {
+        const selectedDeviceName = this.value;
+        console.log('🔄 Perangkat dipilih:', selectedDeviceName);
+        
+        if (!selectedDeviceName) {
+            if (zonaInput) zonaInput.value = '';
+            return;
+        }
+        
+        const selectedDevice = devicesList.find(device => device.name === selectedDeviceName);
+        
+        if (selectedDevice && selectedDevice.zone) {
+            if (zonaInput) {
+                zonaInput.value = selectedDevice.zone;
+                console.log(`✅ Zona otomatis terisi: ${selectedDevice.zone}`);
+                
+                zonaInput.style.borderColor = 'var(--dash-success)';
+                zonaInput.style.backgroundColor = 'var(--dash-success-bg)';
+                setTimeout(() => {
+                    zonaInput.style.borderColor = '';
+                    zonaInput.style.backgroundColor = '';
+                }, 1500);
+            }
+        } else {
+            if (zonaInput) zonaInput.value = '';
+        }
+    });
+}
+
+
+// ======================================================
 // RESET FORM
 // ======================================================
 
@@ -474,16 +873,19 @@ function resetForm() {
     if (userNameInput) userNameInput.value = "";
     if (houseNumberInput) houseNumberInput.value = "";
     if (passwordInput) passwordInput.value = "";
+    if (phoneNumberInput) phoneNumberInput.value = "";
     if (roleSelect) roleSelect.value = "user";
     if (customRoleInput) {
         customRoleInput.value = "";
         customRoleInput.style.display = "none";
     }
+    if (deviceSelect) deviceSelect.value = "";
+    if (zonaInput) zonaInput.value = "";
 }
 
 
 // ======================================================
-// SIMPAN USER KE FIREBASE
+// SIMPAN / UPDATE USER KE FIREBASE (DENGAN EDIT)
 // ======================================================
 
 if (saveUserBtn) {
@@ -492,8 +894,11 @@ if (saveUserBtn) {
         const name = userNameInput?.value.trim();
         const houseNumber = houseNumberInput?.value.trim();
         const password = passwordInput?.value.trim();
+        const phoneNumber = phoneNumberInput?.value.trim();
         const roleOption = roleSelect?.value;
         const customRole = customRoleInput?.value.trim();
+        const assignedDevice = deviceSelect?.value || "";
+        const assignedZone = zonaInput?.value.trim() || "";
 
         if (!perumahanKey || !name || !houseNumber || !password) {
             if (typeof Swal !== "undefined") {
@@ -514,44 +919,104 @@ if (saveUserBtn) {
             : roleOption;
 
         try {
-            const newUserRef = push(ref(db1, `perumahan/${perumahanKey}/users`));
-
-            await set(newUserRef, {
+            const userData = {
                 coverImage: "",
                 houseNumber: houseNumber,
                 name: name,
                 note: "",
                 password: password,
-                phoneNumber: "",
+                phoneNumber: phoneNumber || "",
                 profileImage: "",
-                role: role.toLowerCase()
-            });
+                role: role.toLowerCase(),
+                assigned_device: assignedDevice,
+                assigned_zone: assignedZone,
+                updated_at: Date.now()
+            };
+
+            if (editingUserId && editingPerumahanKey) {
+                // UPDATE MODE
+                await update(ref(db1, `perumahan/${editingPerumahanKey}/users/${editingUserId}`), userData);
+                
+                // Update juga di db2 jika ada
+                if (assignedDevice) {
+                    try {
+                        await update(ref(db2, `users/${editingUserId}`), {
+                            name: name,
+                            phone: phoneNumber || "",
+                            assigned_device: assignedDevice,
+                            assigned_zone: assignedZone,
+                            role: role.toLowerCase(),
+                            updated_at: Date.now()
+                        });
+                        console.log('✅ User juga diupdate di DB2');
+                    } catch (syncError) {
+                        console.warn('⚠️ Gagal update di DB2:', syncError);
+                    }
+                }
+                
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil",
+                        text: "Pengguna berhasil diperbarui!",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            } else {
+                // CREATE MODE
+                const newUserRef = push(ref(db1, `perumahan/${perumahanKey}/users`));
+                await set(newUserRef, userData);
+
+                if (assignedDevice) {
+                    try {
+                        await set(ref(db2, `users/${newUserRef.key}`), {
+                            name: name,
+                            phone: phoneNumber || "",
+                            assigned_device: assignedDevice,
+                            assigned_zone: assignedZone,
+                            role: role.toLowerCase(),
+                            status: 'active',
+                            created_at: Date.now(),
+                            updated_at: Date.now()
+                        });
+                        console.log('✅ User juga disinkronkan ke DB2');
+                    } catch (syncError) {
+                        console.warn('⚠️ Gagal sinkron ke DB2:', syncError);
+                    }
+                }
+                
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Berhasil",
+                        text: "Pengguna baru berhasil ditambahkan!",
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            }
 
             if (addUserModal) addUserModal.style.display = "none";
             resetForm();
+            editingUserId = null;
+            editingPerumahanKey = null;
+            
+            // Reset button text
+            if (saveBtnText) saveBtnText.textContent = 'Simpan Pengguna';
+            if (saveUserBtn) saveUserBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Pengguna';
 
-            if (typeof Swal !== "undefined") {
-                Swal.fire({
-                    icon: "success",
-                    title: "Berhasil",
-                    text: "Pengguna baru berhasil ditambahkan!",
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-            } else {
-                alert("User berhasil ditambahkan!");
-            }
         } catch (error) {
-            console.error("Error adding user:", error);
+            console.error("Error saving user:", error);
             if (typeof Swal !== "undefined") {
                 Swal.fire({
                     icon: "error",
                     title: "Gagal",
-                    text: `Gagal menambahkan pengguna: ${error.message}`,
+                    text: `Gagal menyimpan pengguna: ${error.message}`,
                     confirmButtonColor: "#173f70"
                 });
             } else {
-                alert("Gagal menambahkan user.");
+                alert("Gagal menyimpan user.");
             }
         }
     });
@@ -562,7 +1027,6 @@ if (saveUserBtn) {
 // EVENT FILTER & PAGINATION LISTENERS
 // ======================================================
 
-// Filter dengan debounce untuk search
 if (searchInput) {
     let searchDebounce = null;
     searchInput.addEventListener("input", () => {
@@ -606,5 +1070,6 @@ if (nextPage) {
 
 loadPerumahanList();
 loadUsers();
+loadDevices();
 
-console.log("Manajemen Pengguna initialized smoothly.");
+console.log("Manajemen Pengguna dengan Perangkat IoT dan Edit/Hapus initialized.");
