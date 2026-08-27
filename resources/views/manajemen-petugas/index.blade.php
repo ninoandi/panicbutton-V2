@@ -73,14 +73,15 @@
                     <tr>
                         <th style="width: 60px; text-align: center;">No</th>
                         <th>Nama</th>
-                        <th style="width: 200px; text-align: center;">Nomor Telepon</th>
+                        <th style="width: 180px; text-align: center;">Nomor Telepon</th>
+                        <th>Email</th>
                         <th style="width: 140px; text-align: center;">Status</th>
                         <th style="width: 230px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="petugasTableBody">
                     <tr class="loading-row">
-                        <td colspan="5">
+                        <td colspan="6">
                             <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 8px; display: block; color: var(--dash-primary);"></i>
                             <span>Memuat data petugas dari seluruh database...</span>
                         </td>

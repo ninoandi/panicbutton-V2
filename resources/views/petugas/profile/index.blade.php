@@ -24,10 +24,10 @@
                     <div id="avatarFallback" class="avatar-fallback">
                         {{ strtoupper(substr(session('web_user_name', 'P'), 0, 1)) }}
                     </div>
-                    <label for="profilePhotoInput" class="avatar-upload-badge" title="Ganti & Sesuaikan Foto Profil">
-                        <i class="fa-solid fa-camera"></i>
-                    </label>
                 </div>
+                <label for="profilePhotoInput" class="avatar-upload-badge" title="Ganti & Sesuaikan Foto Profil">
+                    <i class="fa-solid fa-camera"></i>
+                </label>
                 <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
             </div>
 
@@ -58,14 +58,14 @@
     {{-- 2. DISPLAY VIEW (INFORMASI PROFIL LENGKAP) --}}
     <div id="profileDisplayView" class="profile-display-view">
 
-        {{-- Seksi 1: Data Diri & Kontak --}}
+        {{-- Seksi: Informasi Pribadi --}}
         <section class="profile-section-card">
             <div class="section-title-wrapper">
                 <div class="section-icon-badge icon-personal">
                     <i class="fa-solid fa-id-card"></i>
                 </div>
                 <div>
-                    <h3>1. Data Diri & Kontak Petugas</h3>
+                    <h3>Informasi Pribadi</h3>
                     <p>Informasi identitas resmi petugas dan kontak tanggap darurat</p>
                 </div>
             </div>
@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="data-field-item">
-                    <span class="data-label"><i class="fa-solid fa-envelope"></i> Alamat Email (Login)</span>
+                    <span class="data-label"><i class="fa-solid fa-envelope"></i> Alamat Email</span>
                     <strong class="data-value" id="display_email">{{ session('web_user_email', '-') }}</strong>
                 </div>
 
@@ -94,31 +94,6 @@
                 <div class="data-field-item">
                     <span class="data-label"><i class="fa-solid fa-venus-mars"></i> Jenis Kelamin</span>
                     <strong class="data-value" id="display_gender">-</strong>
-                </div>
-            </div>
-        </section>
-
-        {{-- Seksi 2: Wilayah Tugas & Posko --}}
-        <section class="profile-section-card">
-            <div class="section-title-wrapper">
-                <div class="section-icon-badge icon-area">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                </div>
-                <div>
-                    <h3>2. Penugasan & Wilayah Siaga</h3>
-                    <p>Cakupan area operasional tanggap darurat</p>
-                </div>
-            </div>
-
-            <div class="profile-data-grid">
-                <div class="data-field-item">
-                    <span class="data-label"><i class="fa-solid fa-shield-heart"></i> Tipe Petugas</span>
-                    <strong class="data-value" id="display_type">Petugas {{ session('web_petugas_type') === 'perumahan' ? 'Perumahan' : 'Public' }}</strong>
-                </div>
-
-                <div class="data-field-item">
-                    <span class="data-label"><i class="fa-solid fa-building-flag"></i> Wilayah / Posko Tugas</span>
-                    <strong class="data-value" id="display_area">{{ session('web_petugas_type') === 'perumahan' ? (session('web_perumahan_key', 'Klaster Perumahan')) : 'Area Publik Seluruh Zona' }}</strong>
                 </div>
 
                 <div class="data-field-item full-span">
@@ -193,7 +168,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="input_email">Alamat Email (Login Utama)</label>
+                    <label for="input_email">Alamat Email</label>
                     <input 
                         type="email" 
                         id="input_email" 

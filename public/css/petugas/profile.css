@@ -1,17 +1,128 @@
 /* =========================================================
    PROFIL PETUGAS - CSS
-   Modern, Clean, Responsive, Dark/Light Mode Supported
+   Harmonized with Admin/Petugas Dashboard Design & Color Tokens
+   Modern, Sleek, Fully Responsive, Dark/Light Mode Supported
 ========================================================= */
 
+:root,
+[data-theme="light"] {
+    --dash-primary: #173f70;
+    --dash-primary-dark: #0f2b4d;
+    --dash-primary-light: #2563eb;
+    --dash-primary-bg: #eff6ff;
+
+    --dash-emergency: #dc2626;
+    --dash-emergency-hover: #b91c1c;
+    --dash-emergency-bg: #fef2f2;
+    --dash-emergency-border: #fecaca;
+
+    --dash-warning: #d97706;
+    --dash-warning-hover: #b45309;
+    --dash-warning-bg: #fffbeb;
+    --dash-warning-border: #fde68a;
+
+    --dash-success: #10b981;
+    --dash-success-hover: #059669;
+    --dash-success-bg: #ecfdf5;
+    --dash-success-border: #a7f3d0;
+
+    --dash-history: #4f46e5;
+    --dash-history-bg: #eef2ff;
+    --dash-history-border: #c7d2fe;
+
+    --dash-profile: #0284c7;
+    --dash-profile-bg: #f0f9ff;
+    --dash-profile-border: #bae6fd;
+
+    --dash-iot: #0d9488;
+    --dash-iot-bg: #f0fdfa;
+    --dash-iot-border: #99f6e4;
+
+    --dash-bg: #f6f8fc;
+    --dash-card-bg: #ffffff;
+    --dash-card-hover-bg: #ffffff;
+    --dash-text-main: #1e293b;
+    --dash-text-muted: #64748b;
+    --dash-border: #e2e8f0;
+    --dash-border-hover: #cbd5e1;
+    --dash-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    --dash-shadow-hover: 0 12px 28px -4px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] {
+    --dash-primary: #60a5fa;
+    --dash-primary-dark: #3b82f6;
+    --dash-primary-light: #93c5fd;
+    --dash-primary-bg: #1e293b;
+
+    --dash-emergency: #f87171;
+    --dash-emergency-hover: #ef4444;
+    --dash-emergency-bg: rgba(220, 38, 38, 0.18);
+    --dash-emergency-border: rgba(248, 113, 113, 0.35);
+
+    --dash-warning: #fbbf24;
+    --dash-warning-hover: #f59e0b;
+    --dash-warning-bg: rgba(245, 158, 11, 0.18);
+    --dash-warning-border: rgba(251, 191, 36, 0.35);
+
+    --dash-success: #34d399;
+    --dash-success-hover: #10b981;
+    --dash-success-bg: rgba(16, 185, 129, 0.18);
+    --dash-success-border: rgba(52, 211, 153, 0.35);
+
+    --dash-history: #818cf8;
+    --dash-history-bg: rgba(79, 70, 229, 0.18);
+    --dash-history-border: rgba(129, 140, 248, 0.35);
+
+    --dash-profile: #38bdf8;
+    --dash-profile-bg: rgba(2, 132, 199, 0.18);
+    --dash-profile-border: rgba(56, 189, 248, 0.35);
+
+    --dash-iot: #2dd4bf;
+    --dash-iot-bg: rgba(13, 148, 136, 0.18);
+    --dash-iot-border: rgba(45, 212, 191, 0.35);
+
+    --dash-bg: #0b1329;
+    --dash-card-bg: #111c36;
+    --dash-card-hover-bg: #162444;
+    --dash-text-main: #f1f5f9;
+    --dash-text-muted: #94a3b8;
+    --dash-border: #1e2f50;
+    --dash-border-hover: #2e4470;
+    --dash-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    --dash-shadow-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.6);
+}
+
+/* Base Page Wrapper */
 .petugas-profile-page {
+    min-height: calc(100vh - var(--admin-navbar-height, 58px));
+    padding: 24px 30px;
+    background: var(--dash-bg);
+    color: var(--dash-text-main);
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     gap: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* 1. Header Profile Card */
+/* Animations */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* =========================================================
+   1. HEADER PROFILE CARD
+========================================================= */
 .profile-header-card {
-    background: var(--dash-card-bg);
+    background: linear-gradient(135deg, var(--dash-card-bg) 0%, var(--dash-bg) 100%);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
     padding: 28px 32px;
@@ -21,6 +132,26 @@
     box-shadow: var(--dash-shadow);
     gap: 24px;
     flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.4s ease-out;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.profile-header-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 160px;
+    height: 160px;
+    background: radial-gradient(circle, rgba(23, 63, 112, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+[data-theme="dark"] .profile-header-card::after {
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.15) 0%, transparent 70%);
 }
 
 .profile-header-left {
@@ -28,16 +159,22 @@
     align-items: center;
     gap: 24px;
     flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
 }
 
-/* Avatar Upload Circle */
+/* Avatar Upload Circle with Floating Unclipped Badge */
 .avatar-upload-wrapper {
     position: relative;
+    display: inline-block;
+    flex-shrink: 0;
+    width: 96px;
+    height: 96px;
 }
 
 .profile-avatar-container {
-    width: 96px;
-    height: 96px;
+    width: 100%;
+    height: 100%;
     border-radius: 50%;
     position: relative;
     background: linear-gradient(135deg, #173f70 0%, #0284c7 100%);
@@ -47,6 +184,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    box-sizing: border-box;
 }
 
 .avatar-img {
@@ -65,26 +203,27 @@
 
 .avatar-upload-badge {
     position: absolute;
-    bottom: 2px;
-    right: 2px;
+    bottom: -2px;
+    right: -2px;
     width: 32px;
     height: 32px;
     background: #dc2626;
     color: #ffffff;
-    border: 2px solid var(--dash-card-bg);
+    border: 2.5px solid var(--dash-card-bg);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     font-size: 13px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
 }
 
 .avatar-upload-badge:hover {
     background: #b91c1c;
-    transform: scale(1.1);
+    transform: scale(1.12);
 }
 
 /* Header Text & Badges */
@@ -105,7 +244,7 @@
 .petugas-role-badge {
     font-size: 12px;
     font-weight: 700;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     display: inline-flex;
     align-items: center;
@@ -127,7 +266,7 @@
 .profile-completeness-badge {
     font-size: 12px;
     font-weight: 600;
-    padding: 3px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     display: inline-flex;
     align-items: center;
@@ -135,21 +274,21 @@
 }
 
 .badge-success {
-    background: rgba(16, 185, 129, 0.12);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: var(--dash-success-bg);
+    color: var(--dash-success);
+    border: 1px solid var(--dash-success-border);
 }
 
 .badge-warning {
-    background: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    background: var(--dash-warning-bg);
+    color: var(--dash-warning);
+    border: 1px solid var(--dash-warning-border);
 }
 
 .badge-danger {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: var(--dash-emergency-bg);
+    color: var(--dash-emergency);
+    border: 1px solid var(--dash-emergency-border);
 }
 
 .profile-header-info h2 {
@@ -168,20 +307,30 @@
     gap: 8px;
 }
 
+.profile-header-right {
+    position: relative;
+    z-index: 1;
+}
+
 .btn-toggle-edit {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 20px;
+    padding: 11px 22px;
     background: #173f70;
     color: #ffffff;
     border: none;
     border-radius: 10px;
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(23, 63, 112, 0.25);
+}
+
+[data-theme="dark"] .btn-toggle-edit {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
 }
 
 .btn-toggle-edit:hover {
@@ -189,19 +338,32 @@
     transform: translateY(-2px);
 }
 
-/* 2. Display View Sections */
+[data-theme="dark"] .btn-toggle-edit:hover {
+    background: #1d4ed8;
+}
+
+/* =========================================================
+   2. DISPLAY VIEW (INFORMASI PROFIL)
+========================================================= */
 .profile-display-view {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    animation: fadeInUp 0.5s ease-out;
 }
 
 .profile-section-card {
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
-    padding: 24px;
+    padding: 24px 28px;
     box-shadow: var(--dash-shadow);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.profile-section-card:hover {
+    border-color: var(--dash-border-hover);
+    box-shadow: var(--dash-shadow-hover);
 }
 
 .section-title-wrapper {
@@ -209,26 +371,25 @@
     align-items: center;
     gap: 14px;
     margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--dash-border);
 }
 
 .section-icon-badge {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 18px;
+    flex-shrink: 0;
 }
 
 .icon-personal {
     background: rgba(37, 99, 235, 0.12);
     color: #2563eb;
-}
-
-.icon-area {
-    background: rgba(16, 185, 129, 0.12);
-    color: #10b981;
+    border: 1px solid rgba(37, 99, 235, 0.25);
 }
 
 .section-title-wrapper h3 {
@@ -253,11 +414,21 @@
 .data-field-item {
     background: var(--dash-bg);
     border: 1px solid var(--dash-border);
-    border-radius: 10px;
-    padding: 14px 16px;
+    border-radius: 12px;
+    padding: 14px 18px;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .data-field-item {
+    background: #0f1a36;
+    border-color: #1e2f50;
+}
+
+.data-field-item:hover {
+    border-color: var(--dash-border-hover);
 }
 
 .data-field-item.full-span {
@@ -274,18 +445,22 @@
 }
 
 .data-value {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 14.5px;
+    font-weight: 700;
     color: var(--dash-text-main);
+    word-break: break-word;
 }
 
-/* 3. Edit Profile Form */
+/* =========================================================
+   3. EDIT PROFILE FORM SECTION
+========================================================= */
 .profile-form-section {
     background: var(--dash-card-bg);
     border: 1px solid var(--dash-border);
     border-radius: 16px;
-    padding: 24px;
+    padding: 26px 30px;
     box-shadow: var(--dash-shadow);
+    animation: fadeInUp 0.4s ease-out;
 }
 
 .profile-card-header {
@@ -305,7 +480,7 @@
 }
 
 [data-theme="dark"] .card-header-title {
-    color: #38bdf8;
+    color: #60a5fa;
 }
 
 .card-header-title h3 {
@@ -321,6 +496,7 @@
     font-size: 18px;
     color: var(--dash-text-muted);
     cursor: pointer;
+    transition: color 0.2s ease;
 }
 
 .btn-close-form:hover {
@@ -330,7 +506,7 @@
 .profile-form-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 18px;
 }
 
 .form-subtitle {
@@ -364,33 +540,41 @@
 .form-group input,
 .form-group select,
 .form-group textarea {
-    padding: 10px 14px;
+    padding: 11px 14px;
     background: var(--dash-bg);
     border: 1px solid var(--dash-border);
-    border-radius: 8px;
+    border-radius: 10px;
     font-size: 13.5px;
     color: var(--dash-text-main);
     outline: none;
-    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
     border-color: #173f70;
+    background: var(--dash-card-bg);
     box-shadow: 0 0 0 3px rgba(23, 63, 112, 0.15);
 }
 
 [data-theme="dark"] .form-group input:focus,
 [data-theme="dark"] .form-group select:focus,
 [data-theme="dark"] .form-group textarea:focus {
-    border-color: #38bdf8;
-    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    border-color: #60a5fa;
+    background: #0f1a36;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
 }
 
 .input-disabled {
     opacity: 0.75;
     cursor: not-allowed;
+    background: rgba(0, 0, 0, 0.03) !important;
+}
+
+[data-theme="dark"] .input-disabled {
+    background: rgba(255, 255, 255, 0.03) !important;
 }
 
 .form-hint {
@@ -417,6 +601,7 @@
     color: var(--dash-text-muted);
     cursor: pointer;
     font-size: 14px;
+    transition: color 0.2s ease;
 }
 
 .btn-toggle-eye:hover {
@@ -457,7 +642,7 @@
     color: #ffffff;
     border-radius: 8px;
     font-size: 13.5px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -466,13 +651,96 @@
     transition: all 0.2s ease;
 }
 
+[data-theme="dark"] .btn-save-profile {
+    background: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
 .btn-save-profile:hover {
     background: #123055;
 }
 
-/* 4. Cropper Modal */
-.modal-cropper-card {
+[data-theme="dark"] .btn-save-profile:hover {
+    background: #1d4ed8;
+}
+
+/* =========================================================
+   4. CROPPER MODAL
+========================================================= */
+.modal-petugas-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-petugas-card {
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    width: 100%;
     max-width: 520px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+    animation: modalIn 0.25s ease-out;
+}
+
+.modal-petugas-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--dash-card-bg) 0%, var(--dash-bg) 100%);
+    border-bottom: 1px solid var(--dash-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-petugas-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #173f70;
+}
+
+[data-theme="dark"] .modal-petugas-title {
+    color: #60a5fa;
+}
+
+.modal-petugas-title h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--dash-text-main);
+}
+
+.btn-close-petugas-modal {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: var(--dash-text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.btn-close-petugas-modal:hover {
+    color: var(--dash-text-main);
+}
+
+.modal-petugas-body {
+    padding: 24px;
+    background: var(--dash-card-bg);
+    color: var(--dash-text-main);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
 .cropper-container-wrapper {
@@ -515,6 +783,59 @@
     border-color: rgba(37, 99, 235, 0.3);
 }
 
+.modal-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-modal-cancel {
+    padding: 9px 18px;
+    background: transparent;
+    border: 1px solid var(--dash-border);
+    color: var(--dash-text-muted);
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-modal-cancel:hover {
+    background: var(--dash-bg);
+    color: var(--dash-text-main);
+}
+
+.btn-modal-submit {
+    padding: 9px 20px;
+    background: #173f70;
+    border: none;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(23, 63, 112, 0.35);
+    transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .btn-modal-submit {
+    background: #2563eb;
+}
+
+.btn-modal-submit:hover {
+    background: #123055;
+}
+
+[data-theme="dark"] .btn-modal-submit:hover {
+    background: #1d4ed8;
+}
+
 /* Flatpickr Theme Adjustments */
 .flatpickr-dark {
     background: #1e293b !important;
@@ -531,7 +852,15 @@
     border-color: #2563eb !important;
 }
 
+/* =========================================================
+   5. RESPONSIVE DESIGN
+========================================================= */
 @media (max-width: 768px) {
+    .petugas-profile-page {
+        padding: 16px 18px;
+        gap: 16px;
+    }
+
     .profile-header-card {
         padding: 20px;
     }
@@ -544,6 +873,10 @@
     .btn-toggle-edit {
         width: 100%;
         justify-content: center;
+    }
+
+    .profile-section-card {
+        padding: 20px;
     }
 
     .form-row-2 {
