@@ -1,9 +1,9 @@
 /* =========================================================
    MANAJEMEN ADMIN - CONTROLLER JAVASCRIPT
-   Firebase Realtime Database Integration
+   Firebase Realtime Database Integration (DB2)
 ========================================================= */
 
-import { db2, db1 } from "./firebase-config.js";
+import { db2 } from "./firebase-config.js";
 import {
     ref,
     onValue,
@@ -41,8 +41,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminEmailInput = document.getElementById("adminEmail");
     const adminPhoneInput = document.getElementById("adminPhone");
     const adminPasswordInput = document.getElementById("adminPassword");
-    const passwordGroup = document.getElementById("passwordGroup");
+    const adminPasswordConfirmInput = document.getElementById("adminPasswordConfirm");
+    const toggleAdminPasswordBtn = document.getElementById("toggleAdminPassword");
+    const toggleAdminPasswordConfirmBtn = document.getElementById("toggleAdminPasswordConfirm");
     const passwordHelp = document.getElementById("passwordHelp");
+
+    // Toggle Password Visibility Helper
+    function setupPasswordToggle(btn, input) {
+        if (!btn || !input) return;
+        btn.addEventListener("click", () => {
+            const isPassword = input.type === "password";
+            input.type = isPassword ? "text" : "password";
+            btn.innerHTML = isPassword ? '<i class="fa-solid fa-eye-slash"></i>' : '<i class="fa-solid fa-eye"></i>';
+        });
+    }
+
+    setupPasswordToggle(toggleAdminPasswordBtn, adminPasswordInput);
+    setupPasswordToggle(toggleAdminPasswordConfirmBtn, adminPasswordConfirmInput);
 
     // Modal Elements - Detail
     const adminDetailModal = document.getElementById("adminDetailModal");
@@ -96,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.entries(data).forEach(([key, user]) => {
                     if (user && typeof user === "object") {
                         const role = (user.role || "").toLowerCase().trim();
-                        if (role === "admin" || role === "administrator" || role === "satpam") {
+                        if (role === "admin" || role === "administrator") {
                             allAdmins.push({
                                 id: key,
                                 name: user.name || "Administrator",
@@ -105,8 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                 role: user.role || "admin",
                                 created_at: user.created_at || user.timestamp || 0,
                                 full_address: user.full_address || user.address || "-",
-                                province: user.province || "-",
-                                city: user.city || "-",
                                 birth_date: user.birth_date || "-",
                                 gender: user.gender || "-"
                             });
@@ -126,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (adminTableBody) {
                 adminTableBody.innerHTML = `
                     <tr class="loading-row">
-                        <td colspan="4" style="color: var(--dash-emergency);">
+                        <td colspan="5" style="color: var(--dash-emergency);">
                             <i class="fa-solid fa-triangle-exclamation" style="font-size:24px; margin-bottom:8px; display:block;"></i>
                             <span>Gagal memuat data administrator dari Firebase. Silakan periksa koneksi internet Anda.</span>
                         </td>
@@ -182,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (totalItems === 0) {
             adminTableBody.innerHTML = `
                 <tr class="loading-row">
-                    <td colspan="4">
+                    <td colspan="5">
                         <i class="fa-solid fa-user-slash" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.5; color:var(--dash-text-muted);"></i>
                         <strong style="font-size:15px; display:block; margin-bottom:4px; color:var(--dash-text-main);">Tidak ada data administrator.</strong>
                         <span style="font-size:13px;">Klik tombol "Tambah Admin" di atas untuk menambahkan akun pengelola baru.</span>
@@ -204,6 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const no = startIdx + index + 1;
                     const safeName = escapeHtml(admin.name);
                     const safePhone = escapeHtml(admin.phone);
+                    const safeEmail = escapeHtml(admin.email || "-");
 
                     return `
                         <tr>
@@ -213,10 +227,13 @@ document.addEventListener("DOMContentLoaded", () => {
                             <td style="font-weight: 600; color: var(--dash-text-main);">
                                 ${safeName}
                             </td>
-                            <td style="text-align: center; color: var(--dash-text-muted);">
+                            <td style="text-align: center; font-family: monospace; font-size: 13px;">
                                 ${safePhone}
                             </td>
-                            <td style="text-align: center; width: 230px;">
+                            <td style="font-size: 13px;">
+                                ${safeEmail}
+                            </td>
+                            <td style="text-align: center; width: 220px;">
                                 <div class="action-buttons-group">
                                     <button
                                         type="button"
@@ -265,6 +282,9 @@ document.addEventListener("DOMContentLoaded", () => {
                                 </div>
                                 <div class="admin-card-phone">
                                     Telepon: ${escapeHtml(admin.phone)}
+                                </div>
+                                <div class="admin-card-phone">
+                                    Email: ${escapeHtml(admin.email || "-")}
                                 </div>
                                 <div class="admin-card-actions">
                                     <button
@@ -344,8 +364,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (adminPhoneInput) adminPhoneInput.value = "";
         if (adminPasswordInput) {
             adminPasswordInput.value = "";
+            adminPasswordInput.type = "password";
             adminPasswordInput.required = true;
         }
+        if (adminPasswordConfirmInput) {
+            adminPasswordConfirmInput.value = "";
+            adminPasswordConfirmInput.type = "password";
+            adminPasswordConfirmInput.required = true;
+        }
+        if (toggleAdminPasswordBtn) toggleAdminPasswordBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+        if (toggleAdminPasswordConfirmBtn) toggleAdminPasswordConfirmBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
         if (passwordHelp) passwordHelp.style.display = "none";
 
         if (adminFormModal) adminFormModal.classList.add("active");
@@ -363,8 +391,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (adminPhoneInput) adminPhoneInput.value = admin.phone !== "-" ? admin.phone : "";
         if (adminPasswordInput) {
             adminPasswordInput.value = "";
+            adminPasswordInput.type = "password";
             adminPasswordInput.required = false;
         }
+        if (adminPasswordConfirmInput) {
+            adminPasswordConfirmInput.value = "";
+            adminPasswordConfirmInput.type = "password";
+            adminPasswordConfirmInput.required = false;
+        }
+        if (toggleAdminPasswordBtn) toggleAdminPasswordBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+        if (toggleAdminPasswordConfirmBtn) toggleAdminPasswordConfirmBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
         if (passwordHelp) passwordHelp.style.display = "block";
 
         if (adminFormModal) adminFormModal.classList.add("active");
@@ -385,6 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const email = (adminEmailInput ? adminEmailInput.value : "").trim().toLowerCase();
             const phone = (adminPhoneInput ? adminPhoneInput.value : "").trim();
             const password = (adminPasswordInput ? adminPasswordInput.value : "").trim();
+            const passwordConfirm = (adminPasswordConfirmInput ? adminPasswordConfirmInput.value : "").trim();
             const adminId = adminIdInput ? adminIdInput.value : "";
 
             if (!name) {
@@ -401,6 +438,25 @@ document.addEventListener("DOMContentLoaded", () => {
                     icon: "warning",
                     title: "Nomor Telepon Wajib Diisi",
                     text: "Silakan masukkan nomor telepon administrator."
+                });
+                return;
+            }
+
+            if (!email) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Email Wajib Diisi",
+                    text: "Silakan masukkan alamat email administrator untuk keperluan login sistem."
+                });
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Format Email Tidak Valid",
+                    text: "Silakan masukkan alamat email yang benar (contoh: nama@domain.com)."
                 });
                 return;
             }
@@ -423,10 +479,26 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
+            if (password && password !== passwordConfirm) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Konfirmasi Password Tidak Cocok",
+                    text: "Pastikan kolom kata sandi dan konfirmasi kata sandi sama persis."
+                });
+                return;
+            }
+
             saveAdminBtn.disabled = true;
             saveAdminBtn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> <span>Menyimpan...</span>`;
 
             try {
+                let hashedPassword = null;
+                if (password) {
+                    hashedPassword = typeof window.hashPassword === "function" 
+                        ? await window.hashPassword(password) 
+                        : password;
+                }
+
                 if (isEditing && adminId) {
                     // Update existing
                     const updatePayload = {
@@ -436,8 +508,8 @@ document.addEventListener("DOMContentLoaded", () => {
                         updated_at: Date.now()
                     };
 
-                    if (password) {
-                        updatePayload.password = password;
+                    if (hashedPassword) {
+                        updatePayload.password = hashedPassword;
                     }
 
                     await update(ref(db2, `users/${adminId}`), updatePayload);
@@ -457,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         name,
                         email: email || "-",
                         phone,
-                        password: password,
+                        password: hashedPassword || password,
                         role: "admin",
                         created_at: Date.now(),
                         updated_at: Date.now()

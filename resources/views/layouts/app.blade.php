@@ -81,14 +81,14 @@
             })();
         </script>
 
-        {{-- REUSABLE SIDEBAR COMPONENT (ADMIN) --}}
-        <x-sidebar role="admin" />
+        {{-- REUSABLE SIDEBAR COMPONENT --}}
+        <x-sidebar :role="session('web_role', 'admin')" />
 
         {{-- MAIN WRAPPER --}}
         <div class="app-main admin-main">
 
-            {{-- REUSABLE NAVBAR COMPONENT (ADMIN) --}}
-            <x-navbar role="admin" />
+            {{-- REUSABLE NAVBAR COMPONENT --}}
+            <x-navbar :role="session('web_role', 'admin')" />
 
             {{-- CONTENT --}}
             <main class="app-content admin-content">
@@ -101,13 +101,45 @@
 
 
     <script>
+        window.csrfToken = @json(csrf_token());
         window.currentUserId = @json(session('web_user_id'));
+        window.currentUserPetugasType = @json(session('web_petugas_type'));
+        window.currentUserPerumahanKey = @json(session('web_perumahan_key'));
         window.currentUser = {
             id: @json(session('web_user_id')),
             name: @json(session('web_user_name')),
             email: @json(session('web_user_email')),
             phone: @json(session('web_user_phone')),
-            role: @json(session('web_role'))
+            role: @json(session('web_role')),
+            petugasType: @json(session('web_petugas_type')),
+            perumahanKey: @json(session('web_perumahan_key'))
+        };
+
+        // Global Helper: Hash Password using Laravel native Bcrypt
+        window.hashPassword = async function (plainPassword) {
+            if (!plainPassword) return "";
+            try {
+                const response = await fetch("{{ url('/api/hash-password') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": window.csrfToken || document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ""
+                    },
+                    body: JSON.stringify({ password: plainPassword })
+                });
+
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.message || `Gagal mengenkripsi password (Status: ${response.status})`);
+                }
+
+                const data = await response.json();
+                return data.hash;
+            } catch (err) {
+                console.error("Hash password error:", err);
+                throw err;
+            }
         };
     </script>
 

@@ -4,9 +4,10 @@
 ])
 
 @php
-    $userName = session('web_user_name', ($role === 'admin' ? 'Admin' : 'User'));
-    $roleLabel = ($role === 'admin') ? 'Administrator' : 'User Publik';
+    $userName = session('web_user_name', ($role === 'admin' ? 'Admin' : ($role === 'petugas' ? 'Petugas' : 'User')));
+    $roleLabel = ($role === 'admin') ? 'Administrator' : (($role === 'petugas') ? 'Petugas Lapangan' : 'User Publik');
     $userInitial = strtoupper(substr($userName, 0, 1));
+    $profileRoute = ($role === 'admin') ? route('profil') : (($role === 'petugas') ? route('petugas.profile') : route('user.profile'));
 @endphp
 
 <header class="app-navbar">
@@ -30,7 +31,7 @@
 
     </div>
 
-    {{-- RIGHT: THEME TOGGLE & USER/ADMIN PROFILE --}}
+    {{-- RIGHT: THEME TOGGLE & USER/ADMIN/PETUGAS PROFILE --}}
     <div class="navbar-right">
 
         {{-- THEME TOGGLE BUTTON --}}
@@ -45,10 +46,10 @@
             <i class="fa-solid fa-moon theme-icon-moon"></i>
         </button>
 
-        {{-- USER / ADMIN PROFILE PILL --}}
+        {{-- USER / ADMIN / PETUGAS PROFILE PILL --}}
         @if ($role === 'user')
             <a
-                href="{{ route('user.profile') }}"
+                href="{{ $profileRoute }}"
                 class="navbar-user"
                 title="Lihat Profil"
             >
@@ -63,13 +64,13 @@
             </a>
         @else
             <a
-                href="{{ route('profil') }}"
+                href="{{ $profileRoute }}"
                 class="navbar-user navbar-admin"
                 id="navbarAdminPill"
-                title="Lihat Profil Administrator"
+                title="Lihat Profil {{ $roleLabel }}"
             >
                 <div class="navbar-avatar navbar-avatar-admin" id="navbarAdminAvatar">
-                    {{ $userInitial ?: 'A' }}
+                    {{ $userInitial ?: ($role === 'admin' ? 'A' : 'P') }}
                 </div>
 
                 <div class="navbar-user-info">

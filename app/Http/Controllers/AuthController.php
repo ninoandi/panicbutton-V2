@@ -14,6 +14,9 @@ class AuthController extends Controller
     private string $firebasePublicUrl =
         'https://panicbttn2-default-rtdb.asia-southeast1.firebasedatabase.app';
 
+    private string $firebaseHousingUrl =
+        'https://panicbuttonrtdb-eccd1-default-rtdb.firebaseio.com';
+
 
     /**
      * Halaman Login
@@ -35,9 +38,6 @@ class AuthController extends Controller
 
     /**
      * Register USER PUBLIK
-     *
-     * Semua akun yang daftar melalui halaman register
-     * otomatis mempunyai role = user.
      */
     public function register(Request $request)
     {
@@ -48,317 +48,188 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:6', 'confirmed'],
         ]);
 
-
-        $name = trim($request->name);
         $email = strtolower(trim($request->email));
-        $phone = trim($request->phone ?? '');
-        $password = $request->password;
 
+        // 1. Cek duplikasi email di Firebase DB2
+        $response = Http::get($this->firebasePublicUrl . '/users.json');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Ambil users dari Firebase
-        |--------------------------------------------------------------------------
-        */
-
-        $response = Http::get(
-            $this->firebasePublicUrl . '/users.json'
-        );
-
-
-        if (!$response->successful()) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Tidak dapat terhubung ke Firebase.'
-                );
-        }
-
-
-        $users = $response->json();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cek email
-        |--------------------------------------------------------------------------
-        */
-
-        if (is_array($users)) {
-
-            foreach ($users as $user) {
-
-                if (!is_array($user)) {
-                    continue;
-                }
-
-
-                if (
-                    isset($user['email']) &&
-                    strtolower(trim($user['email'])) === $email
-                ) {
-
-                    return back()
-                        ->withInput()
-                        ->with(
-                            'error',
-                            'Email sudah digunakan.'
-                        );
+        if ($response->successful()) {
+            $users = $response->json();
+            if (is_array($users)) {
+                foreach ($users as $user) {
+                    if (
+                        is_array($user) &&
+                        isset($user['email']) &&
+                        strtolower(trim($user['email'])) === $email
+                    ) {
+                        return back()
+                            ->withInput()
+                            ->with('error', 'Email sudah terdaftar. Silakan gunakan email lain.');
+                    }
                 }
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Data USER baru
-        |--------------------------------------------------------------------------
-        */
-
-        $newUser = [
-
-            'name' => $name,
-
+        // 2. Hash password & siapkan payload
+        $userData = [
+            'name' => $request->name,
             'email' => $email,
-
-            'phone' => $phone,
-
-            'password' => Hash::make($password),
-
+            'phone' => $request->phone ?? '',
+            'password' => Hash::make($request->password),
             'role' => 'user',
-
+            'created_at' => now()->toIso8601String(),
         ];
 
+        // 3. Simpan ke Firebase DB2
+        $storeResponse = Http::post($this->firebasePublicUrl . '/users.json', $userData);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Simpan Firebase
-        |--------------------------------------------------------------------------
-        */
-
-        $firebaseResponse = Http::post(
-            $this->firebasePublicUrl . '/users.json',
-            $newUser
-        );
-
-
-        if (!$firebaseResponse->successful()) {
-
+        if (!$storeResponse->successful()) {
             return back()
                 ->withInput()
-                ->with(
-                    'error',
-                    'Gagal membuat akun. Silakan coba lagi.'
-                );
+                ->with('error', 'Gagal membuat akun. Silakan coba lagi.');
         }
-
 
         return redirect()
             ->route('login')
-            ->with(
-                'success',
-                'Registrasi berhasil. Silakan login.'
-            );
+            ->with('success', 'Registrasi berhasil. Silakan login.');
     }
 
 
     /**
-     * LOGIN
+     * LOGIN DUAL-DATABASE (DB2 Public & DB1 Perumahan)
      */
     public function login(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Validasi
-        |--------------------------------------------------------------------------
-        */
-
         $request->validate([
-
-            'email' => [
-                'required',
-                'email'
-            ],
-
-            'password' => [
-                'required',
-                'string'
-            ],
-
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-
         $email = strtolower(trim($request->email));
-
         $password = $request->password;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Ambil users dari Firebase
-        |--------------------------------------------------------------------------
-        */
-
-        $response = Http::get(
-            $this->firebasePublicUrl . '/users.json'
-        );
-
-
-        if (!$response->successful()) {
-
-            return back()
-                ->withInput(
-                    $request->only('email')
-                )
-                ->with(
-                    'error',
-                    'Tidak dapat terhubung ke Firebase.'
-                );
-        }
-
-
-        $users = $response->json();
-
-
-        if (!is_array($users)) {
-
-            return back()
-                ->withInput(
-                    $request->only('email')
-                )
-                ->with(
-                    'error',
-                    'Data pengguna tidak ditemukan.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Cari user berdasarkan email
-        |--------------------------------------------------------------------------
-        */
-
         $userFound = null;
+        $petugasType = 'public';
+        $perumahanKey = null;
 
+        /*
+        |--------------------------------------------------------------------------
+        | 1. Periksa Firebase DB2 (Public / Admin / Petugas Public)
+        |--------------------------------------------------------------------------
+        */
+        try {
+            $response = Http::get($this->firebasePublicUrl . '/users.json');
+            if ($response->successful()) {
+                $users = $response->json();
+                if (is_array($users)) {
+                    foreach ($users as $key => $user) {
+                        if (
+                            is_array($user) &&
+                            isset($user['email']) &&
+                            strtolower(trim($user['email'])) === $email
+                        ) {
+                            // Cek password hash atau plain fallback
+                            if (isset($user['password']) && (Hash::check($password, $user['password']) || $password === $user['password'])) {
+                                $userFound = $user;
+                                $userFound['_key'] = $key;
+                                $petugasType = 'public';
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // Lanjut ke pengecekan DB1
+        }
 
-        foreach ($users as $key => $user) {
-
-            if (
-                is_array($user) &&
-                isset($user['email']) &&
-                strtolower(trim($user['email'])) === $email
-            ) {
-
-                $userFound = $user;
-
-                /*
-                | Firebase key
-                */
-
-                $userFound['_key'] = $key;
-
-                break;
+        /*
+        |--------------------------------------------------------------------------
+        | 2. Jika belum ditemukan, Periksa Firebase DB1 (Petugas Perumahan / Satpam)
+        |--------------------------------------------------------------------------
+        */
+        if (!$userFound) {
+            try {
+                $housingResponse = Http::get($this->firebaseHousingUrl . '/perumahan.json');
+                if ($housingResponse->successful()) {
+                    $perumahanList = $housingResponse->json();
+                    if (is_array($perumahanList)) {
+                        foreach ($perumahanList as $pKey => $pData) {
+                            if (isset($pData['users']) && is_array($pData['users'])) {
+                                foreach ($pData['users'] as $uKey => $uData) {
+                                    if (
+                                        is_array($uData) &&
+                                        isset($uData['email']) &&
+                                        strtolower(trim($uData['email'])) === $email
+                                    ) {
+                                        if (
+                                            isset($uData['password']) &&
+                                            (Hash::check($password, $uData['password']) || $password === $uData['password'])
+                                        ) {
+                                            $userFound = $uData;
+                                            $userFound['_key'] = $uKey;
+                                            
+                                            $userRole = strtolower($uData['role'] ?? '');
+                                            if ($userRole === 'satpam' || $userRole === 'admin' || $userRole === 'petugas' || $userRole === 'security') {
+                                                $userFound['role'] = 'petugas';
+                                                $petugasType = 'perumahan';
+                                            } else {
+                                                $userFound['role'] = 'user';
+                                                $petugasType = 'perumahan';
+                                            }
+                                            $perumahanKey = $pKey;
+                                            break 2;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignore and proceed
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | User tidak ditemukan
-        |--------------------------------------------------------------------------
-        */
-
+        // Jika akun tidak ditemukan atau password salah
         if (!$userFound) {
-
             return back()
-                ->withInput(
-                    $request->only('email')
-                )
-                ->with(
-                    'error',
-                    'Email atau password salah.'
-                );
+                ->withInput($request->only('email'))
+                ->with('error', 'Email atau password salah.');
         }
-
 
         /*
         |--------------------------------------------------------------------------
-        | Cek password
+        | Tentukan Role & Buat Session
         |--------------------------------------------------------------------------
         */
-
-        if (
-            !isset($userFound['password']) ||
-            !Hash::check(
-                $password,
-                $userFound['password']
-            )
-        ) {
-
-            return back()
-                ->withInput(
-                    $request->only('email')
-                )
-                ->with(
-                    'error',
-                    'Email atau password salah.'
-                );
-        }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Tentukan ROLE
-        |--------------------------------------------------------------------------
-        */
-
         $role = $userFound['role'] ?? 'user';
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Login berhasil
-        |--------------------------------------------------------------------------
-        */
 
         $request->session()->regenerate();
 
-
         session([
-
             'web_logged_in' => true,
-
             'web_role' => $role,
-
+            'web_petugas_type' => $petugasType,
+            'web_perumahan_key' => $perumahanKey,
             'web_user_id' => $userFound['_key'],
-
-            'web_user_name' =>
-                $userFound['name'] ?? '',
-
-            'web_user_email' =>
-                $userFound['email'] ?? '',
-
-            'web_user_phone' =>
-                $userFound['phone'] ?? '',
-
+            'web_user_name' => $userFound['name'] ?? '',
+            'web_user_email' => $userFound['email'] ?? $email,
+            'web_user_phone' => $userFound['phone'] ?? $userFound['phoneNumber'] ?? '',
         ]);
-
 
         /*
         |--------------------------------------------------------------------------
         | REDIRECT BERDASARKAN ROLE
         |--------------------------------------------------------------------------
         */
-
         if ($role === 'admin') {
-
             return redirect()->route('dashboard');
-
         }
 
+        if ($role === 'petugas') {
+            return redirect()->route('petugas.dashboard');
+        }
 
         return redirect()->route('user.dashboard');
     }
@@ -370,7 +241,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect()->route('login');

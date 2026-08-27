@@ -7,7 +7,7 @@
     try {
         const savedTheme = localStorage.getItem('app_theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
-    } catch (e) {}
+    } catch (e) { }
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -52,6 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 navbarAvatar.innerHTML = `<img src="${savedPhoto}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
             }
         }
-    } catch (e) {}
+    } catch (e) { }
 
 });

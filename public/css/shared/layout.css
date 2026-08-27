@@ -195,6 +195,59 @@ body {
     transition: background-color 0.25s ease, border-color 0.25s ease !important;
 }
 
+/* Modal open state lock */
+body.modal-open,
+html.modal-open {
+    overflow: hidden !important;
+    touch-action: none;
+}
+
+/* =========================================================
+   PASSWORD INPUT WITH EYE TOGGLE WRAPPER (SHARED)
+========================================================= */
+.password-toggle-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-toggle-wrapper input {
+    width: 100%;
+    padding-right: 44px !important;
+    box-sizing: border-box;
+}
+
+.password-toggle-wrapper .btn-toggle-eye {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #64748b);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s ease, background-color 0.2s ease;
+    z-index: 2;
+}
+
+.password-toggle-wrapper .btn-toggle-eye:hover {
+    color: var(--text-primary, #0f172a);
+    background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .password-toggle-wrapper .btn-toggle-eye:hover {
+    color: #f1f5f9;
+    background: rgba(255, 255, 255, 0.08);
+}
+
 .custom-swal-logout-popup::before {
     content: '';
     position: absolute;
@@ -213,6 +266,7 @@ body {
         opacity: 0;
         transform: scale(0.85) translateY(16px);
     }
+
     100% {
         opacity: 1;
         transform: scale(1) translateY(0);
@@ -224,6 +278,7 @@ body {
         opacity: 1;
         transform: scale(1) translateY(0);
     }
+
     100% {
         opacity: 0;
         transform: scale(0.9) translateY(12px);
@@ -264,9 +319,11 @@ body {
     0% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
     }
+
     70% {
         box-shadow: 0 0 0 14px rgba(239, 68, 68, 0);
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }

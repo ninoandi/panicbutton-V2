@@ -23,26 +23,33 @@
                     'active' => request()->routeIs('monitoring-iot')
                 ],
                 [
-                    'label' => 'Manajemen User',
+                    'label' => 'User Perumahan',
                     'route' => 'manajemen-user',
                     'url' => route('manajemen-user'),
                     'icon' => 'fa-solid fa-users',
                     'active' => request()->routeIs('manajemen-user')
                 ],
-                            [
-                'label' => 'User Publik',
-                'route' => 'manajemen-user-publik',
-                'url' => route('manajemen-user-publik'),
-                'icon' => 'fa-solid fa-users-gear',
-                'active' => request()->routeIs('manajemen-user-publik')
-            ],
+                [
+                    'label' => 'User Public',
+                    'route' => 'manajemen-user-publik',
+                    'url' => route('manajemen-user-publik'),
+                    'icon' => 'fa-solid fa-users-gear',
+                    'active' => request()->routeIs('manajemen-user-publik')
+                ],
 
                 [
-                    'label' => 'Manajemen Admin',
+                    'label' => 'Kelola Admin',
                     'route' => 'manajemen-admin',
                     'url' => route('manajemen-admin'),
                     'icon' => 'fa-solid fa-user-shield',
                     'active' => request()->routeIs('manajemen-admin*')
+                ],
+                [
+                    'label' => 'Kelola Petugas',
+                    'route' => 'manajemen-petugas',
+                    'url' => route('manajemen-petugas'),
+                    'icon' => 'fa-solid fa-user-nurse',
+                    'active' => request()->routeIs('manajemen-petugas*')
                 ],
                 [
                     'label' => 'Quick Message',
@@ -78,6 +85,31 @@
                     'url' => route('profil'),
                     'icon' => 'fa-solid fa-circle-user',
                     'active' => request()->routeIs('profil*')
+                ],
+            ];
+        } elseif ($role === 'petugas') {
+            // Petugas Role Menu
+            $items = [
+                [
+                    'label' => 'Dashboard',
+                    'route' => 'petugas.dashboard',
+                    'url' => route('petugas.dashboard'),
+                    'icon' => 'fa-solid fa-house',
+                    'active' => request()->routeIs('petugas.dashboard*')
+                ],
+                [
+                    'label' => 'Riwayat Laporan',
+                    'route' => 'petugas.history',
+                    'url' => route('petugas.history'),
+                    'icon' => 'fa-solid fa-clock-rotate-left',
+                    'active' => request()->routeIs('petugas.history*')
+                ],
+                [
+                    'label' => 'Profil',
+                    'route' => 'petugas.profile',
+                    'url' => route('petugas.profile'),
+                    'icon' => 'fa-solid fa-circle-user',
+                    'active' => request()->routeIs('petugas.profile*')
                 ],
             ];
         } else {
@@ -116,7 +148,7 @@
         }
     }
 
-    $subtitle = ($role === 'admin') ? 'Admin Panel' : 'Publik';
+    $subtitle = ($role === 'admin') ? 'Admin Panel' : (($role === 'petugas') ? 'Petugas' : 'Publik');
 @endphp
 
 <aside class="app-sidebar" id="appSidebar">

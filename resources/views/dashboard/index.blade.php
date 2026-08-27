@@ -11,9 +11,6 @@
 @section('content')
 <div class="dashboard-page">
 
-    {{-- TOP-RIGHT EMERGENCY TOAST CONTAINER --}}
-    <div id="topToastContainer" class="top-toast-container" aria-live="polite"></div>
-
     {{-- 1. WELCOME HERO BANNER --}}
     <section class="welcome-card">
         <div class="welcome-text">
@@ -170,7 +167,7 @@
             </div>
         </a>
 
-        {{-- Quick Card 2: Manajemen User --}}
+        {{-- Quick Card 2: User Perumahan --}}
         <a href="{{ route('manajemen-user') }}" class="quick-card quick-card-users">
             <div class="quick-card-top">
                 <div class="quick-icon-wrapper quick-icon-users">
@@ -179,11 +176,11 @@
                 <span class="quick-badge quick-badge-users">Pengguna</span>
             </div>
             <div class="quick-card-content">
-                <strong>Manajemen Pengguna</strong>
-                <p>Kelola verifikasi identitas akun warga, nomor rumah, dan hak akses sistem.</p>
+                <strong>User Perumahan</strong>
+                <p>Kelola data akun warga perumahan, nomor rumah, nomor telepon, dan perangkat IoT.</p>
             </div>
             <div class="quick-card-footer">
-                <span class="quick-link-text">Kelola Pengguna</span>
+                <span class="quick-link-text">Kelola User Perumahan</span>
                 <div class="quick-arrow">
                     <i class="fa-solid fa-arrow-right"></i>
                 </div>

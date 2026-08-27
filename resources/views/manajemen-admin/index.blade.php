@@ -158,26 +158,47 @@
             </div>
 
             <div class="modal-form-group">
-                <label for="adminEmail">Alamat Email (Opsional)</label>
+                <label for="adminEmail">Alamat Email <span style="color: var(--dash-emergency);">*</span></label>
                 <input
                     type="email"
                     id="adminEmail"
                     class="modal-form-input"
                     placeholder="Contoh: admin@panicbutton.id"
+                    required
                 >
             </div>
 
             <div class="modal-form-group" id="passwordGroup">
                 <label for="adminPassword">Kata Sandi <span id="passwordRequired" style="color: var(--dash-emergency);">*</span></label>
-                <input
-                    type="password"
-                    id="adminPassword"
-                    class="modal-form-input"
-                    placeholder="Minimal 6 karakter"
-                >
+                <div class="password-toggle-wrapper">
+                    <input
+                        type="password"
+                        id="adminPassword"
+                        class="modal-form-input"
+                        placeholder="Minimal 6 karakter"
+                    >
+                    <button type="button" class="btn-toggle-eye" id="toggleAdminPassword" title="Lihat/Sembunyikan Password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
                 <small id="passwordHelp" style="font-size: 11.5px; color: var(--dash-text-muted); display: none;">
                     *Biarkan kosong jika tidak ingin mengubah kata sandi lama.
                 </small>
+            </div>
+
+            <div class="modal-form-group" id="passwordConfirmGroup">
+                <label for="adminPasswordConfirm">Konfirmasi Kata Sandi <span id="passwordConfirmRequired" style="color: var(--dash-emergency);">*</span></label>
+                <div class="password-toggle-wrapper">
+                    <input
+                        type="password"
+                        id="adminPasswordConfirm"
+                        class="modal-form-input"
+                        placeholder="Ketik ulang kata sandi"
+                    >
+                    <button type="button" class="btn-toggle-eye" id="toggleAdminPasswordConfirm" title="Lihat/Sembunyikan Password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
