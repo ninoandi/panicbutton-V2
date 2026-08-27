@@ -39,11 +39,14 @@ class RoleMiddleware
         if (session('web_role') !== $role) {
 
             if (session('web_role') === 'admin') {
-
                 return redirect()
                     ->route('dashboard');
             }
 
+            if (session('web_role') === 'petugas') {
+                return redirect()
+                    ->route('petugas.dashboard');
+            }
 
             return redirect()
                 ->route('user.dashboard');

@@ -1,0 +1,776 @@
+/* =========================================================
+   DASHBOARD PETUGAS - MODERN EMERGENCY DESIGN SYSTEM
+   Harmonized with Admin Dashboard Design & Color Tokens
+========================================================= */
+
+:root,
+[data-theme="light"] {
+    --dash-primary: #173f70;
+    --dash-primary-dark: #0f2b4d;
+    --dash-primary-light: #2563eb;
+    --dash-primary-bg: #eff6ff;
+
+    --dash-emergency: #dc2626;
+    --dash-emergency-hover: #b91c1c;
+    --dash-emergency-bg: #fef2f2;
+    --dash-emergency-border: #fecaca;
+
+    --dash-warning: #d97706;
+    --dash-warning-bg: #fffbeb;
+    --dash-warning-border: #fde68a;
+
+    --dash-success: #10b981;
+    --dash-success-bg: #ecfdf5;
+    --dash-success-border: #a7f3d0;
+
+    --dash-history: #4f46e5;
+    --dash-history-bg: #eef2ff;
+    --dash-history-border: #c7d2fe;
+
+    --dash-profile: #0284c7;
+    --dash-profile-bg: #f0f9ff;
+    --dash-profile-border: #bae6fd;
+
+    --dash-iot: #0d9488;
+    --dash-iot-bg: #f0fdfa;
+    --dash-iot-border: #99f6e4;
+
+    --dash-bg: #f6f8fc;
+    --dash-card-bg: #ffffff;
+    --dash-card-hover-bg: #ffffff;
+    --dash-text-main: #1e293b;
+    --dash-text-muted: #64748b;
+    --dash-border: #e2e8f0;
+    --dash-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    --dash-shadow-hover: 0 12px 28px -4px rgba(15, 23, 42, 0.12);
+}
+
+[data-theme="dark"] {
+    --dash-primary: #60a5fa;
+    --dash-primary-dark: #3b82f6;
+    --dash-primary-light: #93c5fd;
+    --dash-primary-bg: #1e293b;
+
+    --dash-emergency: #f87171;
+    --dash-emergency-hover: #ef4444;
+    --dash-emergency-bg: rgba(220, 38, 38, 0.18);
+    --dash-emergency-border: rgba(248, 113, 113, 0.35);
+
+    --dash-warning: #fbbf24;
+    --dash-warning-bg: rgba(245, 158, 11, 0.18);
+    --dash-warning-border: rgba(251, 191, 36, 0.35);
+
+    --dash-success: #34d399;
+    --dash-success-bg: rgba(16, 185, 129, 0.18);
+    --dash-success-border: rgba(52, 211, 153, 0.35);
+
+    --dash-history: #818cf8;
+    --dash-history-bg: rgba(79, 70, 229, 0.18);
+    --dash-history-border: rgba(129, 140, 248, 0.35);
+
+    --dash-profile: #38bdf8;
+    --dash-profile-bg: rgba(2, 132, 199, 0.18);
+    --dash-profile-border: rgba(56, 189, 248, 0.35);
+
+    --dash-iot: #2dd4bf;
+    --dash-iot-bg: rgba(13, 148, 136, 0.18);
+    --dash-iot-border: rgba(45, 212, 191, 0.35);
+
+    --dash-bg: #0b1329;
+    --dash-card-bg: #111c36;
+    --dash-card-hover-bg: #162444;
+    --dash-text-main: #f1f5f9;
+    --dash-text-muted: #94a3b8;
+    --dash-border: #1e2f50;
+    --dash-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+    --dash-shadow-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.6);
+}
+
+.petugas-dashboard-page {
+    min-height: calc(100vh - var(--admin-navbar-height, 58px));
+    padding: 24px 30px;
+    background: var(--dash-bg);
+    color: var(--dash-text-main);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Keyframes */
+@keyframes pulseDot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulseDotRed {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes buzzerDaruratGlow {
+    0%, 100% {
+        box-shadow: 0 4px 20px -2px rgba(220, 38, 38, 0.2), 0 0 0 0 rgba(220, 38, 38, 0.3);
+    }
+    50% {
+        box-shadow: 0 8px 28px -2px rgba(220, 38, 38, 0.35), 0 0 24px 4px rgba(220, 38, 38, 0.5);
+    }
+}
+
+/* =========================================================
+   1. WELCOME HERO BANNER
+========================================================= */
+.welcome-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px 28px;
+    background: linear-gradient(135deg, var(--dash-card-bg) 0%, var(--dash-bg) 100%);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    box-shadow: var(--dash-shadow);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInUp 0.4s ease-out;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.welcome-card::after {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.welcome-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    background: var(--dash-emergency-bg);
+    border: 1px solid var(--dash-emergency-border);
+    border-radius: 20px;
+    color: var(--dash-emergency);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulseDot 2s infinite;
+}
+
+.pulse-dot-red {
+    width: 8px;
+    height: 8px;
+    background: #dc2626;
+    border-radius: 50%;
+    animation: pulseDotRed 1.8s infinite;
+}
+
+.welcome-text h2 {
+    margin: 0 0 6px;
+    color: var(--dash-text-main);
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.welcome-text p {
+    margin: 0;
+    color: var(--dash-text-muted);
+    font-size: 13.5px;
+    line-height: 1.5;
+}
+
+.welcome-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.btn-hero-emergency {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 11px 22px;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: #ffffff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 13.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-hero-emergency:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+    color: #ffffff;
+}
+
+/* =========================================================
+   2. TOP 3 STAT CARDS
+========================================================= */
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px 22px;
+    min-height: 136px;
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    box-shadow: var(--dash-shadow);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    background: var(--dash-card-hover-bg);
+    box-shadow: var(--dash-shadow-hover);
+}
+
+.stat-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.08);
+}
+
+/* Card 1: Laporan Aktif */
+.stat-card-active {
+    border-color: var(--dash-emergency-border);
+}
+
+.stat-card-active:hover {
+    box-shadow: 0 10px 25px -4px rgba(220, 38, 38, 0.2);
+}
+
+.stat-icon-active {
+    background: var(--dash-emergency-bg);
+    color: var(--dash-emergency);
+    border: 1px solid var(--dash-emergency-border);
+}
+
+.stat-badge-active {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: var(--dash-emergency-bg);
+    color: var(--dash-emergency);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    border: 1px solid var(--dash-emergency-border);
+}
+
+/* Card 2: Total Laporan */
+.stat-card-total {
+    border-color: var(--dash-profile-border);
+}
+
+.stat-card-total:hover {
+    box-shadow: 0 10px 25px -4px rgba(2, 132, 199, 0.16);
+}
+
+.stat-icon-total {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
+}
+
+.stat-badge-total {
+    padding: 4px 10px;
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    border: 1px solid var(--dash-profile-border);
+}
+
+/* Card 3: Laporan Selesai */
+.stat-card-done {
+    border-color: var(--dash-success-border);
+}
+
+.stat-card-done:hover {
+    box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.16);
+}
+
+.stat-icon-done {
+    background: var(--dash-success-bg);
+    color: var(--dash-success);
+    border: 1px solid var(--dash-success-border);
+}
+
+.stat-badge-done {
+    padding: 4px 10px;
+    background: var(--dash-success-bg);
+    color: var(--dash-success);
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    border: 1px solid var(--dash-success-border);
+}
+
+.stat-card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dash-text-muted);
+    margin-bottom: 2px;
+}
+
+.stat-count {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--dash-text-main);
+    line-height: 1.15;
+    margin-bottom: 4px;
+    letter-spacing: -0.02em;
+}
+
+.stat-desc {
+    font-size: 11.5px;
+    color: var(--dash-text-muted);
+    line-height: 1.3;
+}
+
+/* =========================================================
+   3. LIVE MONITOR SECTIONS (REALTIME STATUS PANEL)
+========================================================= */
+.dashboard-card {
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    padding: 22px 26px;
+    box-shadow: var(--dash-shadow);
+    animation: fadeInUp 0.6s ease-out;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--dash-border);
+    margin-bottom: 18px;
+}
+
+.card-header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.card-header-icon {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.card-header-icon.emergency {
+    background: var(--dash-emergency-bg);
+    color: var(--dash-emergency);
+    border: 1px solid var(--dash-emergency-border);
+}
+
+.card-header-icon.public-icon {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border: 1px solid var(--dash-profile-border);
+}
+
+.card-header h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--dash-text-main);
+}
+
+.card-header p {
+    margin: 2px 0 0;
+    color: var(--dash-text-muted);
+    font-size: 12.5px;
+}
+
+.card-header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--dash-text-muted);
+}
+
+.card-header-badge.active-alarm {
+    background: var(--dash-emergency-bg);
+    color: var(--dash-emergency);
+    border-color: var(--dash-emergency-border);
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
+}
+
+/* Panic Grid & Card Styling */
+.panic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 16px;
+}
+
+.panic-item-card {
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+.panic-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dash-shadow-hover);
+    border-color: var(--dash-border);
+}
+
+.panic-item-card.is-emergency {
+    border-color: var(--dash-emergency-border);
+    background: var(--dash-emergency-bg);
+    animation: buzzerDaruratGlow 1.8s infinite ease-in-out;
+}
+
+.panic-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.panic-item-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--dash-text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panic-status-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.panic-status-tag.standby {
+    background: var(--dash-success-bg);
+    color: var(--dash-success);
+    border: 1px solid var(--dash-success-border);
+}
+
+.panic-status-tag.alarm {
+    background: var(--dash-emergency);
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+}
+
+.panic-item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.panic-detail-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--dash-text-muted);
+    background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+[data-theme="dark"] .panic-detail-row {
+    background: rgba(15, 23, 42, 0.4);
+}
+
+.panic-item-actions {
+    margin-top: 4px;
+}
+
+.btn-respond-alarm {
+    width: 100%;
+    padding: 9px 14px;
+    background: var(--dash-emergency);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-respond-alarm:hover {
+    background: var(--dash-emergency-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.45);
+}
+
+/* Empty State (Identical to Admin Dashboard) */
+.panic-empty-state {
+    grid-column: 1 / -1;
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--dash-text-muted);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state-icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--dash-success-bg);
+    color: var(--dash-success);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+    border: 1px solid var(--dash-success-border);
+}
+
+.empty-state-icon-circle.public-idle {
+    background: var(--dash-profile-bg);
+    color: var(--dash-profile);
+    border-color: var(--dash-profile-border);
+}
+
+.panic-empty-state h3 {
+    margin: 0 0 6px;
+    color: var(--dash-text-main);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.panic-empty-state p {
+    margin: 0;
+    font-size: 13px;
+    max-width: 440px;
+    line-height: 1.5;
+    color: var(--dash-text-muted);
+}
+
+/* =========================================================
+   4. MODAL RESPON / POPUP DETAIL
+========================================================= */
+.modal-petugas-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.modal-petugas-card {
+    background: var(--dash-card-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: modalIn 0.25s ease-out;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.modal-petugas-header {
+    padding: 18px 24px;
+    background: linear-gradient(135deg, var(--dash-card-bg) 0%, var(--dash-bg) 100%);
+    border-bottom: 1px solid var(--dash-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-petugas-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #dc2626;
+}
+
+.modal-petugas-title h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--dash-text-main);
+}
+
+.btn-close-petugas-modal {
+    background: transparent;
+    border: none;
+    font-size: 18px;
+    color: var(--dash-text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.btn-close-petugas-modal:hover {
+    color: var(--dash-text-main);
+}
+
+.modal-petugas-body {
+    padding: 24px;
+    background: var(--dash-card-bg);
+    color: var(--dash-text-main);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-info-box {
+    background: var(--dash-bg);
+    border: 1px solid var(--dash-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13.5px;
+}
+
+.modal-info-label {
+    color: var(--dash-text-muted);
+    font-weight: 500;
+}
+
+.modal-info-value {
+    color: var(--dash-text-main);
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .petugas-dashboard-page {
+        padding: 16px 18px;
+    }
+
+    .welcome-card {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-hero-emergency {
+        width: 100%;
+    }
+}

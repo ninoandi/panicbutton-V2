@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Pengguna - Panic Button')
+@section('title', 'User Perumahan - Panic Button')
 
-@section('page-title', 'Manajemen Pengguna')
+@section('page-title', 'User Perumahan')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/users.css') }}">
@@ -18,10 +18,10 @@
         <div class="users-header-text">
             <div class="users-header-badge">
                 <span class="pulse-dot-indigo"></span>
-                <span>Manajemen Pengguna Terpusat</span>
+                <span>Data Pengguna Perumahan Terpadu</span>
             </div>
-            <h1>Daftar Pengguna & Warga</h1>
-            <p>Kelola data akun warga, nomor rumah, kontak darurat, serta perizinan peran sistem di setiap perumahan.</p>
+            <h1>User Perumahan</h1>
+            <p>Kelola data akun warga perumahan, nomor rumah, nomor telepon, dan penugasan perangkat IoT.</p>
         </div>
 
         <button type="button" class="btn-add-user" id="openAddUserModal">
@@ -31,71 +31,13 @@
     </section>
 
     {{-- =========================================================
-         2. TOP METRICS SUMMARY (3 CARDS)
-    ========================================================== --}}
-    <section class="users-summary">
-
-        {{-- Card 1: Total Pengguna --}}
-        <div class="users-summary-card users-card-total">
-            <div class="users-summary-header">
-                <div class="users-summary-icon users-icon-total">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-                <span class="users-badge-total">
-                    Terdaftar
-                </span>
-            </div>
-            <div class="users-summary-body">
-                <span class="users-summary-label">Total Pengguna</span>
-                <strong class="users-summary-count" id="totalUserCount">0</strong>
-                <span class="users-summary-desc">Keseluruhan akun pengguna terdata</span>
-            </div>
-        </div>
-
-        {{-- Card 2: Akun Warga --}}
-        <div class="users-summary-card users-card-warga">
-            <div class="users-summary-header">
-                <div class="users-summary-icon users-icon-warga">
-                    <i class="fa-solid fa-house-user"></i>
-                </div>
-                <span class="users-badge-warga">
-                    Warga Aktif
-                </span>
-            </div>
-            <div class="users-summary-body">
-                <span class="users-summary-label">Akun Warga</span>
-                <strong class="users-summary-count" id="totalWargaCount">0</strong>
-                <span class="users-summary-desc">Akun warga penghuni perumahan</span>
-            </div>
-        </div>
-
-        {{-- Card 3: Admin / Pengurus --}}
-        <div class="users-summary-card users-card-admin">
-            <div class="users-summary-header">
-                <div class="users-summary-icon users-icon-admin">
-                    <i class="fa-solid fa-user-shield"></i>
-                </div>
-                <span class="users-badge-admin">
-                    Pengelola
-                </span>
-            </div>
-            <div class="users-summary-body">
-                <span class="users-summary-label">Admin & Petugas</span>
-                <strong class="users-summary-count" id="totalAdminCount">0</strong>
-                <span class="users-summary-desc">Petugas keamanan & administrator</span>
-            </div>
-        </div>
-
-    </section>
-
-    {{-- =========================================================
-         3. CUSTOM AESTHETIC FILTER BAR (NO EMOJIS)
+         2. FILTER BAR (SEARCH, PERUMAHAN & BUTTON IMPORT EXCEL)
     ========================================================== --}}
     <section class="users-filter-card">
         <div class="users-filter-grid">
 
             {{-- 1. Search Input --}}
-            <div class="filter-group">
+            <div class="filter-group filter-search-group">
                 <label for="searchInput" class="filter-label">
                     <i class="fa-solid fa-magnifying-glass"></i>
                     <span>Pencarian Pengguna</span>
@@ -106,12 +48,13 @@
                         type="text"
                         id="searchInput"
                         class="search-input-field"
-                        placeholder="Cari nama, nomor rumah, atau nomor telepon..."
+                        placeholder="Cari nama pengguna, no rumah, no handphone, perangkat..."
+                        autocomplete="off"
                     >
                 </div>
             </div>
 
-            {{-- 2. Custom Perumahan Filter --}}
+            {{-- 2. Filter Perumahan --}}
             <div class="filter-group">
                 <label for="perumahanFilter" class="filter-label">
                     <i class="fa-solid fa-building-shield"></i>
@@ -125,47 +68,64 @@
                 </div>
             </div>
 
-            {{-- 3. Custom Role Filter (No Emojis) --}}
-            <div class="filter-group">
-                <label for="roleFilter" class="filter-label">
-                    <i class="fa-solid fa-user-tag"></i>
-                    <span>Peran (Role)</span>
+            {{-- 3. Button Import / Unduh Excel --}}
+            <div class="filter-group filter-action-group">
+                <label class="filter-label" style="opacity:0; pointer-events:none;">
+                    <span>Aksi</span>
                 </label>
-                <div class="custom-select-wrapper">
-                    <select id="roleFilter" class="custom-select-field">
-                        <option value="">Semua Role</option>
-                        <option value="user">User</option>
-                        <option value="admin">Admin/Satpam</option>
-                    </select>
-                    <i class="fa-solid fa-chevron-down select-arrow"></i>
-                </div>
+                <button type="button" id="btnExportUserPerumahanExcel" class="btn-export-excel" title="Import / Unduh Excel Data Pengguna Perumahan">
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span>Import Data User</span>
+                </button>
             </div>
 
         </div>
     </section>
 
     {{-- =========================================================
-         4. USER CARDS CONTAINER
+         3. TABEL DATA USER PERUMAHAN
     ========================================================== --}}
-    <div class="card-container" id="cardContainer">
-        {{-- Diisi secara realtime oleh users.js --}}
-    </div>
+    <section class="users-table-card">
+        <div class="table-wrapper">
+            <table class="custom-table" id="userPerumahanTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px; text-align: center;">No</th>
+                        <th>Nama Pengguna</th>
+                        <th style="width: 120px;">No Rumah</th>
+                        <th>Perumahan</th>
+                        <th style="width: 160px;">No Handphone</th>
+                        <th style="width: 170px;">Perangkat IoT</th>
+                        <th style="width: 130px;">Zona</th>
+                        <th style="width: 180px; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="userPerumahanTableBody">
+                    <tr>
+                        <td colspan="8" class="loading-state">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Memuat data user perumahan...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     {{-- =========================================================
-         5. PAGINATION
+         4. PAGINATION
     ========================================================== --}}
-    <div id="paginationContainer">
-        <div id="paginationInfo">
+    <div id="paginationContainer" class="pagination-wrapper">
+        <div id="paginationInfo" class="pagination-info">
             Menampilkan 0 - 0 dari 0 data
         </div>
 
         <div class="pagination-actions">
-            <button type="button" id="prevPage">
+            <button type="button" id="prevPage" class="btn-pagination" disabled>
                 <i class="fa-solid fa-chevron-left"></i>
                 <span>Sebelumnya</span>
             </button>
 
-            <button type="button" id="nextPage">
+            <button type="button" id="nextPage" class="btn-pagination" disabled>
                 <span>Berikutnya</span>
                 <i class="fa-solid fa-chevron-right"></i>
             </button>
@@ -175,12 +135,15 @@
 </div>
 
 {{-- =========================================================
-     6. MODAL TAMBAH PENGGUNA (GLASSMORPHISM)
+     5. MODAL TAMBAH / EDIT PENGGUNA PERUMAHAN
 ========================================================== --}}
-<div id="addUserModal" class="modal">
+<div id="addUserModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
-            <h3><i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> Tambah Pengguna Baru</h3>
+            <h3>
+                <i class="fa-solid fa-user-plus" style="margin-right: 8px;"></i> 
+                <span id="modalTitle">Tambah Pengguna Baru</span>
+            </h3>
             <button type="button" class="close-modal" id="closeModal">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -188,31 +151,71 @@
 
         <div class="modal-body">
             <div class="form-group">
-                <label for="perumahanSelect">Perumahan</label>
-                <select id="perumahanSelect">
+                <label for="perumahanSelect">Perumahan <span class="text-danger">*</span></label>
+                <select id="perumahanSelect" class="custom-select-field">
                     <option value="">Pilih Perumahan</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="userName">Nama Lengkap</label>
-                <input type="text" id="userName" placeholder="Masukkan nama pengguna">
+                <label for="userName">Nama Lengkap <span class="text-danger">*</span></label>
+                <input type="text" id="userName" placeholder="Masukkan nama lengkap pengguna">
             </div>
 
             <div class="form-group">
-                <label for="houseNumber">Nomor Rumah</label>
+                <label for="houseNumber">Nomor Rumah <span class="text-danger">*</span></label>
                 <input type="text" id="houseNumber" placeholder="Contoh: A-12, B-05">
             </div>
 
             <div class="form-group">
-                <label for="password">Password Akun</label>
-                <input type="password" id="password" placeholder="Masukkan password">
+                <label for="userPhoneNumber">
+                    <i class="fa-solid fa-phone"></i> Nomor HP / WhatsApp
+                </label>
+                <input 
+                    type="text" 
+                    id="userPhoneNumber" 
+                    placeholder="Contoh: 08123456789"
+                />
+            </div>
+
+            <div class="form-group">
+                <label for="userEmail">
+                    <i class="fa-solid fa-envelope"></i> Alamat Email
+                </label>
+                <input 
+                    type="email" 
+                    id="userEmail" 
+                    placeholder="Contoh: warga@email.com"
+                />
+            </div>
+
+            <div class="form-group" id="userPasswordGroup">
+                <label for="password">Password Akun <span class="text-danger">*</span></label>
+                <div class="password-toggle-wrapper">
+                    <input type="password" id="password" placeholder="Minimal 6 karakter">
+                    <button type="button" class="btn-toggle-eye" id="togglePerumahanPassword" title="Lihat/Sembunyikan Password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+                <small id="userPasswordHelp" style="font-size: 11.5px; color: var(--dash-text-muted); display: none; margin-top: 4px;">
+                    *Biarkan kosong jika tidak ingin mengubah kata sandi lama.
+                </small>
+            </div>
+
+            <div class="form-group" id="userPasswordConfirmGroup">
+                <label for="passwordConfirm">Konfirmasi Password <span class="text-danger">*</span></label>
+                <div class="password-toggle-wrapper">
+                    <input type="password" id="passwordConfirm" placeholder="Ketik ulang password">
+                    <button type="button" class="btn-toggle-eye" id="togglePerumahanPasswordConfirm" title="Lihat/Sembunyikan Password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="roleSelect">Role Pengguna</label>
                 <div class="role-select">
-                    <select id="roleSelect">
+                    <select id="roleSelect" class="custom-select-field">
                         <option value="user">User (Warga)</option>
                         <option value="admin">Admin / Satpam</option>
                         <option value="custom">Custom Role</option>
@@ -223,66 +226,70 @@
                     id="customRoleInput"
                     class="custom-role-input"
                     placeholder="Tuliskan nama role kustom..."
+                    style="display: none; margin-top: 8px;"
                 >
             </div>
 
+            <div class="form-group">
+                <label for="userDeviceSelect">
+                    <i class="fa-solid fa-microchip"></i> Perangkat IoT
+                </label>
+                <div class="custom-select-wrapper">
+                    <select class="custom-select-field" id="userDeviceSelect">
+                        <option value="">-- Pilih Perangkat --</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+                <small style="font-size: 11.5px; color: var(--dash-text-muted);">
+                    Pilih perangkat IoT yang ditugaskan ke pengguna ini
+                </small>
+            </div>
 
-            <!-- ====================================================== -->
-<!-- FIELD PERANGKAT IOT (Tambahan) -->
-<!-- ====================================================== -->
-
-<div class="form-group">
-    <label for="userDeviceSelect">
-        <i class="fa-solid fa-microchip"></i> Perangkat IoT
-    </label>
-    <div class="custom-select-wrapper">
-        <select class="custom-select-field" id="userDeviceSelect">
-            <option value="">-- Pilih Perangkat --</option>
-            <!-- Options akan diisi oleh JavaScript -->
-        </select>
-        <i class="fa-solid fa-chevron-down select-arrow"></i>
-    </div>
-    <small style="font-size: 11px; color: var(--dash-text-muted);">
-        Pilih perangkat IoT yang akan ditugaskan ke pengguna ini
-    </small>
-</div>
-
-<div class="form-group">
-    <label for="userZonaInput">
-        <i class="fa-solid fa-location-dot"></i> Zona
-    </label>
-    <input 
-        type="text" 
-        class="form-control" 
-        id="userZonaInput" 
-        placeholder="Zona akan terisi otomatis saat perangkat dipilih"
-        readonly
-        style="background: var(--dash-bg); cursor: default;"
-    />
-    <small style="font-size: 11px; color: var(--dash-text-muted);">
-        Zona akan terisi otomatis berdasarkan perangkat yang dipilih
-    </small>
-</div>
-
-<div class="form-group">
-    <label for="userPhoneNumber">
-        <i class="fa-solid fa-phone"></i> Nomor HP / WhatsApp
-    </label>
-    <input 
-        type="text" 
-        class="form-control" 
-        id="userPhoneNumber" 
-        placeholder="Contoh: 08123456789"
-    />
-</div>
+            <div class="form-group">
+                <label for="userZonaInput">
+                    <i class="fa-solid fa-location-dot"></i> Zona
+                </label>
+                <input 
+                    type="text" 
+                    id="userZonaInput" 
+                    placeholder="Zona akan terisi otomatis saat perangkat dipilih"
+                    readonly
+                    style="background: var(--dash-bg); cursor: default;"
+                />
+            </div>
         </div>
 
         <div class="modal-footer">
             <button type="button" class="btn btn-cancel" id="cancelBtn">Batal</button>
             <button type="button" class="btn btn-save" id="saveUserBtn">
                 <i class="fa-solid fa-floppy-disk"></i>
-                <span>Simpan Pengguna</span>
+                <span id="saveBtnText">Simpan Pengguna</span>
             </button>
+        </div>
+    </div>
+</div>
+
+{{-- =========================================================
+     6. MODAL DETAIL PENGGUNA PERUMAHAN
+========================================================== --}}
+<div id="detailUserModal" class="modal" style="display: none;">
+    <div class="modal-content modal-detail-content">
+        <div class="modal-header">
+            <h3>
+                <i class="fa-solid fa-id-card" style="margin-right: 8px;"></i>
+                <span>Detail Pengguna Perumahan</span>
+            </h3>
+            <button type="button" class="close-modal" id="closeDetailModal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-body" id="detailUserModalBody">
+            {{-- Render detail oleh users.js --}}
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-cancel" id="closeDetailBtn">Tutup</button>
         </div>
     </div>
 </div>
@@ -290,5 +297,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script type="module" src="{{ asset('js/users.js') }}"></script>
 @endpush

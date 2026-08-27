@@ -50,6 +50,31 @@ Route::post('/register', [
 ])->name('register.process');
 
 
+/*
+|--------------------------------------------------------------------------
+| API HASH PASSWORD (BCRYPT)
+|--------------------------------------------------------------------------
+*/
+Route::post('/api/hash-password', function (\Illuminate\Http\Request $request) {
+    if (!session('web_logged_in')) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Sesi tidak valid atau telah berakhir. Silakan login kembali.'
+        ], 401);
+    }
+
+    $request->validate([
+        'password' => ['required', 'string', 'min:6']
+    ]);
+
+    return response()->json([
+        'status' => 'success',
+        'hash' => \Illuminate\Support\Facades\Hash::make($request->password)
+    ]);
+});
+
+
+
 Route::post('/logout', [
     AuthController::class,
     'logout'
@@ -66,7 +91,7 @@ Route::post('/logout', [
 |
 */
 
-Route::middleware(['user.auth', 'role:admin'])->group(function () {
+Route::middleware(['role:admin'])->group(function () {
 
 
     /*
@@ -187,6 +212,20 @@ Route::middleware(['user.auth', 'role:admin'])->group(function () {
 
     /*
     |--------------------------------------------------------------------------
+    | MANAJEMEN PETUGAS
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get('/manajemen-petugas', function () {
+
+        return view('manajemen-petugas.index');
+
+    })->name('manajemen-petugas');
+
+
+
+    /*
+    |--------------------------------------------------------------------------
     | IOT
     |--------------------------------------------------------------------------
     */
@@ -247,7 +286,7 @@ Route::middleware(['user.auth', 'role:admin'])->group(function () {
 |
 */
 
-Route::middleware(['user.auth', 'role:user'])
+Route::middleware(['role:user'])
     ->prefix('user')
     ->name('user.')
     ->group(function () {
@@ -302,5 +341,26 @@ Route::middleware(['user.auth', 'role:user'])
             '/profile',
             'users.profil'
         )->name('profile');
+
+    });
+
+
+
+/*
+|--------------------------------------------------------------------------
+| PETUGAS LAPANGAN (PERUMAHAN & PUBLIK)
+|--------------------------------------------------------------------------
+|
+| Hanya role = petugas yang boleh masuk.
+|
+*/
+Route::middleware(['role:petugas'])
+    ->prefix('petugas')
+    ->name('petugas.')
+    ->group(function () {
+
+        Route::view('/dashboard', 'petugas.dashboard.index')->name('dashboard');
+        Route::view('/riwayat-laporan', 'petugas.history.index')->name('history');
+        Route::view('/profil', 'petugas.profile.index')->name('profile');
 
     });

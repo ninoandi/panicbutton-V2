@@ -552,7 +552,7 @@ window.openDetailModal = function (reportId) {
 
     currentDetailReport = report;
 
-    if (detailModalTitle) detailModalTitle.textContent = `Detail Laporan #${report.id.substring(0, 8)}`;
+    if (detailModalTitle) detailModalTitle.textContent = `Detail Laporan`;
     if (detailUserType) {
         detailUserType.textContent = report.is_guest !== false ? "Publik (Guest / Tanpa Login)" : "Pengguna Terdaftar";
     }

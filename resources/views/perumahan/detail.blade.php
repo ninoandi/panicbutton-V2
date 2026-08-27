@@ -94,7 +94,33 @@
                 </div>
             </div>
 
-            {{-- 4. Sort Order --}}
+            {{-- 4. Periode Filter (Bulanan) --}}
+            <div class="filter-group">
+                <label for="periodFilter" class="filter-label">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Periode</span>
+                </label>
+                <div class="custom-select-wrapper">
+                    <select id="periodFilter" class="custom-select-field">
+                        <option value="">Semua Periode</option>
+                        <option value="1">Januari</option>
+                        <option value="2">Februari</option>
+                        <option value="3">Maret</option>
+                        <option value="4">April</option>
+                        <option value="5">Mei</option>
+                        <option value="6">Juni</option>
+                        <option value="7">Juli</option>
+                        <option value="8">Agustus</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">Desember</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down select-arrow"></i>
+                </div>
+            </div>
+
+            {{-- 5. Sort Order --}}
             <div class="filter-group">
                 <label for="sortOrder" class="filter-label">
                     <i class="fa-solid fa-arrow-down-wide-short"></i>
@@ -127,10 +153,10 @@
                 </div>
             </div>
 
-            <div class="connection-badge">
-                <span class="connection-dot"></span>
-                <span>Realtime Log</span>
-            </div>
+            <button type="button" id="btnExportExcel" class="btn-export-excel" title="Import / Unduh File Excel Recap">
+                <i class="fa-solid fa-file-excel"></i>
+                <span>Import Recap Data</span>
+            </button>
         </div>
 
         <div class="table-wrapper">
@@ -168,6 +194,9 @@
 @push('scripts')
     {{-- SweetAlert2 --}}
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- SheetJS (Excel Generator) --}}
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     {{-- Kirim key Laravel ke JavaScript --}}
     <script>

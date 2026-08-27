@@ -79,13 +79,12 @@ const publicPanicsRef =
 
 /*
 |--------------------------------------------------------------------------
-| In-Memory State for Public Panics & Notifications
+| In-Memory State for Public Panics
 |--------------------------------------------------------------------------
 */
 
 let currentChannelsData = {};
 let currentPublicPanicsData = {};
-const notifiedPanicIds = new Set();
 
 
 /*
@@ -500,13 +499,11 @@ function actualProcessPublicPanicData() {
     const nowTime = Date.now();
     if (nowTime - lastRenderTime >= MIN_RENDER_INTERVAL || isFirstLoad) {
         renderPublicPanic(limitedPanics);
-        handlePanicNotificationAlert(limitedPanics);
         lastRenderTime = nowTime;
     } else {
         // Schedule render berikutnya
         setTimeout(() => {
             renderPublicPanic(limitedPanics);
-            handlePanicNotificationAlert(limitedPanics);
             lastRenderTime = Date.now();
         }, MIN_RENDER_INTERVAL - (nowTime - lastRenderTime));
     }
@@ -692,122 +689,6 @@ function renderPublicPanic(activePanics) {
 }
 
 
-/*
-|--------------------------------------------------------------------------
-| NOTIFIKASI MENGAMBANG DI POJOK KANAN ATAS (TOAST 10 DETIK)
-|--------------------------------------------------------------------------
-*/
-
-function handlePanicNotificationAlert(activePanics) {
-    if (!activePanics || activePanics.length === 0) {
-        notifiedPanicIds.clear();
-        return;
-    }
-
-    const unnotifiedPanics = [];
-    activePanics.forEach((panic) => {
-        const uniqueKey = `${panic.id}_${panic.createdAt || panic.last_update}`;
-        if (!notifiedPanicIds.has(uniqueKey)) {
-            notifiedPanicIds.add(uniqueKey);
-            unnotifiedPanics.push(panic);
-        }
-    });
-
-    unnotifiedPanics.reverse().forEach((panic) => {
-        showTopPanicToast(panic);
-    });
-}
-
-function showTopPanicToast(panic) {
-    const container = document.getElementById("topToastContainer") || createToastContainer();
-
-    const toast = document.createElement("div");
-    toast.className = "emergency-toast";
-    toast.setAttribute("role", "alert");
-
-    const formattedTime = formatPublicPanicTime(panic.createdAt || panic.last_update);
-    const locationText = panic.address && panic.address !== "-" ? panic.address : panic.lokasi;
-
-    toast.innerHTML = `
-        <div class="emergency-toast-header">
-            <div class="emergency-toast-title">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Sinyal Panic Button Aktif!</span>
-            </div>
-            <button type="button" class="emergency-toast-close" title="Tutup Notifikasi" aria-label="Close">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-        </div>
-        <div class="emergency-toast-body">
-            Panic button diaktifkan oleh <strong>${escapeHtml(panic.senderName)}</strong> pada <strong>${escapeHtml(panic.device)}</strong> (${escapeHtml(panic.zona)}).
-        </div>
-        <div class="emergency-toast-meta">
-            <span><i class="fa-solid fa-location-dot" style="color:var(--dash-emergency);"></i> ${escapeHtml(locationText || "Zona Siaga")}</span>
-            <span><i class="fa-regular fa-clock"></i> ${formattedTime}</span>
-        </div>
-        <div class="emergency-toast-progress"></div>
-    `;
-
-    container.prepend(toast);
-    playEmergencyBeep();
-
-    const dismissTimer = setTimeout(() => {
-        dismissToast(toast);
-    }, 10000);
-
-    const closeBtn = toast.querySelector(".emergency-toast-close");
-    if (closeBtn) {
-        closeBtn.addEventListener("click", () => {
-            clearTimeout(dismissTimer);
-            dismissToast(toast);
-        });
-    }
-}
-
-function dismissToast(toast) {
-    if (!toast || toast.classList.contains("hide")) return;
-    toast.classList.add("hide");
-    setTimeout(() => {
-        if (toast && toast.parentNode) {
-            toast.parentNode.removeChild(toast);
-        }
-    }, 320);
-}
-
-function createToastContainer() {
-    let container = document.getElementById("topToastContainer");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "topToastContainer";
-        container.className = "top-toast-container";
-        document.body.appendChild(container);
-    }
-    return container;
-}
-
-function playEmergencyBeep() {
-    try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
-        if (ctx.state === "suspended") {
-            ctx.resume();
-        }
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(587.33, ctx.currentTime + 0.15);
-        gain.gain.setValueAtTime(0.12, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.22);
-    } catch (e) {
-        // Abaikan jika browser memblokir audio sebelum interaksi
-    }
-}
 
 
 /*
