@@ -156,7 +156,7 @@ Aplikasi juga menyediakan fitur pencarian instansi darurat terdekat berdasarkan 
 
 ### Database
 
-- MySQL
+- Firebase
 
 ### Maps
 
@@ -240,43 +240,12 @@ Buka file:
 Sesuaikan konfigurasi database:
 
 ```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=panic_button
-DB_USERNAME=root
-DB_PASSWORD=
+FIREBASE_PERUMAHAN_URL= tambahkan URL firebase
+FIREBASE_PUBLIC_URL= tambahkan URL firebase
+
+SESSION_DRIVER=file
 ```
 
-Buat database dengan nama:
-
-```text
-panic_button
-```
-
----
-
-## Migrasi Database
-
-Jalankan:
-
-```bash
-php artisan migrate
-```
-
-Jika project menggunakan seeder:
-
-```bash
-php artisan db:seed
-```
-
-Atau:
-
-```bash
-php artisan migrate --seed
-```
-
----
 
 # ▶️ Cara Menjalankan Aplikasi
 
@@ -292,7 +261,7 @@ Aplikasi dapat diakses melalui:
 http://127.0.0.1:8000
 ```
 
-Untuk menjalankan Vite:
+Jika menjalankan Vite:
 
 ```bash
 npm run dev
@@ -340,21 +309,7 @@ hospital
 police
 fire_station
 clinic
-```
 
-Contoh endpoint:
-
-```text
-/emergency-facilities
-```
-
-Contoh parameter:
-
-```text
-?lat=-7.8250&lng=110.3679
-```
-
----
 
 ## 📍 Optimasi Performa Map
 
@@ -564,63 +519,16 @@ Beberapa aspek keamanan yang perlu diperhatikan:
 
 ---
 
-# 🧩 Pengembangan Selanjutnya
-
-Beberapa fitur yang dapat dikembangkan:
-
-- [ ] Notifikasi real-time
-- [ ] WebSocket untuk monitoring laporan
-- [ ] Push notification
-- [ ] Integrasi WhatsApp atau SMS Gateway
-- [ ] Navigasi menuju lokasi kejadian
-- [ ] Marker clustering pada map
-- [ ] Monitoring IoT secara real-time
-- [ ] Dashboard statistik
-- [ ] Penambahan kategori instansi darurat
-- [ ] Deployment menggunakan Docker
-
----
-
-# 🤝 Kontribusi
-
-Kontribusi terhadap project ini sangat terbuka.
-
-Buat branch baru:
-
-```bash
-git checkout -b fitur-baru
-```
-
-Tambahkan perubahan:
-
-```bash
-git add .
-```
-
-Buat commit:
-
-```bash
-git commit -m "Menambahkan fitur baru"
-```
-
-Push ke repository:
-
-```bash
-git push origin fitur-baru
-```
-
-Kemudian buat Pull Request.
-
 ---
 
 # 📄 License
 
-Project ini dibuat untuk keperluan pengembangan dan pembelajaran sistem **Panic Button Public Safety System**.
+Project ini dibuat untuk keperluan pengembangan sistem perusahaan **Panic Button Public Safety System**.
 
 ---
 
 # 👨‍💻 Author
 
-**Nama Anda**
+**Nino Andi**
 
 Panic Button - Public Safety System
