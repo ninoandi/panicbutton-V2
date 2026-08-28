@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EmergencyMapController;
 
 
 /*
@@ -14,6 +15,10 @@ Route::get('/', function () {
     return view('landing.index');
 })->name('landing');
 
+Route::get(
+    '/emergency-facilities',
+    [EmergencyMapController::class, 'nearby']
+)->name('emergency.facilities');
 
 
 /*
