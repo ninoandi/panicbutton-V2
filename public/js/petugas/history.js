@@ -767,135 +767,200 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
 
-    /* =========================================================
-       13. UPDATE STATUS KE PUBLIC_PANICS
+   /* =========================================================
+        13. UPDATE STATUS - SUPPORT PERUMAHAN & PUBLIC
     ========================================================= */
 
-    async function updateStatusAllTables({
-        reportId,
-        source,
-        perumahanKey = "",
-        newStatus,
-        dbTable = "public_panics",
-        note = ""
-    }) {
+async function updateStatusAllTables({
+    reportId,
+    source,
+    perumahanKey = "",
+    newStatus,
+    dbTable = "monitor",
+    note = ""
+}) {
 
-        try {
-            if (!reportId) {
-                throw new Error("ID laporan tidak ditemukan.");
-            }
+    try {
+        if (!reportId) {
+            throw new Error("ID laporan tidak ditemukan.");
+        }
 
-            if (!newStatus) {
-                throw new Error("Status baru tidak ditemukan.");
-            }
+        if (!newStatus) {
+            throw new Error("Status baru tidak ditemukan.");
+        }
 
-            const normalizedStatus = normalizeStatus(newStatus);
-            const statusLabel = getStatusLabel(normalizedStatus);
+        const normalizedStatus = normalizeStatus(newStatus);
+        const statusLabel = getStatusLabel(normalizedStatus);
 
-            const updatePayload = {
-                status: normalizedStatus,
-                updated_at: Date.now(),
-                updated_by: "petugas",
-                officer_processed: true,
-                device_auto_off: false
-            };
+        const updatePayload = {
+            status: normalizedStatus,
+            updated_at: Date.now(),
+            updated_by: "petugas",
+            officer_processed: true,
+            device_auto_off: false
+        };
 
-            if (typeof note === "string" && note.trim() !== "") {
-                const cleanNote = note.trim();
-                updatePayload.officer_note = cleanNote;
-                updatePayload.response_note = cleanNote;
-            }
+        if (typeof note === "string" && note.trim() !== "") {
+            const cleanNote = note.trim();
+            updatePayload.officer_note = cleanNote;
+            updatePayload.response_note = cleanNote;
+        }
 
-            console.log(`🔄 Mengupdate status laporan ${reportId} ke "${statusLabel}"`);
-            console.log("📦 Update payload:", updatePayload);
+        console.log(`🔄 Mengupdate status laporan ${reportId} ke "${statusLabel}"`);
+        console.log(`📌 Source: ${source}, PerumahanKey: ${perumahanKey}, dbTable: ${dbTable}`);
 
-            // UPDATE DI PUBLIC_PANICS
-            const publicPanicsRef = ref(db2, `public_panics/${reportId}`);
-            const publicSnapshot = await get(publicPanicsRef);
-
-            if (publicSnapshot.exists()) {
-                const currentData = publicSnapshot.val();
-                const currentStatus = currentData.status || "menunggu";
-
-                console.log(`📊 Status saat ini: ${currentStatus}`);
-
-                if (currentStatus === normalizedStatus) {
-                    console.log(`ℹ️ Status sudah "${statusLabel}", tidak perlu diupdate`);
-                    return true;
-                }
-
-                await update(publicPanicsRef, updatePayload);
-                console.log(`✅ Updated in public_panics: ${currentStatus} → ${normalizedStatus}`);
-
-                const verifySnap = await get(publicPanicsRef);
-                if (verifySnap.exists()) {
-                    console.log(`📊 Status sekarang: ${verifySnap.val()?.status}`);
-                }
-            } else {
-                console.error(`❌ Laporan ${reportId} TIDAK ADA di public_panics!`);
+        // =============================================
+        // 🔥 CASE 1: LAPORAN DARI PERUMAHAN (DB1)
+        // =============================================
+        
+        if (source === "perumahan") {
+            
+            if (!perumahanKey) {
+                console.error(`❌ perumahanKey tidak ditemukan untuk laporan ${reportId}`);
                 await Swal.fire({
                     icon: "error",
-                    title: "Laporan Tidak Ditemukan",
-                    text: `Laporan dengan ID ${reportId} tidak ditemukan di database.`
+                    title: "Gagal Update",
+                    text: "Key perumahan tidak ditemukan."
                 });
                 return false;
             }
 
-            // UPDATE DI PERUMAHAN (jika ada)
-            if (source === "perumahan" && perumahanKey) {
-                try {
-                    const perumahanRef = ref(db1, `perumahan/${perumahanKey}/reports/${reportId}`);
-                    await update(perumahanRef, updatePayload);
-                    console.log("✅ Updated in perumahan");
-                } catch (perumahanError) {
-                    console.warn("⚠️ Perumahan update failed:", perumahanError);
+            const subNode = dbTable || "monitor";
+            
+            try {
+                // Coba update di monitor
+                const monitorRef = ref(db1, `perumahan/${perumahanKey}/monitor/${reportId}`);
+                const monitorSnap = await get(monitorRef);
+                
+                if (monitorSnap.exists()) {
+                    await update(monitorRef, updatePayload);
+                    console.log(`✅ Updated in perumahan/${perumahanKey}/monitor/${reportId}`);
+                } else {
+                    // Coba update di reports
+                    const reportsRef = ref(db1, `perumahan/${perumahanKey}/reports/${reportId}`);
+                    const reportsSnap = await get(reportsRef);
+                    
+                    if (reportsSnap.exists()) {
+                        await update(reportsRef, updatePayload);
+                        console.log(`✅ Updated in perumahan/${perumahanKey}/reports/${reportId}`);
+                    } else {
+                        console.error(`❌ Laporan ${reportId} TIDAK DITEMUKAN di perumahan/${perumahanKey}`);
+                        await Swal.fire({
+                            icon: "error",
+                            title: "Laporan Tidak Ditemukan",
+                            text: `Laporan dengan ID ${reportId} tidak ditemukan di perumahan.`
+                        });
+                        return false;
+                    }
                 }
-            }
-
-            // UPDATE STATE LOKAL
-            const foundReport = allReports.find(r => {
-                if (r.id !== reportId) return false;
-                if (r.source !== source) return false;
-                if (source === "perumahan") {
-                    return r.perumahanKey === perumahanKey;
+                
+                // Verifikasi
+                const verifyRef = ref(db1, `perumahan/${perumahanKey}/${subNode}/${reportId}`);
+                const verifySnap = await get(verifyRef);
+                if (verifySnap.exists()) {
+                    console.log(`📊 Status sekarang di perumahan: ${verifySnap.val()?.status}`);
                 }
-                return true;
-            });
-
-            if (foundReport) {
-                foundReport.status = normalizedStatus;
-                foundReport.rawStatus = normalizedStatus;
-                foundReport.updated_at = updatePayload.updated_at;
-                foundReport.officer_processed = true;
-                foundReport.device_auto_off = false;
+                
+            } catch (perumahanError) {
+                console.error("❌ Error updating perumahan:", perumahanError);
+                await Swal.fire({
+                    icon: "error",
+                    title: "Gagal Update",
+                    text: "Terjadi kesalahan saat update di perumahan: " + perumahanError.message
+                });
+                return false;
             }
-
-            // RENDER ULANG
-            filterAndRenderBoard();
-
-            console.log(`✅ Status updated to "${statusLabel}"`);
-
-            await Swal.fire({
-                icon: "success",
-                title: "Status Berhasil Diperbarui",
-                text: `Laporan dipindahkan ke "${statusLabel}".`,
-                timer: 1500,
-                showConfirmButton: false
-            });
-
-            return true;
-
-        } catch (error) {
-            console.error("❌ Error updating status:", error);
-            await Swal.fire({
-                icon: "error",
-                title: "Gagal Memperbarui",
-                text: "Terjadi kesalahan: " + error.message,
-                confirmButtonColor: "#dc2626"
-            });
-            return false;
+            
+        } else {
+            // =============================================
+            // 🔥 CASE 2: LAPORAN DARI PUBLIC (DB2)
+            // =============================================
+            
+            try {
+                // Coba update di public_panics
+                const publicRef = ref(db2, `public_panics/${reportId}`);
+                const publicSnap = await get(publicRef);
+                
+                if (publicSnap.exists()) {
+                    await update(publicRef, updatePayload);
+                    console.log(`✅ Updated in public_panics: ${reportId}`);
+                } else {
+                    // Coba update di reports
+                    const reportsRef = ref(db2, `reports/${reportId}`);
+                    const reportsSnap = await get(reportsRef);
+                    
+                    if (reportsSnap.exists()) {
+                        await update(reportsRef, updatePayload);
+                        console.log(`✅ Updated in reports: ${reportId}`);
+                    } else {
+                        console.error(`❌ Laporan ${reportId} TIDAK DITEMUKAN di public_panics maupun reports`);
+                        await Swal.fire({
+                            icon: "error",
+                            title: "Laporan Tidak Ditemukan",
+                            text: `Laporan dengan ID ${reportId} tidak ditemukan.`
+                        });
+                        return false;
+                    }
+                }
+            } catch (publicError) {
+                console.error("❌ Error updating public:", publicError);
+                await Swal.fire({
+                    icon: "error",
+                    title: "Gagal Update",
+                    text: "Terjadi kesalahan saat update: " + publicError.message
+                });
+                return false;
+            }
         }
+
+        // =============================================
+        // 🔥 UPDATE STATE LOKAL
+        // =============================================
+        
+        const foundReport = allReports.find(r => {
+            if (r.id !== reportId) return false;
+            if (r.source !== source) return false;
+            if (source === "perumahan") {
+                return r.perumahanKey === perumahanKey;
+            }
+            return true;
+        });
+
+        if (foundReport) {
+            foundReport.status = normalizedStatus;
+            foundReport.rawStatus = normalizedStatus;
+            foundReport.updated_at = updatePayload.updated_at;
+            foundReport.officer_processed = true;
+            foundReport.device_auto_off = false;
+            console.log(`✅ State lokal diupdate: ${reportId} → ${normalizedStatus}`);
+        }
+
+        // RENDER ULANG
+        filterAndRenderBoard();
+
+        console.log(`✅ Status updated to "${statusLabel}"`);
+
+        await Swal.fire({
+            icon: "success",
+            title: "Status Berhasil Diperbarui",
+            text: `Laporan dipindahkan ke "${statusLabel}".`,
+            timer: 1500,
+            showConfirmButton: false
+        });
+
+        return true;
+
+    } catch (error) {
+        console.error("❌ Error updating status:", error);
+        await Swal.fire({
+            icon: "error",
+            title: "Gagal Memperbarui",
+            text: "Terjadi kesalahan: " + error.message,
+            confirmButtonColor: "#dc2626"
+        });
+        return false;
     }
+}
 
 
     /* =========================================================
