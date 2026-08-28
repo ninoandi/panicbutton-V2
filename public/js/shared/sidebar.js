@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ----------------------------------------------------
-       4. NAVBAR ADMIN REAL-TIME NAME & AVATAR SYNC
+       4. NAVBAR ADMIN / PETUGAS REAL-TIME NAME & AVATAR SYNC
     ---------------------------------------------------- */
     const navbarAdminName = document.getElementById('navbarAdminName');
     const navbarAdminAvatar = document.getElementById('navbarAdminAvatar');
@@ -227,30 +227,46 @@ document.addEventListener('DOMContentLoaded', () => {
             if (photoUrl && String(photoUrl).trim() !== '') {
                 navbarAdminAvatar.innerHTML = `<img src="${photoUrl}" alt="Avatar" style="width:100%; height:100%; object-fit:cover; border-radius:50%; display:block;">`;
             } else if (name) {
-                const initial = name.trim().charAt(0).toUpperCase() || 'A';
+                const defaultInitial = (window.currentUser && window.currentUser.role === 'petugas') ? 'P' : 'A';
+                const initial = name.trim().charAt(0).toUpperCase() || defaultInitial;
                 navbarAdminAvatar.textContent = initial;
             }
         }
     }
 
-    // 1. Fast apply from localStorage
-    const cachedName = localStorage.getItem('admin_user_name');
-    const cachedPhoto = localStorage.getItem('admin_user_photo');
+    const currentRole = (window.currentUser && window.currentUser.role) || (window.location.pathname.includes('/petugas') ? 'petugas' : 'admin');
+    const storageNameKey = currentRole === 'petugas' ? 'petugas_user_name' : 'admin_user_name';
+    const storagePhotoKey = currentRole === 'petugas' ? 'petugas_user_photo' : 'admin_user_photo';
+
+    // 1. Fast apply from role-specific localStorage or session data
+    const sessionName = window.currentUser && window.currentUser.name;
+    const cachedName = localStorage.getItem(storageNameKey) || sessionName;
+    const cachedPhoto = localStorage.getItem(storagePhotoKey);
     if (cachedName || cachedPhoto) {
         applyNavbarProfile(cachedName, cachedPhoto);
     }
 
-    // 2. Background sync from Firebase if logged in as admin
+    // 2. Background sync from Firebase according to role & petugas type
     const userId = window.currentUserId;
     if (userId && (navbarAdminName || navbarAdminAvatar)) {
-        fetch(`https://panicbttn2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${userId}.json`)
+        let fetchUrl = `https://panicbttn2-default-rtdb.asia-southeast1.firebasedatabase.app/users/${userId}.json`;
+        
+        if (currentRole === 'petugas') {
+            const petugasType = window.currentUserPetugasType || (window.currentUser && window.currentUser.petugasType);
+            const perumahanKey = window.currentUserPerumahanKey || (window.currentUser && window.currentUser.perumahanKey);
+            if (petugasType === 'perumahan' && perumahanKey) {
+                fetchUrl = `https://panicbuttonrtdb-eccd1-default-rtdb.firebaseio.com/perumahan/${perumahanKey}/users/${userId}.json`;
+            }
+        }
+
+        fetch(fetchUrl)
             .then(r => r.json())
             .then(data => {
                 if (data && typeof data === 'object') {
-                    const name = data.name || cachedName;
-                    const photo = data.photo_url || cachedPhoto;
-                    if (name) localStorage.setItem('admin_user_name', name);
-                    if (photo) localStorage.setItem('admin_user_photo', photo);
+                    const name = data.name || cachedName || sessionName;
+                    const photo = data.photo_url || data.photoUrl || data.avatar || cachedPhoto;
+                    if (name) localStorage.setItem(storageNameKey, name);
+                    if (photo) localStorage.setItem(storagePhotoKey, photo);
                     applyNavbarProfile(name, photo);
                 }
             })

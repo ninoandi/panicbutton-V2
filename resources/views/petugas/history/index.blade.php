@@ -11,45 +11,47 @@
 @section('content')
 <div class="petugas-history-page">
 
-    {{-- 1. HEADER & SEARCH / FILTER BAR --}}
+    {{-- 1. HEADER BANNER --}}
+    <section class="history-header-card">
+        <div class="history-header-content">
+            <div class="history-header-badge">
+                <span class="pulse"></span>
+                <span>Monitoring & Tanggap Insiden Terpadu</span>
+            </div>
+            <h2>Pusat Monitoring & Riwayat Laporan</h2>
+            <p>Pantau antrean laporan masuk, proses penanganan di lapangan, dan arsip laporan selesai.</p>
+        </div>
+    </section>
+
+    {{-- 2. SEARCH & FILTER BAR --}}
     <section class="history-filter-card">
-        <div class="filter-card-header">
-            <div class="filter-header-title">
-                <div class="filter-header-icon">
-                    <i class="fa-solid fa-list-check"></i>
-                </div>
-                <div>
-                    <h2>Pusat Monitoring & Riwayat Laporan</h2>
-                    <p>Pantau antrean laporan masuk, proses penanganan di lapangan, dan arsip laporan selesai.</p>
-                </div>
+        <div class="filter-controls-group">
+            {{-- Search Box (Full-width expanding) --}}
+            <div class="search-box-history">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input 
+                    type="text" 
+                    id="searchReportsInput" 
+                    placeholder="Cari nama pelapor, perumahan, lokasi, atau isi keterangan laporan..."
+                    autocomplete="off"
+                >
             </div>
 
-            <div class="filter-controls-group">
-                {{-- Search Box --}}
-                <div class="search-box-history">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input 
-                        type="text" 
-                        id="searchReportsInput" 
-                        placeholder="Cari nama pelapor, lokasi, keterangan..."
-                        autocomplete="off"
-                    >
-                </div>
-
-                {{-- Category Filter --}}
-                <div class="select-category-box">
-                    <select id="categoryFilter" class="custom-select-control">
-                        <option value="all">Semua Kategori (Perumahan & Public)</option>
-                        <option value="perumahan">Khusus Perumahan (DB1)</option>
-                        <option value="public">Khusus Public (DB2)</option>
-                    </select>
-                </div>
-
-                {{-- Refresh Button --}}
-                <button type="button" class="btn-refresh-history" id="btnRefreshHistory" title="Perbarui Data">
-                    <i class="fa-solid fa-arrows-rotate"></i>
-                </button>
+            {{-- Category Filter --}}
+            <div class="select-category-box">
+                <i class="fa-solid fa-filter select-icon"></i>
+                <select id="categoryFilter" class="custom-select-control">
+                    <option value="all">Semua Kategori</option>
+                    <option value="perumahan">Perumahan</option>
+                    <option value="public">Khusus Public</option>
+                </select>
             </div>
+
+            {{-- Refresh Button --}}
+            <button type="button" class="btn-refresh-history" id="btnRefreshHistory" title="Perbarui Data Riwayat">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span class="btn-refresh-text">Refresh</span>
+            </button>
         </div>
     </section>
 
