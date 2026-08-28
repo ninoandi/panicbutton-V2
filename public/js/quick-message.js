@@ -138,7 +138,6 @@ function renderTable() {
                         data-key="${escapeHtml(item.key)}"
                         title="Edit Pesan"
                     >
-                        <i class="fa-solid fa-pen-to-square"></i>
                         <span>Edit</span>
                     </button>
 
@@ -148,7 +147,6 @@ function renderTable() {
                         data-key="${escapeHtml(item.key)}"
                         title="Hapus Pesan"
                     >
-                        <i class="fa-solid fa-trash-can"></i>
                         <span>Hapus</span>
                     </button>
                 </div>

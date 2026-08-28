@@ -105,7 +105,7 @@ const devicesRef = ref(db2, "panicChannels");
 function loadUsers() {
     onValue(usersRef, (snapshot) => {
         const data = snapshot.val() || {};
-        
+
         allUsers = Object.entries(data)
             .filter(([id, user]) => {
                 if (!user || typeof user !== "object") return false;
@@ -114,53 +114,53 @@ function loadUsers() {
                 return role !== "admin" && role !== "administrator" && role !== "petugas" && role !== "petugas lapangan" && role !== "security";
             })
             .map(([id, user]) => {
-            if (!user || typeof user !== "object") {
+                if (!user || typeof user !== "object") {
+                    return {
+                        id: id,
+                        name: "Tidak Diketahui",
+                        username: "-",
+                        email: "-",
+                        phone: "-",
+                        gender: "-",
+                        role: "user",
+                        assigned_device: "-",
+                        assigned_zone: "-",
+                        status: "active"
+                    };
+                }
+
                 return {
                     id: id,
-                    name: "Tidak Diketahui",
-                    username: "-",
-                    email: "-",
-                    phone: "-",
-                    gender: "-",
-                    role: "user",
-                    assigned_device: "-",
-                    assigned_zone: "-",
-                    status: "active"
+                    ...user,
+                    name: user.name || user.nama || user.fullName || "Tidak Diketahui",
+                    username: user.username || "-",
+                    email: user.email || "-",
+                    phone: user.phone || user.phoneNumber || user.no_hp || "-",
+                    gender: user.gender || user.jenis_kelamin || "-",
+                    birth_date: user.birth_date || user.tanggal_lahir || "-",
+                    full_address: user.full_address || user.alamat || "-",
+                    province: user.province || "-",
+                    city: user.city || "-",
+                    district: user.district || "-",
+                    subdistrict: user.subdistrict || "-",
+                    postal_code: user.postal_code || "-",
+                    blood_type: user.blood_type || user.golongan_darah || "-",
+                    allergies: user.allergies || user.alergi || "-",
+                    medical_notes: user.medical_notes || user.kondisi_medis || user.catatan_kesehatan || "-",
+                    emergency_name_1: user.emergency_name_1 || "-",
+                    emergency_relation_1: user.emergency_relation_1 || "-",
+                    emergency_phone_1: user.emergency_phone_1 || "-",
+                    emergency_name_2: user.emergency_name_2 || "-",
+                    emergency_relation_2: user.emergency_relation_2 || "-",
+                    emergency_phone_2: user.emergency_phone_2 || "-",
+                    role: user.role || "user",
+                    assigned_device: user.assigned_device || user.device_id || "-",
+                    assigned_zone: user.assigned_zone || "-",
+                    status: user.status || "active",
+                    created_at: user.created_at || user.createdAt || Date.now()
                 };
-            }
+            });
 
-            return {
-                id: id,
-                ...user,
-                name: user.name || user.nama || user.fullName || "Tidak Diketahui",
-                username: user.username || "-",
-                email: user.email || "-",
-                phone: user.phone || user.phoneNumber || user.no_hp || "-",
-                gender: user.gender || user.jenis_kelamin || "-",
-                birth_date: user.birth_date || user.tanggal_lahir || "-",
-                full_address: user.full_address || user.alamat || "-",
-                province: user.province || "-",
-                city: user.city || "-",
-                district: user.district || "-",
-                subdistrict: user.subdistrict || "-",
-                postal_code: user.postal_code || "-",
-                blood_type: user.blood_type || user.golongan_darah || "-",
-                allergies: user.allergies || user.alergi || "-",
-                medical_notes: user.medical_notes || user.kondisi_medis || user.catatan_kesehatan || "-",
-                emergency_name_1: user.emergency_name_1 || "-",
-                emergency_relation_1: user.emergency_relation_1 || "-",
-                emergency_phone_1: user.emergency_phone_1 || "-",
-                emergency_name_2: user.emergency_name_2 || "-",
-                emergency_relation_2: user.emergency_relation_2 || "-",
-                emergency_phone_2: user.emergency_phone_2 || "-",
-                role: user.role || "user",
-                assigned_device: user.assigned_device || user.device_id || "-",
-                assigned_zone: user.assigned_zone || "-",
-                status: user.status || "active",
-                created_at: user.created_at || user.createdAt || Date.now()
-            };
-        });
-        
         applyFilters();
     }, (error) => {
         console.error("Error loading users from DB2:", error);
@@ -188,7 +188,7 @@ function loadDevices() {
         const data = snapshot.val() || {};
         devicesList = [];
         const deviceOptions = new Set();
-        
+
         Object.entries(data).forEach(([zoneName, zoneData]) => {
             if (zoneData && typeof zoneData === 'object') {
                 Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
@@ -210,7 +210,7 @@ function loadDevices() {
                 });
             }
         });
-        
+
         populateDeviceSelect();
     }, (error) => {
         console.error('Error loading devices:', error);
@@ -219,12 +219,12 @@ function loadDevices() {
 
 function populateDeviceSelect() {
     if (!deviceSelect) return;
-    
+
     const currentValue = deviceSelect.value;
     deviceSelect.innerHTML = '<option value="">-- Pilih Perangkat --</option>';
-    
+
     devicesList.sort((a, b) => a.name.localeCompare(b.name));
-    
+
     devicesList.forEach(device => {
         const option = document.createElement('option');
         option.value = device.name;
@@ -234,7 +234,7 @@ function populateDeviceSelect() {
         option.dataset.zone = device.zone || '';
         deviceSelect.appendChild(option);
     });
-    
+
     if (currentValue) {
         deviceSelect.value = currentValue;
         setTimeout(autoFillZona, 100);
@@ -251,13 +251,13 @@ function autoFillZona() {
 }
 
 if (deviceSelect) {
-    deviceSelect.addEventListener('change', function() {
+    deviceSelect.addEventListener('change', function () {
         const selectedDeviceName = this.value;
         if (!selectedDeviceName) {
             if (zonaInput) zonaInput.value = '';
             return;
         }
-        
+
         const selectedDevice = devicesList.find(device => device.name === selectedDeviceName);
         if (selectedDevice && selectedDevice.zone) {
             if (zonaInput) zonaInput.value = selectedDevice.zone;
@@ -325,7 +325,7 @@ function renderTable(users) {
     }
 
     const startIndex = (currentPage - 1) * usersPerPage;
-    
+
     tableBody.innerHTML = users.map((user, index) => {
         const globalIndex = startIndex + index + 1;
         const initial = (user.name && user.name.trim().length > 0)
@@ -375,15 +375,12 @@ function renderTable(users) {
                 <td style="text-align: center;">
                     <div class="table-action-btns">
                         <button type="button" class="btn-table-action btn-action-edit" onclick="window.editUserPublic('${escapeHtml(user.id)}')" title="Edit Data User Public">
-                            <i class="fa-solid fa-pen"></i>
                             <span>Edit</span>
                         </button>
                         <button type="button" class="btn-table-action btn-action-detail" onclick="window.detailUserPublic('${escapeHtml(user.id)}')" title="Lihat Profil Lengkap & Medis">
-                            <i class="fa-solid fa-eye"></i>
                             <span>Detail</span>
                         </button>
                         <button type="button" class="btn-table-action btn-action-delete" onclick="window.deleteUserPublic('${escapeHtml(user.id)}')" title="Hapus User Public">
-                            <i class="fa-solid fa-trash"></i>
                             <span>Hapus</span>
                         </button>
                     </div>
@@ -426,7 +423,7 @@ function updatePagination() {
 // DETAIL USER PUBLIC - LENGKAP DENGAN DATA MEDIS & KONTAK
 // ======================================================
 
-window.detailUserPublic = function(userId) {
+window.detailUserPublic = function (userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user) {
         Swal.fire({
@@ -460,7 +457,6 @@ window.detailUserPublic = function(userId) {
                 </div>
             </div>
 
-            {{-- 1. INFORMASI PRIBADI --}}
             <div class="detail-section-title">
                 <i class="fa-solid fa-user"></i>
                 <span>Informasi Pribadi</span>
@@ -492,7 +488,6 @@ window.detailUserPublic = function(userId) {
                 </div>
             </div>
 
-            {{-- 2. INFORMASI MEDIS & KESEHATAN --}}
             <div class="detail-section-title" style="margin-top: 18px;">
                 <i class="fa-solid fa-heart-pulse"></i>
                 <span>Informasi Medis & Kesehatan</span>
@@ -514,7 +509,6 @@ window.detailUserPublic = function(userId) {
                 </div>
             </div>
 
-            {{-- 3. KONTAK DARURAT --}}
             <div class="detail-section-title" style="margin-top: 18px;">
                 <i class="fa-solid fa-truck-medical"></i>
                 <span>Kontak Darurat</span>
@@ -537,7 +531,6 @@ window.detailUserPublic = function(userId) {
                 </div>
             </div>
 
-            {{-- 4. PERANGKAT IOT & SISTEM --}}
             <div class="detail-section-title" style="margin-top: 18px;">
                 <i class="fa-solid fa-microchip"></i>
                 <span>Perangkat IoT & Status Akun</span>
@@ -578,7 +571,7 @@ if (closeDetailBtn) {
 // EDIT USER PUBLIC
 // ======================================================
 
-window.editUserPublic = function(userId) {
+window.editUserPublic = function (userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user) {
         Swal.fire({
@@ -634,7 +627,7 @@ window.editUserPublic = function(userId) {
 // DELETE USER PUBLIC
 // ======================================================
 
-window.deleteUserPublic = async function(userId) {
+window.deleteUserPublic = async function (userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user) return;
 
@@ -652,7 +645,7 @@ window.deleteUserPublic = async function(userId) {
     if (result.isConfirmed) {
         try {
             await remove(ref(db2, `users/${userId}`));
-            
+
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil!',
@@ -819,7 +812,7 @@ if (saveBtn) {
             if (editingUserId) {
                 // UPDATE MODE
                 await update(ref(db2, `users/${editingUserId}`), userData);
-                
+
                 Swal.fire({
                     icon: "success",
                     title: "Berhasil",

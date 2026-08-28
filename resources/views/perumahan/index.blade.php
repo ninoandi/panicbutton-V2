@@ -25,68 +25,11 @@
         </div>
 
         <button type="button" class="btn-add-perumahan" id="openAddModal">
-            <i class="fa-solid fa-plus"></i>
             <span>Tambah Perumahan</span>
         </button>
     </section>
 
-    {{-- =========================================================
-         2. TOP METRICS SUMMARY (3 CARDS)
-    ========================================================== --}}
-    <section class="rekap-summary">
 
-        {{-- Card 1: Total Perumahan --}}
-        <div class="rekap-summary-card rekap-card-total">
-            <div class="rekap-summary-header">
-                <div class="rekap-summary-icon rekap-icon-total">
-                    <i class="fa-solid fa-building-shield"></i>
-                </div>
-                <span class="rekap-badge-total">
-                    Terdaftar
-                </span>
-            </div>
-            <div class="rekap-summary-body">
-                <span class="rekap-summary-label">Total Perumahan</span>
-                <strong class="rekap-summary-count" id="totalCount">0</strong>
-                <span class="rekap-summary-desc">Kawasan perumahan yang terdata</span>
-            </div>
-        </div>
-
-        {{-- Card 2: Status Integrasi --}}
-        <div class="rekap-summary-card rekap-card-status">
-            <div class="rekap-summary-header">
-                <div class="rekap-summary-icon rekap-icon-status">
-                    <i class="fa-solid fa-tower-broadcast"></i>
-                </div>
-                <span class="rekap-badge-status">
-                    <span class="pulse-dot"></span> Siaga
-                </span>
-            </div>
-            <div class="rekap-summary-body">
-                <span class="rekap-summary-label">Status Sistem</span>
-                <strong class="rekap-summary-count" style="font-size: 24px;">Siaga Realtime</strong>
-                <span class="rekap-summary-desc">Buzzer & alarm darurat terhubung</span>
-            </div>
-        </div>
-
-        {{-- Card 3: Cloud Database --}}
-        <div class="rekap-summary-card rekap-card-sync">
-            <div class="rekap-summary-header">
-                <div class="rekap-summary-icon rekap-icon-sync">
-                    <i class="fa-solid fa-database"></i>
-                </div>
-                <span class="rekap-badge-sync">
-                    Firebase Sync
-                </span>
-            </div>
-            <div class="rekap-summary-body">
-                <span class="rekap-summary-label">Koneksi Database</span>
-                <strong class="rekap-summary-count" style="font-size: 24px;">Terhubung</strong>
-                <span class="rekap-summary-desc">Sinkronisasi data otomatis</span>
-            </div>
-        </div>
-
-    </section>
 
     {{-- =========================================================
          3. SEARCH FILTER BAR

@@ -25,7 +25,6 @@
         </div>
 
         <button type="button" class="btn-add-user" id="openAddUserPublicModal">
-            <i class="fa-solid fa-user-plus"></i>
             <span>Tambah User Public</span>
         </button>
     </section>
@@ -60,8 +59,7 @@
                     <span>Aksi</span>
                 </label>
                 <button type="button" id="btnExportUserPublicExcel" class="btn-export-excel" title="Import / Unduh Excel Data User Public">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Import Data User</span>
+                    <span>Eskport Data User</span>
                 </button>
             </div>
 

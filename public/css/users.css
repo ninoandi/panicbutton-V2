@@ -588,20 +588,27 @@
 .table-action-btns {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 8px;
 }
 
 .btn-table-action {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 6px;
     padding: 6px 12px;
+    height: 32px;
+    min-width: 70px;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
     border: 1px solid transparent;
+    box-sizing: border-box;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .btn-action-edit {

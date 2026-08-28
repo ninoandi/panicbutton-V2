@@ -588,9 +588,11 @@
 .btn-action-edit {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 7px 14px;
+    padding: 7px 12px;
     height: 32px;
+    min-width: 70px;
     box-sizing: border-box;
     background: var(--dash-profile-bg);
     color: var(--dash-profile);
@@ -601,6 +603,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s ease;
+    text-align: center;
 }
 
 .btn-action-edit:hover {
@@ -613,9 +616,11 @@
 .btn-action-delete {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
-    padding: 7px 14px;
+    padding: 7px 12px;
     height: 32px;
+    min-width: 70px;
     box-sizing: border-box;
     background: var(--dash-emergency-bg);
     color: var(--dash-emergency);
@@ -626,6 +631,7 @@
     cursor: pointer;
     white-space: nowrap;
     transition: all 0.2s ease;
+    text-align: center;
 }
 
 .btn-action-delete:hover {

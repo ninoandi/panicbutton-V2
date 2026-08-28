@@ -1,13 +1,15 @@
 /* =========================================================
-   RIWAYAT LAPORAN PETUGAS (3-AREA KANBAN CONTROLLER)
-   Firebase Realtime Database (DB1 Perumahan & DB2 Public)
+   RIWAYAT LAPORAN PETUGAS - HIGH PERFORMANCE 3-AREA KANBAN
+   Firebase Realtime Database (Targeted Queries & Limit Optimization)
 ========================================================= */
 
 import { db1, db2 } from "../firebase-config.js";
 import {
     ref,
     onValue,
-    update
+    update,
+    query,
+    limitToLast
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -34,6 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modalReportId = document.getElementById("modalReportId");
     const modalReportSource = document.getElementById("modalReportSource");
     const modalReportPerumahanKey = document.getElementById("modalReportPerumahanKey");
+    const modalReportDbTable = document.getElementById("modalReportDbTable");
     const modalDetailContent = document.getElementById("modalDetailContent");
     const officerResponseNote = document.getElementById("officerResponseNote");
     const radioStatusCards = document.querySelectorAll(".status-radio-card");
@@ -85,139 +88,224 @@ document.addEventListener("DOMContentLoaded", () => {
         return checked ? checked.value : "Menunggu";
     }
 
-    // State Variables
-    let allReports = [];
-    let rawHousingReports = [];
+    // URL Parameters handling (e.g. from Dashboard click)
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetReportIdParam = urlParams.get("reportId");
+    let initialReportModalOpened = false;
+
+    if (categoryFilter) {
+        categoryFilter.value = "all";
+    }
+
+    // High Performance In-Memory Data Store
+    let daftarPerumahanDict = {};
+    const housingReportsMap = new Map(); // clusterKey -> array of reports
     let rawPublicReports = [];
     let rawPublicPanics = [];
+    let allReports = [];
+    let activeClusterListeners = new Set();
+    let batchFilterTimer = null;
 
     /* =========================================================
-       1. REALTIME FIREBASE LISTENERS (DB1 & DB2)
+       HELPER: TIMESTAMP & STATUS PARSER
+    ========================================================= */
+    function parseTimestamp(rawTime, item = {}) {
+        if (item.timestamp && typeof item.timestamp === "number" && item.timestamp > 0) {
+            return item.timestamp < 10000000000 ? item.timestamp * 1000 : item.timestamp;
+        }
+        if (item.created_at && typeof item.created_at === "number" && item.created_at > 0) {
+            return item.created_at < 10000000000 ? item.created_at * 1000 : item.created_at;
+        }
+
+        if (!rawTime || rawTime === "-") return Date.now();
+
+        if (typeof rawTime === "number" && rawTime > 0) {
+            return rawTime < 10000000000 ? rawTime * 1000 : rawTime;
+        }
+
+        const str = String(rawTime).trim();
+        if (/^\d+$/.test(str)) {
+            const num = parseInt(str, 10);
+            return num < 10000000000 ? num * 1000 : num;
+        }
+
+        const matchWaktu = str.match(/^(\d{4}-\d{2}-\d{2})\s+waktu\s+(\d{2}:\d{2}(?::\d{2})?)$/i);
+        if (matchWaktu) {
+            const d = new Date(`${matchWaktu[1]}T${matchWaktu[2]}`);
+            if (!isNaN(d.getTime())) return d.getTime();
+        }
+
+        const matchIso = str.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)$/);
+        if (matchIso) {
+            const d = new Date(`${matchIso[1]}T${matchIso[2]}`);
+            if (!isNaN(d.getTime())) return d.getTime();
+        }
+
+        const parsed = new Date(str);
+        if (!isNaN(parsed.getTime())) {
+            return parsed.getTime();
+        }
+
+        return Date.now();
+    }
+
+    function normalizeStatus(status) {
+        if (!status) return "Menunggu";
+        const s = String(status).toLowerCase().trim();
+        if (s === "selesai" || s === "completed" || s === "done" || s === "tuntas") return "Selesai";
+        if (s === "diproses" || s === "proses" || s === "process" || s === "handling") return "Diproses";
+        return "Menunggu";
+    }
+
+    function scheduleBatchFilter() {
+        if (batchFilterTimer) clearTimeout(batchFilterTimer);
+        batchFilterTimer = setTimeout(() => {
+            mergeAndRenderReports();
+        }, 50);
+    }
+
+    /* =========================================================
+       1. OPTIMIZED REALTIME FIREBASE LISTENERS (DB1 & DB2)
     ========================================================= */
 
-    // DB1: Perumahan Reports
-    const perumahanRef = ref(db1, "perumahan");
-    onValue(perumahanRef, (snapshot) => {
-        const data = snapshot.val() || {};
-        rawHousingReports = [];
+    // DB1: Daftar Perumahan
+    const daftarRef = ref(db1, "daftar_perumahan");
+    onValue(daftarRef, (snapshot) => {
+        daftarPerumahanDict = snapshot.val() || {};
+        const clusterKeys = Object.keys(daftarPerumahanDict);
 
-        Object.entries(data).forEach(([pKey, pVal]) => {
-            if (!pVal || typeof pVal !== "object" || pKey === "buzzers") return;
-            const pName = pVal.info?.nama || pVal.nama || pKey;
+        clusterKeys.forEach(pKey => {
+            if (activeClusterListeners.has(pKey)) return;
+            activeClusterListeners.add(pKey);
 
-            if (pVal.reports) {
-                Object.entries(pVal.reports).forEach(([rId, rVal]) => {
-                    if (!rVal) return;
-                    rawHousingReports.push({
-                        id: rId,
+            const pName = daftarPerumahanDict[pKey] || pKey;
+
+            // Targeted query: Hanya ambil sub-node monitor berbatas (limitToLast 60)
+            const monitorQuery = query(ref(db1, `perumahan/${pKey}/monitor`), limitToLast(60));
+            onValue(monitorQuery, (mSnap) => {
+                const monitorData = mSnap.val() || {};
+                const clusterReports = [];
+
+                Object.entries(monitorData).forEach(([mId, mVal]) => {
+                    if (!mVal || typeof mVal !== "object") return;
+                    const rawTime = mVal.time || mVal.waktu || mVal.timestamp || mVal.created_at || "-";
+                    const ts = parseTimestamp(rawTime, mVal);
+
+                    clusterReports.push({
+                        id: mId,
                         source: "perumahan",
+                        dbTable: "monitor",
                         perumahanKey: pKey,
                         perumahanName: pName,
-                        userName: rVal.userName || rVal.nama_warga || rVal.nama || "Warga Perumahan",
-                        userPhone: rVal.phoneNumber || rVal.phone || rVal.telepon || "-",
-                        location: rVal.houseNumber ? `Rumah No. ${rVal.houseNumber} (${pName})` : pName,
-                        houseNumber: rVal.houseNumber || "-",
-                        time: rVal.timestamp || rVal.time || rVal.created_at || Date.now(),
-                        status: normalizeStatus(rVal.status),
-                        note: rVal.note || rVal.keterangan || rVal.catatan || "-",
-                        device: rVal.device || rVal.buzzer_name || "Buzzer Perumahan",
-                        latitude: rVal.latitude || null,
-                        longitude: rVal.longitude || null
+                        userName: mVal.name || mVal.nama || mVal.username || mVal.userName || "Warga Perumahan",
+                        userPhone: mVal.phone || mVal.phoneNumber || mVal.telepon || mVal.no_hp || "-",
+                        location: mVal.houseNumber ? `Rumah No. ${mVal.houseNumber} (${pName})` : pName,
+                        houseNumber: mVal.houseNumber || mVal.no_rumah || mVal.house_number || "-",
+                        time: ts,
+                        status: normalizeStatus(mVal.status),
+                        note: mVal.message || mVal.pesan || mVal.description || mVal.keterangan || mVal.note || "-",
+                        officerNote: mVal.officer_note || mVal.response_note || "",
+                        device: mVal.device || mVal.buzzer_name || "Sensor Panic Perumahan",
+                        latitude: mVal.latitude || mVal.lat || null,
+                        longitude: mVal.longitude || mVal.lng || null
                     });
                 });
-            }
+
+                housingReportsMap.set(pKey, clusterReports);
+                scheduleBatchFilter();
+            }, (err) => {
+                console.warn(`DB1 cluster monitor ${pKey} error:`, err);
+            });
         });
 
-        mergeAndRenderReports();
+        scheduleBatchFilter();
     }, (err) => {
-        console.error("DB1 load reports error:", err);
+        console.error("DB1 daftar_perumahan error:", err);
     });
 
-    // DB2: Public Panics
-    const publicPanicsRef = ref(db2, "public_panics");
-    onValue(publicPanicsRef, (snapshot) => {
+    // DB2: Public Panics (Targeted limitToLast 80)
+    const publicPanicsQuery = query(ref(db2, "public_panics"), limitToLast(80));
+    onValue(publicPanicsQuery, (snapshot) => {
         const data = snapshot.val() || {};
-        rawPublicPanics = Object.entries(data).map(([rId, rVal]) => ({
-            id: rId,
-            source: "public",
-            dbTable: "public_panics",
-            perumahanKey: "",
-            perumahanName: "Area Publik",
-            userName: rVal.senderName || rVal.name || rVal.user_name || "Warga Publik",
-            userPhone: rVal.phone || rVal.telepon || "-",
-            location: rVal.address || rVal.lokasi || (rVal.latitude && rVal.longitude ? `${rVal.latitude}, ${rVal.longitude}` : "Area Publik"),
-            houseNumber: "-",
-            time: rVal.created_at || rVal.timestamp || Date.now(),
-            status: normalizeStatus(rVal.status),
-            note: rVal.description || rVal.note || rVal.keterangan || "-",
-            device: rVal.assigned_device || rVal.device || "IoT Panic Device",
-            latitude: rVal.latitude || null,
-            longitude: rVal.longitude || null,
-            locationUrl: rVal.locationUrl || null
-        }));
+        rawPublicPanics = Object.entries(data).map(([rId, rVal]) => {
+            const rawTime = rVal.created_at || rVal.timestamp || Date.now();
+            const ts = parseTimestamp(rawTime, rVal);
 
-        mergeAndRenderReports();
+            return {
+                id: rId,
+                source: "public",
+                dbTable: "public_panics",
+                perumahanKey: "",
+                perumahanName: "Area Publik",
+                userName: rVal.senderName || rVal.name || rVal.user_name || "Warga Publik",
+                userPhone: rVal.phone || rVal.telepon || "-",
+                location: rVal.address || rVal.lokasi || (rVal.latitude && rVal.longitude ? `${rVal.latitude}, ${rVal.longitude}` : "Area Publik"),
+                houseNumber: "-",
+                time: ts,
+                status: normalizeStatus(rVal.status),
+                note: rVal.description || rVal.note || rVal.keterangan || "-",
+                officerNote: rVal.officer_note || rVal.response_note || "",
+                device: rVal.assigned_device || rVal.device || "IoT Panic Device",
+                latitude: rVal.latitude || null,
+                longitude: rVal.longitude || null,
+                locationUrl: rVal.locationUrl || null
+            };
+        });
+
+        scheduleBatchFilter();
     }, (err) => {
         console.error("DB2 load public_panics error:", err);
     });
 
-    // DB2: Public Reports
-    const publicReportsRef = ref(db2, "reports");
-    onValue(publicReportsRef, (snapshot) => {
+    // DB2: Public Reports (Targeted limitToLast 80)
+    const publicReportsQuery = query(ref(db2, "reports"), limitToLast(80));
+    onValue(publicReportsQuery, (snapshot) => {
         const data = snapshot.val() || {};
-        rawPublicReports = Object.entries(data).map(([rId, rVal]) => ({
-            id: rId,
-            source: "public",
-            dbTable: "reports",
-            perumahanKey: "",
-            perumahanName: "Area Publik",
-            userName: rVal.user_name || rVal.name || "Pengguna Publik",
-            userPhone: rVal.phone || rVal.telepon || "-",
-            location: rVal.location || rVal.address || "Area Publik",
-            houseNumber: "-",
-            time: rVal.timestamp || rVal.created_at || Date.now(),
-            status: normalizeStatus(rVal.status),
-            note: rVal.description || rVal.note || rVal.keterangan || "-",
-            device: rVal.device || "Aplikasi Publik",
-            latitude: rVal.latitude || null,
-            longitude: rVal.longitude || null,
-            locationUrl: rVal.locationUrl || null
-        }));
+        rawPublicReports = Object.entries(data).map(([rId, rVal]) => {
+            const rawTime = rVal.timestamp || rVal.created_at || Date.now();
+            const ts = parseTimestamp(rawTime, rVal);
 
-        mergeAndRenderReports();
+            return {
+                id: rId,
+                source: "public",
+                dbTable: "reports",
+                perumahanKey: "",
+                perumahanName: "Area Publik",
+                userName: rVal.user_name || rVal.name || "Pengguna Publik",
+                userPhone: rVal.phone || rVal.telepon || "-",
+                location: rVal.location || rVal.address || "Area Publik",
+                houseNumber: "-",
+                time: ts,
+                status: normalizeStatus(rVal.status),
+                note: rVal.description || rVal.note || rVal.keterangan || "-",
+                officerNote: rVal.officer_note || rVal.response_note || "",
+                device: rVal.device || "Aplikasi Publik",
+                latitude: rVal.latitude || null,
+                longitude: rVal.longitude || null,
+                locationUrl: rVal.locationUrl || null
+            };
+        });
+
+        scheduleBatchFilter();
     }, (err) => {
         console.error("DB2 load reports error:", err);
     });
 
     /* =========================================================
-       2. NORMALISASI STATUS & MERGE
+       2. GABUNGKAN DATA & FILTER KANBAN BOARD
     ========================================================= */
 
-    function normalizeStatus(status) {
-        if (!status) return "Menunggu";
-        const s = String(status).toLowerCase().trim();
-        if (s === "selesai" || s === "completed" || s === "done") return "Selesai";
-        if (s === "diproses" || s === "proses" || s === "process" || s === "handling") return "Diproses";
-        return "Menunggu"; // Default 1-kata term
-    }
-
     function mergeAndRenderReports() {
-        // Gabungkan semua laporan
-        allReports = [...rawHousingReports, ...rawPublicPanics, ...rawPublicReports];
+        const flattenedHousing = [];
+        housingReportsMap.forEach(reports => flattenedHousing.push(...reports));
+
+        allReports = [...flattenedHousing, ...rawPublicPanics, ...rawPublicReports];
 
         // Sort desc berdasarkan waktu (terbaru di atas)
-        allReports.sort((a, b) => {
-            const timeA = typeof a.time === "number" ? a.time : new Date(a.time).getTime() || 0;
-            const timeB = typeof b.time === "number" ? b.time : new Date(b.time).getTime() || 0;
-            return timeB - timeA;
-        });
+        allReports.sort((a, b) => b.time - a.time);
 
         filterAndRenderBoard();
     }
-
-    /* =========================================================
-       3. FILTER & RENDER KANBAN BOARD
-    ========================================================= */
 
     function filterAndRenderBoard() {
         const keyword = (searchReportsInput ? searchReportsInput.value : "").trim().toLowerCase();
@@ -267,6 +355,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Render Area 3: Selesai
         renderColumn(doneCardsContainer, doneList, "Selesai");
+
+        // Auto-open modal if targeted from URL (e.g. from Dashboard)
+        if (!initialReportModalOpened && targetReportIdParam && allReports.length > 0) {
+            const target = allReports.find(r => r.id === targetReportIdParam);
+            if (target) {
+                initialReportModalOpened = true;
+                setTimeout(() => {
+                    window.openDetailReportModal(targetReportIdParam);
+                    const el = document.getElementById("report_card_" + targetReportIdParam);
+                    if (el) {
+                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        el.style.boxShadow = "0 0 0 3px #2563eb";
+                        setTimeout(() => { el.style.boxShadow = ""; }, 3000);
+                    }
+                }, 200);
+            }
+        }
     }
 
     function renderColumn(container, items, columnStatus) {
@@ -370,7 +475,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       4. DETAIL MODAL & UBAH STATUS
+       3. DETAIL MODAL & UBAH STATUS
     ========================================================= */
 
     window.openDetailReportModal = function (reportId) {
@@ -380,7 +485,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (modalReportId) modalReportId.value = report.id;
         if (modalReportSource) modalReportSource.value = report.source;
         if (modalReportPerumahanKey) modalReportPerumahanKey.value = report.perumahanKey || "";
-        if (officerResponseNote) officerResponseNote.value = "";
+        if (modalReportDbTable) modalReportDbTable.value = report.dbTable || "monitor";
+        if (officerResponseNote) officerResponseNote.value = report.officerNote || "";
 
         setModalStatusRadio(report.status);
 
@@ -388,7 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let mapLinkHtml = "-";
         if (report.locationUrl) {
             mapLinkHtml = `<a href="${report.locationUrl}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline; font-weight:600;"><i class="fa-solid fa-map-location-dot"></i> Buka Google Maps</a>`;
-        } else if (report.latitude && report.longitude) {
+        } else if (report.latitude && report.longitude && report.latitude != 0 && report.longitude != 0) {
             mapLinkHtml = `<a href="https://www.google.com/maps?q=${report.latitude},${report.longitude}" target="_blank" rel="noopener noreferrer" style="color:#2563eb; text-decoration:underline; font-weight:600;"><i class="fa-solid fa-map-location-dot"></i> Buka Google Maps (${report.latitude}, ${report.longitude})</a>`;
         }
 
@@ -397,6 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="detail-row-label"><i class="fa-solid fa-tag"></i> Kategori Laporan</span>
                 <span class="detail-row-value">
                     <span class="category-tag ${report.source === 'perumahan' ? 'perumahan' : 'public'}">
+                        <i class="${report.source === 'perumahan' ? 'fa-solid fa-building-shield' : 'fa-solid fa-tower-cell'}"></i>
                         ${report.source === 'perumahan' ? 'Perumahan' : 'Public'}
                     </span>
                 </span>
@@ -440,11 +547,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const reportId = modalReportId.value;
             const source = modalReportSource.value;
             const perumahanKey = modalReportPerumahanKey.value;
+            const dbTable = modalReportDbTable ? modalReportDbTable.value : "monitor";
             const newStatus = getSelectedRadioStatus();
             const noteText = (officerResponseNote ? officerResponseNote.value : "").trim();
-
-            const report = allReports.find(r => r.id === reportId);
-            const dbTable = report ? report.dbTable : "public_panics";
 
             await executeStatusUpdate(reportId, source, perumahanKey, newStatus, dbTable, noteText);
             closeModal();
@@ -474,7 +579,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Eksekusi Update ke Firebase DB1 / DB2
-    async function executeStatusUpdate(reportId, source, perumahanKey, newStatus, dbTable = "public_panics", note = "") {
+    async function executeStatusUpdate(reportId, source, perumahanKey, newStatus, dbTable = "monitor", note = "") {
         try {
             const updatePayload = {
                 status: newStatus,
@@ -487,7 +592,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (source === "perumahan") {
                 if (!perumahanKey) throw new Error("Perumahan Key tidak ditemukan.");
-                await update(ref(db1, `perumahan/${perumahanKey}/reports/${reportId}`), updatePayload);
+                const subNode = dbTable || "monitor";
+                await update(ref(db1, `perumahan/${perumahanKey}/${subNode}/${reportId}`), updatePayload);
             } else {
                 // Public DB2
                 const tableTarget = dbTable || "public_panics";
@@ -498,10 +604,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const foundReport = allReports.find(r => r.id === reportId);
             if (foundReport) {
                 foundReport.status = newStatus;
-                if (note) foundReport.officer_note = note;
+                if (note) foundReport.officerNote = note;
             }
 
-            filterAndRenderBoard();
+            scheduleBatchFilter();
 
             Swal.fire({
                 icon: "success",
@@ -523,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     /* =========================================================
-       5. EVENT LISTENERS FILTER
+       4. EVENT LISTENERS FILTER
     ========================================================= */
 
     if (searchReportsInput) {
@@ -543,8 +649,8 @@ document.addEventListener("DOMContentLoaded", () => {
             btnRefreshHistory.querySelector("i").classList.add("fa-spin");
             setTimeout(() => {
                 btnRefreshHistory.querySelector("i").classList.remove("fa-spin");
-                filterAndRenderBoard();
-            }, 600);
+                scheduleBatchFilter();
+            }, 500);
         });
     }
 

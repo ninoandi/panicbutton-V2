@@ -586,6 +586,7 @@ table tbody tr:hover td {
     gap: 6px;
     padding: 7px 12px;
     height: 32px;
+    min-width: 70px;
     box-sizing: border-box;
     border-radius: 8px;
     font-size: 12px;
@@ -596,6 +597,7 @@ table tbody tr:hover td {
     border: none;
     transition: all 0.2s ease;
     margin: 0;
+    text-align: center;
 }
 
 .btn-edit {

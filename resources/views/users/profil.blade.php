@@ -46,7 +46,6 @@
 
         <div class="profile-header-right">
             <button type="button" id="toggleEditFormBtn" class="btn-toggle-edit">
-                <i class="fa-solid fa-pen-to-square"></i>
                 <span>Lengkapi / Edit Profil</span>
             </button>
         </div>
@@ -62,7 +61,7 @@
                     <i class="fa-solid fa-id-card"></i>
                 </div>
                 <div>
-                    <h3>1. Informasi Pribadi</h3>
+                    <h3>Informasi Pribadi</h3>
                     <p>Identitas diri dan kontak dasar pengguna</p>
                 </div>
             </div>
@@ -102,7 +101,7 @@
                     <i class="fa-solid fa-map-location-dot"></i>
                 </div>
                 <div>
-                    <h3>2. Informasi Alamat</h3>
+                    <h3>Informasi Alamat</h3>
                     <p>Domisili tempat tinggal untuk verifikasi respon darurat</p>
                 </div>
             </div>
@@ -147,7 +146,7 @@
                     <i class="fa-solid fa-phone-volume"></i>
                 </div>
                 <div>
-                    <h3>3. Kontak Darurat (Emergency Contacts)</h3>
+                    <h3>Kontak Darurat (Emergency Contacts)</h3>
                     <p>Pihak keluarga atau kerabat yang segera dihubungi saat situasi genting</p>
                 </div>
             </div>
@@ -218,7 +217,7 @@
                     <i class="fa-solid fa-heart-pulse"></i>
                 </div>
                 <div>
-                    <h3>4. Informasi Kesehatan & Medis</h3>
+                    <h3>Informasi Kesehatan & Medis</h3>
                     <p>Catatan penting untuk penanganan medis pertama oleh tim penyelamat</p>
                 </div>
             </div>
@@ -263,7 +262,7 @@
             
             {{-- FIELDSET 1: INFORMASI PRIBADI --}}
             <div class="form-fieldset">
-                <h4 class="fieldset-legend"><i class="fa-solid fa-id-card"></i> 1. Informasi Pribadi</h4>
+                <h4 class="fieldset-legend"><i class="fa-solid fa-id-card"></i>Informasi Pribadi</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="input_name" class="form-label">Nama Lengkap <span class="required-star">*</span></label>
@@ -301,7 +300,7 @@
 
             {{-- FIELDSET 2: ALAMAT LENGKAP --}}
             <div class="form-fieldset">
-                <h4 class="fieldset-legend"><i class="fa-solid fa-map-location-dot"></i> 2. Informasi Alamat</h4>
+                <h4 class="fieldset-legend"><i class="fa-solid fa-map-location-dot"></i>Informasi Alamat</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="input_province" class="form-label">Provinsi</label>
@@ -337,7 +336,7 @@
 
             {{-- FIELDSET 3: KONTAK DARURAT (2 KONTAK) --}}
             <div class="form-fieldset">
-                <h4 class="fieldset-legend"><i class="fa-solid fa-phone-volume"></i> 3. Kontak Darurat (Wajib Disiapkan)</h4>
+                <h4 class="fieldset-legend"><i class="fa-solid fa-phone-volume"></i>Kontak Darurat (Wajib Disiapkan)</h4>
                 <div class="emergency-form-dual">
                     
                     {{-- Kontak Darurat 1 --}}
@@ -399,7 +398,7 @@
 
             {{-- FIELDSET 4: INFORMASI KESEHATAN --}}
             <div class="form-fieldset">
-                <h4 class="fieldset-legend"><i class="fa-solid fa-heart-pulse"></i> 4. Informasi Kesehatan & Medis</h4>
+                <h4 class="fieldset-legend"><i class="fa-solid fa-heart-pulse"></i>Informasi Kesehatan & Medis</h4>
                 <div class="form-grid">
                     <div class="form-group">
                         <label for="input_blood_type" class="form-label">Golongan Darah</label>

@@ -65,7 +65,6 @@
             </div>
 
             <div class="chart-hint">
-                <i class="fa-solid fa-hand-pointer"></i>
                 <span>Klik batang grafik untuk melihat rincian pengguna</span>
             </div>
         </div>
@@ -84,7 +83,6 @@
                 </div>
 
                 <button type="button" id="lihatPerbandinganBtn" class="comparison-button">
-                    <i class="fa-solid fa-chart-column"></i>
                     <span>Lihat Perbandingan</span>
                 </button>
             </div>
@@ -94,7 +92,6 @@
             </div>
 
             <div class="chart-hint">
-                <i class="fa-solid fa-hand-pointer"></i>
                 <span>Klik irisan grafik untuk melihat rincian pengguna</span>
             </div>
         </div>
@@ -118,7 +115,6 @@
             </div>
 
             <div class="chart-hint">
-                <i class="fa-solid fa-hand-pointer"></i>
                 <span>Klik bar ranking untuk melihat detail riwayat alarm per pengguna</span>
             </div>
         </div>

@@ -322,7 +322,6 @@ function renderTable() {
                     data-zone="${escapeHtml(device.zona)}"
                     data-device="${escapeHtml(device.device)}"
                 >
-                    <i class="fa-solid fa-circle-info"></i>
                     <span>Detail</span>
                 </button>
             </td>

@@ -194,9 +194,9 @@
                             <div class="panic-button-inner">
                                 <div class="panic-symbol-wrapper">
                                     <div class="panic-symbol-pulse"></div>
-                                    <div class="panic-symbol">
+                                    <!-- <div class="panic-symbol">
                                         <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </div>
+                                    </div> -->
                                 </div>
 
                                 <strong class="panic-label">PANIC</strong>
@@ -207,7 +207,6 @@
                     </div>
 
                     <div class="panic-helper-badge">
-                        <i class="fa-solid fa-fingerprint"></i>
                         <span>Klik tombol untuk memicu sinyal darurat</span>
                     </div>
                 </div>
@@ -314,7 +313,7 @@
                 <div class="info-card">
                     <div class="info-content">
                         <span class="section-tag">
-                            <i class="fa-solid fa-lightbulb"></i> TENTANG SISTEM
+                             TENTANG SISTEM
                         </span>
                         <h2>Satu Ekosistem untuk Penyelamatan yang Lebih Cepat</h2>
                         <p>

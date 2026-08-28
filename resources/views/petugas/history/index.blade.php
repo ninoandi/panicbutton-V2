@@ -148,6 +148,7 @@
             <input type="hidden" id="modalReportId">
             <input type="hidden" id="modalReportSource">
             <input type="hidden" id="modalReportPerumahanKey">
+            <input type="hidden" id="modalReportDbTable">
 
             {{-- Detail Content Box --}}
             <div class="modal-detail-content" id="modalDetailContent">

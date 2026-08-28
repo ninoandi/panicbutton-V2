@@ -25,7 +25,6 @@
         </div>
 
         <button type="button" id="openAddPetugasModal" class="btn-add-petugas">
-            <i class="fa-solid fa-user-plus"></i>
             <span>Tambah Petugas</span>
         </button>
     </section>

@@ -169,7 +169,6 @@ function renderTable(filteredData) {
                         class="btn-action-grafik"
                         title="Lihat Grafik Analitik"
                     >
-                        <i class="fa-solid fa-chart-line"></i>
                         <span>Lihat Grafik</span>
                     </a>
                 </td>

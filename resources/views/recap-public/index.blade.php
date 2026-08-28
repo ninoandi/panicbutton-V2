@@ -29,86 +29,12 @@
 
         <div class="recap-header-actions">
             <button type="button" class="btn-header-action" onclick="window.location.reload();" title="Segarkan Halaman">
-                <i class="fa-solid fa-arrows-rotate"></i>
                 <span>Segarkan Data</span>
             </button>
         </div>
     </section>
 
-    {{-- =========================================================
-         2. TOP METRICS SUMMARY (4 CARDS)
-    ========================================================== --}}
-    <section class="recap-summary-grid">
 
-        {{-- Card 1: Total Laporan --}}
-        <div class="recap-stat-card stat-card-total">
-            <div class="recap-stat-header">
-                <div class="recap-stat-icon stat-icon-total">
-                    <i class="fa-solid fa-bullhorn"></i>
-                </div>
-                <span class="stat-badge-total">
-                    Semua Data
-                </span>
-            </div>
-            <div class="recap-stat-body">
-                <span class="recap-stat-label">Total Panic Publik</span>
-                <strong class="recap-stat-count" id="totalCount">0</strong>
-                <span class="recap-stat-desc">Keseluruhan laporan publik terekam</span>
-            </div>
-        </div>
-
-        {{-- Card 2: Panic Aktif --}}
-        <div class="recap-stat-card stat-card-active">
-            <div class="recap-stat-header">
-                <div class="recap-stat-icon stat-icon-active">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <span class="stat-badge-active">
-                    <span class="pulse-dot-red"></span> Siaga
-                </span>
-            </div>
-            <div class="recap-stat-body">
-                <span class="recap-stat-label">Panic Aktif</span>
-                <strong class="recap-stat-count" id="activeCount" style="color: var(--dash-emergency);">0</strong>
-                <span class="recap-stat-desc">Laporan darurat yang sedang aktif</span>
-            </div>
-        </div>
-
-        {{-- Card 3: Laporan Selesai --}}
-        <div class="recap-stat-card stat-card-completed">
-            <div class="recap-stat-header">
-                <div class="recap-stat-icon stat-icon-completed">
-                    <i class="fa-solid fa-circle-check"></i>
-                </div>
-                <span class="stat-badge-completed">
-                    Ditangani
-                </span>
-            </div>
-            <div class="recap-stat-body">
-                <span class="recap-stat-label">Laporan Selesai</span>
-                <strong class="recap-stat-count" id="completedCount" style="color: var(--dash-success);">0</strong>
-                <span class="recap-stat-desc">Insiden yang telah berhasil ditangani</span>
-            </div>
-        </div>
-
-        {{-- Card 4: Laporan Hari Ini --}}
-        <div class="recap-stat-card stat-card-today">
-            <div class="recap-stat-header">
-                <div class="recap-stat-icon stat-icon-today">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                </div>
-                <span class="stat-badge-today">
-                    24 Jam
-                </span>
-            </div>
-            <div class="recap-stat-body">
-                <span class="recap-stat-label">24 Jam Terakhir</span>
-                <strong class="recap-stat-count" id="todayCount">0</strong>
-                <span class="recap-stat-desc">Laporan masuk dalam kurun 24 jam</span>
-            </div>
-        </div>
-
-    </section>
 
     {{-- =========================================================
          3. SEARCH & FILTER CONTROLS BAR
@@ -327,7 +253,7 @@
         <div class="modal-header">
             <div class="modal-header-text">
                 <span class="modal-badge">
-                    <i class="fa-solid fa-file-waveform"></i> Rincian Lengkap
+                 Rincian Lengkap
                 </span>
                 <h3 id="detailModalTitle">Detail Recap Laporan</h3>
             </div>

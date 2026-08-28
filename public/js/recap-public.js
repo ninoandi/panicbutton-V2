@@ -337,7 +337,6 @@ function renderTable(filteredData) {
                                 onclick="window.openDetailModal('${escapeAttribute(item.id)}')"
                                 title="Lihat Detail Recap"
                             >
-                                <i class="fa-solid fa-file-waveform"></i>
                                 <span>Detail Recap</span>
                             </button>
                         </td>
@@ -583,7 +582,7 @@ window.openDetailModal = function (reportId) {
             detailToggleStatusBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Tandai Selesai</span>`;
         } else {
             detailToggleStatusBtn.className = "btn-modal btn-mark-active";
-            detailToggleStatusBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Aktifkan Kembali</span>`;
+            detailToggleStatusBtn.innerHTML = `<span>Aktifkan Kembali</span>`;
         }
     }
 

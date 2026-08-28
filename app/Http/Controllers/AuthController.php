@@ -43,9 +43,27 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'email' => ['required', 'string', 'email', 'max:100', 'regex:/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/'],
+            'phone' => ['required', 'string', 'regex:/^[0-9]{10,13}$/'],
+            'password' => [
+                'required',
+                'string',
+                'min:6',
+                'regex:/[A-Z]/',      // Minimal 1 huruf besar
+                'regex:/[0-9]/',      // Minimal 1 angka
+                'confirmed'
+            ],
+        ], [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'email.required' => 'Alamat email wajib diisi.',
+            'email.email' => 'Format email tidak valid (contoh: user@gmail.com).',
+            'email.regex' => 'Format email tidak valid (contoh: user@gmail.com).',
+            'phone.required' => 'Nomor HP wajib diisi.',
+            'phone.regex' => 'Nomor HP harus berupa angka dan memiliki panjang 10 hingga 13 digit.',
+            'password.required' => 'Kata sandi wajib diisi.',
+            'password.min' => 'Kata sandi minimal 6 karakter.',
+            'password.regex' => 'Kata sandi harus mengandung minimal 1 huruf besar dan 1 angka.',
+            'password.confirmed' => 'Konfirmasi kata sandi tidak cocok.',
         ]);
 
         $email = strtolower(trim($request->email));

@@ -26,7 +26,7 @@
             {{-- Header Title --}}
             <div class="login-header">
                 <span class="login-badge">
-                    <i class="fa-solid fa-shield-halved"></i> Panic Button System
+                 Panic Button System
                 </span>
                 <h1>Selamat Datang</h1>
                 <p>Masuk ke akun Anda untuk mengakses sistem pemantauan & respon darurat</p>
@@ -117,7 +117,6 @@
                     type="submit"
                     class="btn-login"
                 >
-                    <i class="fa-solid fa-right-to-bracket"></i>
                     <span>Login</span>
                 </button>
             </form>
@@ -127,14 +126,12 @@
                 <span>Belum memiliki akun?</span>
                 <a href="{{ route('register') }}" class="register-link">
                     <span>Daftar Sekarang</span>
-                    <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
 
             {{-- Kembali ke Beranda Publik --}}
             <div class="back-section">
                 <a href="{{ route('landing') }}" class="back-link">
-                    <i class="fa-solid fa-arrow-left"></i>
                     <span>Kembali ke Beranda</span>
                 </a>
             </div>

@@ -357,7 +357,7 @@
 .admin-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 650px;
+    min-width: 800px;
     text-align: left;
 }
 
@@ -404,6 +404,7 @@
     gap: 6px;
     padding: 6px 12px;
     height: 32px;
+    min-width: 70px;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 600;
@@ -413,6 +414,7 @@
     border: none;
     transition: all 0.2s ease;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .btn-action-edit {

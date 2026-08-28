@@ -282,10 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <div class="empty-state">
 
-                    <div class="empty-icon">
-                        📋
-                    </div>
-
                     <h3>
                         Belum ada riwayat laporan
                     </h3>
@@ -331,8 +327,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <span>
 
                                         ${formatDate(
-                                            report.created_at
-                                        )}
+                        report.created_at
+                    )}
 
                                     </span>
 
@@ -342,13 +338,12 @@ document.addEventListener("DOMContentLoaded", () => {
                                     <span class="location-text">
                                         📍
                                         ${escapeHtml(
-                                            report.address || "Lokasi tidak tersedia"
-                                        )}
+                        report.address || "Lokasi tidak tersedia"
+                    )}
                                     </span>
 
-                                    ${
-                                        report.location_url
-                                            ? `
+                                    ${report.location_url
+                            ? `
                                                 <a
                                                     href="${escapeHtml(report.location_url)}"
                                                     target="_blank"
@@ -358,11 +353,11 @@ document.addEventListener("DOMContentLoaded", () => {
                                                     Lihat lokasi
                                                 </a>
                                             `
-                                            : (
-                                                report.latitude != null &&
-                                                report.longitude != null
-                                            )
-                                                ? `
+                            : (
+                                report.latitude != null &&
+                                report.longitude != null
+                            )
+                                ? `
                                                     <a
                                                         href="https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}"
                                                         target="_blank"
@@ -372,8 +367,8 @@ document.addEventListener("DOMContentLoaded", () => {
                                                         Lihat lokasi
                                                     </a>
                                                 `
-                                                : ""
-                                    }
+                                : ""
+                        }
 
                                 </div>
 
@@ -387,8 +382,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             >
 
                                 ${formatStatus(
-                                    report.status
-                                )}
+                            report.status
+                        )}
 
                             </span>
 

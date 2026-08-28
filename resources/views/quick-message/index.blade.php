@@ -25,7 +25,6 @@
         </div>
 
         <button type="button" class="btn-add-message" id="openAddModalBtn">
-            <i class="fa-solid fa-plus"></i>
             <span>Tambah Pesan Baru</span>
         </button>
     </section>
