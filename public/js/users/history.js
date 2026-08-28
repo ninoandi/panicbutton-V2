@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     console.log("=================================");
-    console.log("HISTORY USER");
+    console.log("HISTORY USER - DIMULAI");
     console.log("Current User:", currentUser);
     console.log("User ID:", userId);
     console.log("=================================");
@@ -89,7 +89,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /*
     |--------------------------------------------------------------------------
-    | LOAD HISTORY
+    | STATE
+    |--------------------------------------------------------------------------
+    */
+
+    let reportsMap = {};
+    let renderTimeout = null;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOAD HISTORY - LISTENER PUBLIC_PANICS SAJA
     |--------------------------------------------------------------------------
     */
 
@@ -98,162 +108,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function loadHistory() {
 
-        const reportsRef =
+        const publicPanicsRef =
             ref(db2, "public_panics");
 
 
         console.log(
-            "Membaca Firebase:",
-            "public_panics"
+            "📡 Mendengarkan: public_panics"
         );
 
 
         onValue(
 
-            reportsRef,
+            publicPanicsRef,
 
             (snapshot) => {
-
-                console.log(
-                    "Firebase snapshot:",
-                    snapshot.exists()
-                );
-
 
                 const data =
                     snapshot.val() || {};
 
 
                 console.log(
-                    "Semua data public_panics:",
-                    data
+                    "📊 Data public_panics:",
+                    Object.keys(data).length,
+                    "laporan"
                 );
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | OBJECT → ARRAY
-                |--------------------------------------------------------------------------
-                */
-
-                const reports =
-                    Object.entries(data)
-                        .map(
-                            ([id, report]) => ({
-
-                                id,
-
-                                ...report
-
-                            })
-                        );
-
-
-                console.log(
-                    "Total semua laporan:",
-                    reports.length
-                );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | FILTER USER
-                |--------------------------------------------------------------------------
-                */
-
-                const userReports =
-                    reports.filter(
-
-                        report => {
-
-                            const reportUserId =
-                                report.user_id != null
-                                    ? String(report.user_id)
-                                    : "";
-
-
-                            console.log(
-                                "Periksa laporan:",
-                                report.id,
-                                "Firebase user_id:",
-                                reportUserId,
-                                "Login user_id:",
-                                userId,
-                                "MATCH:",
-                                reportUserId === userId
-                            );
-
-
-                            return reportUserId === userId;
-
-                        }
-
-                    );
-
-
-                console.log(
-                    "Laporan milik user:",
-                    userReports
-                );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | URUTKAN TERBARU
-                |--------------------------------------------------------------------------
-                */
-
-                userReports.sort(
-
-                    (a, b) =>
-                        (b.created_at || 0)
-                        -
-                        (a.created_at || 0)
-
-                );
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | RENDER
-                |--------------------------------------------------------------------------
-                */
-
-                renderHistory(
-                    userReports
-                );
+                processPublicPanicsData(data);
+                scheduleRender();
 
             },
-
 
             (error) => {
 
                 console.error(
-                    "Firebase error:",
+                    "❌ Error public_panics:",
                     error
                 );
-
-
-                historyContainer.innerHTML = `
-
-                    <div class="empty-state">
-
-                        <div class="empty-icon">
-                            ⚠️
-                        </div>
-
-                        <h3>
-                            Gagal mengambil data
-                        </h3>
-
-                        <p>
-                            Terjadi kesalahan saat membaca
-                            riwayat laporan.
-                        </p>
-
-                    </div>
-
-                `;
 
             }
 
@@ -264,19 +155,198 @@ document.addEventListener("DOMContentLoaded", () => {
 
     /*
     |--------------------------------------------------------------------------
-    | RENDER HISTORY
+    | GET USER ID DARI REPORT
     |--------------------------------------------------------------------------
     */
 
-    function renderHistory(reports) {
+    function getReportUserId(report) {
+        
+        if (report.user_id != null && report.user_id !== "") {
+            return String(report.user_id);
+        }
+        
+        if (report.userId != null && report.userId !== "") {
+            return String(report.userId);
+        }
+        
+        if (report.uid != null && report.uid !== "") {
+            return String(report.uid);
+        }
+        
+        if (report.user && report.user.id != null) {
+            return String(report.user.id);
+        }
+        
+        if (report.user && report.user.user_id != null) {
+            return String(report.user.user_id);
+        }
+        
+        if (report.sender && report.sender.id != null) {
+            return String(report.sender.id);
+        }
+        
+        if (report.pelapor && report.pelapor.id != null) {
+            return String(report.pelapor.id);
+        }
+        
+        return null;
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | TIDAK ADA DATA
-        |--------------------------------------------------------------------------
-        */
 
-        if (reports.length === 0) {
+    /*
+    |--------------------------------------------------------------------------
+    | CEK APAKAH LAPORAN MILIK USER
+    |--------------------------------------------------------------------------
+    */
+
+    function isUserReport(report) {
+        
+        const userIdStr = String(userId);
+        const reportUserId = getReportUserId(report);
+        
+        if (!reportUserId) {
+            return false;
+        }
+        
+        return reportUserId === userIdStr;
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | PROCESS PUBLIC_PANICS DATA
+    |--------------------------------------------------------------------------
+    */
+
+    function processPublicPanicsData(data) {
+
+        const userIdStr = String(userId);
+        let processedCount = 0;
+
+        Object.entries(data).forEach(
+            ([id, report]) => {
+
+                const reportUserId = getReportUserId(report);
+
+                console.log(
+                    `🔍 Cek public_panics: ${id}`,
+                    `| User ID di Firebase: "${reportUserId}"`,
+                    `| User ID Login: "${userIdStr}"`
+                );
+
+                // 🔥 HANYA tampilkan laporan milik user ini
+                if (!isUserReport(report)) {
+                    console.log(`⏭️ Laporan ${id} BUKAN milik user ini`);
+                    return;
+                }
+
+                const key = `public_panics_${id}`;
+
+                // 🔥 TAMPILKAN STATUS APA ADANYA DARI FIREBASE
+                const reportData = {
+                    id: id,
+                    _source: "public_panics",
+                    _id: id,
+                    user_id: reportUserId,
+                    user_name: report.name || 
+                              report.senderName || 
+                              report.user_name || 
+                              currentUser.name || 
+                              "Pengguna",
+                    // 🔥 STATUS LANGSUNG DARI FIREBASE
+                    status: report.status || "menunggu",
+                    address: report.address || 
+                            report.location || 
+                            report.lokasi || 
+                            "Lokasi tidak tersedia",
+                    latitude: report.latitude || null,
+                    longitude: report.longitude || null,
+                    location_url: report.location_url || 
+                                 report.locationUrl || 
+                                 null,
+                    note: report.note || 
+                         report.description || 
+                         report.keterangan || 
+                         "",
+                    device: report.device || 
+                           report.assigned_device || 
+                           "IoT Device",
+                    phone: report.phone || 
+                          report.telepon || 
+                          report.user_phone || 
+                          "-",
+                    created_at: report.created_at || 
+                               report.timestamp || 
+                               report.time || 
+                               Date.now(),
+                    updated_at: report.updated_at || Date.now()
+                };
+
+                // 🔥 LANGSUNG SIMPAN DENGAN STATUS TERBARU
+                reportsMap[key] = reportData;
+                processedCount++;
+                console.log(`✅ ${id} status: ${reportData.status}`);
+
+            }
+        );
+
+        console.log(`📋 Total laporan: ${processedCount} untuk user ini`);
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SCHEDULE RENDER
+    |--------------------------------------------------------------------------
+    */
+
+    function scheduleRender() {
+
+        if (renderTimeout) {
+            clearTimeout(renderTimeout);
+        }
+
+        renderTimeout = setTimeout(
+            () => {
+                renderAllReports();
+                renderTimeout = null;
+            },
+            200
+        );
+
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RENDER ALL REPORTS
+    |--------------------------------------------------------------------------
+    */
+
+    function renderAllReports() {
+
+        const reports = Object.values(reportsMap);
+        
+        const filteredReports = reports.filter(report => {
+            const reportUserId = report.user_id != null ? String(report.user_id) : null;
+            return reportUserId === String(userId);
+        });
+
+        filteredReports.sort(
+            (a, b) =>
+                (b.created_at || 0) -
+                (a.created_at || 0)
+        );
+
+        console.log(
+            "🔄 Total laporan:",
+            filteredReports.length,
+            "dengan status:",
+            filteredReports.map(r => `${r.id}: ${r.status}`).join(", ")
+        );
+
+        if (filteredReports.length === 0) {
 
             historyContainer.innerHTML = `
 
@@ -304,15 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | TAMPILKAN DATA
-        |--------------------------------------------------------------------------
-        */
-
         historyContainer.innerHTML =
 
-            reports
+            filteredReports
                 .map(
 
                     report => `
@@ -337,20 +401,19 @@ document.addEventListener("DOMContentLoaded", () => {
                                     </span>
 
 
-                            <div class="location-info">
+                                    <div class="location-info">
 
-                                    <span class="location-text">
-                                        📍
-                                        ${escapeHtml(
-                                            report.address || "Lokasi tidak tersedia"
-                                        )}
-                                    </span>
+                                        <span class="location-text">
+                                            📍
+                                            ${escapeHtml(
+                                                report.address || "Lokasi tidak tersedia"
+                                            )}
+                                        </span>
 
-                                    ${
-                                        report.location_url
+                                        ${report.location_url || (report.latitude && report.longitude)
                                             ? `
                                                 <a
-                                                    href="${escapeHtml(report.location_url)}"
+                                                    href="${report.location_url || `https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}`}"
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     class="location-link"
@@ -358,24 +421,10 @@ document.addEventListener("DOMContentLoaded", () => {
                                                     Lihat lokasi
                                                 </a>
                                             `
-                                            : (
-                                                report.latitude != null &&
-                                                report.longitude != null
-                                            )
-                                                ? `
-                                                    <a
-                                                        href="https://www.google.com/maps/search/?api=1&query=${report.latitude},${report.longitude}"
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        class="location-link"
-                                                    >
-                                                        Lihat lokasi
-                                                    </a>
-                                                `
-                                                : ""
-                                    }
+                                            : ""
+                                        }
 
-                                </div>
+                                    </div>
 
                                 </div>
 
@@ -410,28 +459,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function formatStatus(status) {
 
+        const normalizedStatus =
+            String(status || "")
+                .toLowerCase()
+                .trim();
+
         const statusMap = {
 
-            active:
-                "Panic Aktif",
-
-            received:
-                "Laporan Diterima",
-
-            handling:
-                "Sedang Ditangani",
-
-            dispatched:
-                "Petugas Menuju Lokasi",
-
-            completed:
-                "Selesai"
+            'active': 'Panic Aktif',
+            'menunggu': 'Menunggu',
+            'waiting': 'Menunggu',
+            'diproses': 'Sedang Diproses',
+            'processing': 'Sedang Diproses',
+            'process': 'Sedang Diproses',
+            'completed': 'Selesai',
+            'done': 'Selesai',
+            'selesai': 'Selesai',
+            'finish': 'Selesai'
 
         };
 
-
-        return statusMap[status]
-            || "Tidak Diketahui";
+        return statusMap[normalizedStatus] || 'Menunggu';
 
     }
 
@@ -444,28 +492,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getStatusClass(status) {
 
+        const normalizedStatus =
+            String(status || "")
+                .toLowerCase()
+                .trim();
+
         const classMap = {
 
-            active:
-                "status-active",
-
-            received:
-                "status-received",
-
-            handling:
-                "status-handling",
-
-            dispatched:
-                "status-handling",
-
-            completed:
-                "status-completed"
+            'active': 'status-active',
+            'menunggu': 'status-waiting',
+            'waiting': 'status-waiting',
+            'diproses': 'status-processing',
+            'processing': 'status-processing',
+            'process': 'status-processing',
+            'completed': 'status-completed',
+            'done': 'status-completed',
+            'selesai': 'status-completed',
+            'finish': 'status-completed'
 
         };
 
-
-        return classMap[status]
-            || "status-none";
+        return classMap[normalizedStatus] || 'status-waiting';
 
     }
 
@@ -479,9 +526,7 @@ document.addEventListener("DOMContentLoaded", () => {
     function formatDate(timestamp) {
 
         if (!timestamp) {
-
             return "-";
-
         }
 
 
@@ -494,9 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 date.getTime()
             )
         ) {
-
             return "-";
-
         }
 
 

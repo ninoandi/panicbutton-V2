@@ -435,3 +435,25 @@
         padding: 7px 12px;
     }
 }
+
+/* =========================
+   STATUS MENUNGGU
+========================= */
+
+.status-waiting {
+    background: rgba(249, 115, 22, 0.12);
+    color: #f97316;
+    border: 1px solid rgba(249, 115, 22, 0.35);
+}
+
+
+/* =========================
+   STATUS DIPROSES
+========================= */
+
+.status-processing {
+    background: rgba(245, 158, 11, 0.12);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
