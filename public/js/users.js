@@ -136,7 +136,7 @@ function loadPerumahanList() {
 
 function populatePerumahanSelect(data) {
     if (!perumahanSelect) return;
-    
+
     perumahanSelect.innerHTML = '<option value="">Pilih Perumahan</option>';
 
     Object.entries(data).forEach(([key, name]) => {
@@ -175,7 +175,7 @@ function loadDevices() {
         const data = snapshot.val() || {};
         devicesList = [];
         const deviceOptions = new Set();
-        
+
         Object.entries(data).forEach(([zoneName, zoneData]) => {
             if (zoneData && typeof zoneData === 'object') {
                 Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
@@ -197,7 +197,7 @@ function loadDevices() {
                 });
             }
         });
-        
+
         populateDeviceSelect();
     }, (error) => {
         console.error('Error loading devices:', error);
@@ -206,12 +206,12 @@ function loadDevices() {
 
 function populateDeviceSelect() {
     if (!deviceSelect) return;
-    
+
     const currentValue = deviceSelect.value;
     deviceSelect.innerHTML = '<option value="">-- Pilih Perangkat --</option>';
-    
+
     devicesList.sort((a, b) => a.name.localeCompare(b.name));
-    
+
     devicesList.forEach(device => {
         const option = document.createElement('option');
         option.value = device.name;
@@ -221,7 +221,7 @@ function populateDeviceSelect() {
         option.dataset.zone = device.zone || '';
         deviceSelect.appendChild(option);
     });
-    
+
     if (currentValue) {
         deviceSelect.value = currentValue;
         setTimeout(autoFillZona, 100);
@@ -249,7 +249,7 @@ function loadUsers() {
         if (loadTimeout) {
             clearTimeout(loadTimeout);
         }
-        
+
         loadTimeout = setTimeout(() => {
             processUserData(snapshot);
             loadTimeout = null;
@@ -272,7 +272,7 @@ function processUserData(snapshot) {
 
             Object.entries(users).forEach(([userId, userInfo]) => {
                 if (!userInfo || typeof userInfo !== "object") return;
-                
+
                 const role = (userInfo.role || "").toLowerCase().trim();
                 // Filter out posko/satpam/admin/petugas dari daftar user warga biasa
                 if (role === "admin" || role === "satpam" || role === "petugas" || role === "security") {
@@ -291,7 +291,7 @@ function processUserData(snapshot) {
                 }
             });
         });
-        
+
         allUsers = Array.from(userMap.values());
         perumahanNames = Array.from(perumahanNamesSet);
     }
@@ -313,14 +313,14 @@ function applyFilters() {
         filteredUsers = allUsers.slice();
     } else {
         filteredUsers = [];
-        
+
         for (let i = 0; i < allUsers.length; i++) {
             const user = allUsers[i];
-            
+
             if (perumahan && (user.perumahanName || "").toLowerCase() !== perumahan) {
                 continue;
             }
-            
+
             if (keyword) {
                 const userName = (user.name || "").toLowerCase();
                 const userHouse = (user.houseNumber || "").toString().toLowerCase();
@@ -328,9 +328,9 @@ function applyFilters() {
                 const userDevice = (user.assigned_device || "").toLowerCase();
                 const userZone = (user.assigned_zone || "").toLowerCase();
                 const userPerum = (user.perumahanName || "").toLowerCase();
-                
-                if (!userName.includes(keyword) && 
-                    !userHouse.includes(keyword) && 
+
+                if (!userName.includes(keyword) &&
+                    !userHouse.includes(keyword) &&
                     !userPhone.includes(keyword) &&
                     !userDevice.includes(keyword) &&
                     !userZone.includes(keyword) &&
@@ -338,7 +338,7 @@ function applyFilters() {
                     continue;
                 }
             }
-            
+
             filteredUsers.push(user);
         }
     }
@@ -369,7 +369,7 @@ function renderTable(users) {
     }
 
     const startIndex = (currentPage - 1) * usersPerPage;
-    
+
     tableBody.innerHTML = users.map((user, index) => {
         const globalIndex = startIndex + index + 1;
         const initial = (user.name && user.name.trim().length > 0)
@@ -380,11 +380,11 @@ function renderTable(users) {
             ? `<span>${escapeHtml(user.phoneNumber)}</span>`
             : `<span style="color:var(--dash-text-muted); font-size:12.5px;">-</span>`;
 
-        const deviceDisplay = user.assigned_device && user.assigned_device !== '-' 
+        const deviceDisplay = user.assigned_device && user.assigned_device !== '-'
             ? `<span>${escapeHtml(user.assigned_device)}</span>`
             : '<span style="color: var(--dash-text-muted); font-size: 12.5px; font-style: italic;">Belum terdaftar</span>';
-        
-        const zoneDisplay = user.assigned_zone && user.assigned_zone !== '-' 
+
+        const zoneDisplay = user.assigned_zone && user.assigned_zone !== '-'
             ? `<span>${escapeHtml(user.assigned_zone)}</span>`
             : '<span style="color:var(--dash-text-muted); font-size:12.5px;">-</span>';
 
@@ -421,15 +421,12 @@ function renderTable(users) {
                 <td style="text-align: center;">
                     <div class="table-action-btns">
                         <button type="button" class="btn-table-action btn-action-edit" onclick="window.editUser('${escapeHtml(user.perumahanKey)}', '${escapeHtml(user.id)}')" title="Edit Data Pengguna">
-                            <i class="fa-solid fa-pen"></i>
                             <span>Edit</span>
                         </button>
                         <button type="button" class="btn-table-action btn-action-detail" onclick="window.detailUser('${escapeHtml(user.perumahanKey)}', '${escapeHtml(user.id)}')" title="Lihat Detail Lengkap">
-                            <i class="fa-solid fa-eye"></i>
                             <span>Detail</span>
                         </button>
                         <button type="button" class="btn-table-action btn-action-delete" onclick="window.deleteUser('${escapeHtml(user.perumahanKey)}', '${escapeHtml(user.id)}')" title="Hapus Pengguna">
-                            <i class="fa-solid fa-trash"></i>
                             <span>Hapus</span>
                         </button>
                     </div>
@@ -472,7 +469,7 @@ function updatePagination() {
 // DETAIL USER - GLOBAL FUNCTION
 // ======================================================
 
-window.detailUser = function(perumahanKey, userId) {
+window.detailUser = function (perumahanKey, userId) {
     const user = allUsers.find(u => u.id === userId && u.perumahanKey === perumahanKey);
     if (!user) {
         Swal.fire({
@@ -552,7 +549,7 @@ if (closeDetailBtn) {
 // EDIT USER - GLOBAL FUNCTION
 // ======================================================
 
-window.editUser = function(perumahanKey, userId) {
+window.editUser = function (perumahanKey, userId) {
     const user = allUsers.find(u => u.id === userId && u.perumahanKey === perumahanKey);
     if (!user) {
         Swal.fire({
@@ -563,7 +560,7 @@ window.editUser = function(perumahanKey, userId) {
         });
         return;
     }
-    
+
     if ((user.role || "").toLowerCase() === "admin") {
         Swal.fire({
             icon: 'error',
@@ -573,14 +570,14 @@ window.editUser = function(perumahanKey, userId) {
         });
         return;
     }
-    
+
     editingUserId = userId;
     editingPerumahanKey = perumahanKey;
-    
+
     if (modalTitle) modalTitle.textContent = 'Edit Pengguna Perumahan';
     if (saveBtnText) saveBtnText.textContent = 'Update Pengguna';
     if (saveUserBtn) saveUserBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Update Pengguna';
-    
+
     if (perumahanSelect) perumahanSelect.value = perumahanKey;
     if (userNameInput) userNameInput.value = user.name || '';
     if (houseNumberInput) houseNumberInput.value = user.houseNumber || '';
@@ -597,7 +594,7 @@ window.editUser = function(perumahanKey, userId) {
     if (togglePasswordConfirmBtn) togglePasswordConfirmBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
     if (passwordHelp) passwordHelp.style.display = 'block';
     if (phoneNumberInput) phoneNumberInput.value = user.phoneNumber || '';
-    
+
     const userRole = (user.role || "").toLowerCase();
     if (roleSelect) {
         if (userRole === "admin" || userRole === "user") {
@@ -611,7 +608,7 @@ window.editUser = function(perumahanKey, userId) {
             }
         }
     }
-    
+
     if (deviceSelect) {
         deviceSelect.value = user.assigned_device || '';
         if (devicesList.length === 0) loadDevices();
@@ -620,7 +617,7 @@ window.editUser = function(perumahanKey, userId) {
             if (zonaInput) zonaInput.value = user.assigned_zone || '';
         }, 300);
     }
-    
+
     if (addUserModal) {
         addUserModal.style.display = "flex";
         setTimeout(autoFillZona, 150);
@@ -632,10 +629,10 @@ window.editUser = function(perumahanKey, userId) {
 // DELETE USER - GLOBAL FUNCTION
 // ======================================================
 
-window.deleteUser = async function(perumahanKey, userId) {
+window.deleteUser = async function (perumahanKey, userId) {
     const user = allUsers.find(u => u.id === userId && u.perumahanKey === perumahanKey);
     if (!user) return;
-    
+
     if ((user.role || "").toLowerCase() === "admin") {
         Swal.fire({
             icon: 'error',
@@ -645,7 +642,7 @@ window.deleteUser = async function(perumahanKey, userId) {
         });
         return;
     }
-    
+
     const result = await Swal.fire({
         title: 'Hapus Pengguna?',
         text: `Anda yakin ingin menghapus pengguna "${user.name || 'ini'}"?`,
@@ -656,17 +653,17 @@ window.deleteUser = async function(perumahanKey, userId) {
         confirmButtonText: 'Ya, Hapus',
         cancelButtonText: 'Batal'
     });
-    
+
     if (result.isConfirmed) {
         try {
             await remove(ref(db1, `perumahan/${perumahanKey}/users/${userId}`));
-            
+
             try {
                 await remove(ref(db2, `users/${userId}`));
             } catch (syncError) {
                 console.warn('DB2 sync delete note:', syncError);
             }
-            
+
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil!',
@@ -695,11 +692,11 @@ if (openAddUserModal && addUserModal) {
     openAddUserModal.addEventListener("click", () => {
         editingUserId = null;
         editingPerumahanKey = null;
-        
+
         if (modalTitle) modalTitle.textContent = 'Tambah Pengguna Baru';
         if (saveBtnText) saveBtnText.textContent = 'Simpan Pengguna';
         if (saveUserBtn) saveUserBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Pengguna';
-        
+
         resetForm();
         addUserModal.style.display = "flex";
         loadDevices();
@@ -750,13 +747,13 @@ if (roleSelect && customRoleInput) {
 }
 
 if (deviceSelect) {
-    deviceSelect.addEventListener('change', function() {
+    deviceSelect.addEventListener('change', function () {
         const selectedDeviceName = this.value;
         if (!selectedDeviceName) {
             if (zonaInput) zonaInput.value = '';
             return;
         }
-        
+
         const selectedDevice = devicesList.find(device => device.name === selectedDeviceName);
         if (selectedDevice && selectedDevice.zone) {
             if (zonaInput) zonaInput.value = selectedDevice.zone;
@@ -882,7 +879,7 @@ if (saveUserBtn) {
             if (editingUserId && editingPerumahanKey) {
                 // UPDATE MODE
                 await update(ref(db1, `perumahan/${editingPerumahanKey}/users/${editingUserId}`), userData);
-                
+
                 if (assignedDevice) {
                     try {
                         await update(ref(db2, `users/${editingUserId}`), {
@@ -893,9 +890,9 @@ if (saveUserBtn) {
                             role: role.toLowerCase(),
                             updated_at: Date.now()
                         });
-                    } catch (e) {}
+                    } catch (e) { }
                 }
-                
+
                 Swal.fire({
                     icon: "success",
                     title: "Berhasil",
@@ -920,9 +917,9 @@ if (saveUserBtn) {
                             created_at: Date.now(),
                             updated_at: Date.now()
                         });
-                    } catch (e) {}
+                    } catch (e) { }
                 }
-                
+
                 Swal.fire({
                     icon: "success",
                     title: "Berhasil",

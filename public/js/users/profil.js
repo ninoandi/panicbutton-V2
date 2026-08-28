@@ -58,7 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
             locale: "id",
             disableMobile: "true",
             theme: "material_blue",
-            onOpen: function(selectedDates, dateStr, instance) {
+            onOpen: function (selectedDates, dateStr, instance) {
                 // Ensure calendar matches current theme
                 const isDark = document.documentElement.getAttribute("data-theme") === "dark";
                 if (instance.calendarContainer) {
@@ -196,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             try {
                 localStorage.setItem("user_photo", photoData);
-            } catch (e) {}
+            } catch (e) { }
 
             // Also synchronize navbar avatar if photo exists
             const navbarAvatar = document.querySelector(".navbar-avatar");
@@ -241,7 +241,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
             localStorage.setItem("profile_completeness", percentage);
-        } catch (e) {}
+        } catch (e) { }
 
         // Update badge
         if (profileStatusBadge) {
@@ -253,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 profileStatusBadge.innerHTML = `<i class="fa-solid fa-clock"></i> Belum Lengkap (${percentage}%)`;
             } else {
                 profileStatusBadge.className = "profile-completeness-badge badge-danger";
-                profileStatusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Perlu Dilengkapi (${percentage}%)`;
+                profileStatusBadge.innerHTML = `Perlu Dilengkapi (${percentage}%)`;
             }
         }
 
@@ -295,13 +295,13 @@ document.addEventListener("DOMContentLoaded", () => {
         setValue("input_name", data.name || currentUser.name || "");
         setValue("input_email", data.email || currentUser.email || "");
         setValue("input_phone", data.phone || currentUser.phone || "");
-        
+
         if (datepickerInstance) {
             datepickerInstance.setDate(data.birth_date || "", true);
         } else {
             setValue("input_birth_date", data.birth_date || "");
         }
-        
+
         setValue("input_gender", data.gender || "");
         setValue("input_province", data.province || "");
         setValue("input_city", data.city || "");

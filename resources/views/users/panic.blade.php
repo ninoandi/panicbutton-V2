@@ -24,9 +24,7 @@
 
         <div class="panic-header">
 
-            <span class="panic-icon">
-                🚨
-            </span>
+            
 
             <h2>
                 Panic Button
@@ -42,7 +40,7 @@
         <div class="panic-warning">
 
             <strong>
-                ⚠️ Perhatian
+                Perhatian
             </strong>
 
             <p>
@@ -73,9 +71,7 @@
             class="panic-button"
         >
 
-            <span>
-                🚨
-            </span>
+
 
             <strong>
                 KIRIM PANIC

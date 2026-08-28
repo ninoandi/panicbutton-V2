@@ -25,7 +25,6 @@
         </div>
 
         <button type="button" id="openAddAdminModal" class="btn-add-admin">
-            <i class="fa-solid fa-user-plus"></i>
             <span>Tambah Admin</span>
         </button>
     </section>
@@ -74,12 +73,13 @@
                         <th style="width: 60px; text-align: center;">No</th>
                         <th>Nama</th>
                         <th style="width: 200px; text-align: center;">Nomor Telepon</th>
+                        <th style="width: 220px;">Email</th>
                         <th style="width: 230px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="adminTableBody">
                     <tr class="loading-row">
-                        <td colspan="4">
+                        <td colspan="5">
                             <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 24px; margin-bottom: 8px; display: block; color: var(--dash-primary);"></i>
                             <span>Memuat data administrator...</span>
                         </td>

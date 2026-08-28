@@ -273,7 +273,6 @@
                 id="btnDetailPanic"
                 class="btn-modal btn-modal-panic"
             >
-                <i class="fa-solid fa-triangle-exclamation"></i>
                 <span>Kirim Panic</span>
             </button>
 
@@ -282,7 +281,6 @@
                 id="btnDetailReset"
                 class="btn-modal btn-modal-reset"
             >
-                <i class="fa-solid fa-circle-check"></i>
                 <span>Reset Panic</span>
             </button>
         </div>

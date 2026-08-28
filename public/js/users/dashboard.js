@@ -38,11 +38,11 @@ const activeReportContainer =
     document.getElementById("activeReportContainer");
 const activeStatusBadge =
     document.getElementById("activeStatusBadge");
-const activeReportCount = 
+const activeReportCount =
     document.getElementById("activeReportCount");
-const totalReportCount = 
+const totalReportCount =
     document.getElementById("totalReportCount");
-const completedReportCount = 
+const completedReportCount =
     document.getElementById("completedReportCount");
 
 
@@ -63,11 +63,11 @@ if (!activeStatusBadge) {
         "Element #activeStatusBadge tidak ditemukan."
     );
 }
-if (!activeReportCount) 
+if (!activeReportCount)
     console.error("Element #activeReportCount tidak ditemukan.");
-if (!totalReportCount) 
+if (!totalReportCount)
     console.error("Element #totalReportCount tidak ditemukan.");
-if (!completedReportCount) 
+if (!completedReportCount)
     console.error("Element #completedReportCount tidak ditemukan.");
 
 
@@ -188,7 +188,7 @@ function loadUserReports() {
 
                 );
 
-            
+
             /*
             |--------------------------------------------------------------------------
             | HITUNG & RENDER STATISTIK (TOTAL, AKTIF, SELESAI)
@@ -241,7 +241,7 @@ function loadUserReports() {
             |--------------------------------------------------------------------------
             */
 
-            const activeReport = 
+            const activeReport =
                 userReports.find(
                     report =>
                         report.status !== "completed" &&
@@ -568,18 +568,14 @@ function renderActiveReport(report) {
 
             <div class="empty-state">
 
-                <div class="empty-icon">
-                    🚨
-                </div>
-
                 <h3>
-                    Tidak ada laporan aktif
+                    Tidak Ada Laporan Aktif
                 </h3>
 
                 <p>
-                    Belum ada laporan Panic Button
-                    yang sedang diproses.
+                    Saat ini lingkungan Anda dalam kondisi aman. Tekan tombol Panic jika sewaktu-waktu membutuhkan pertolongan.
                 </p>
+
 
             </div>
 
@@ -646,8 +642,8 @@ function renderActiveReport(report) {
                     <span class="report-info-value">
 
                         ${formatDate(
-                            report.created_at
-                        )}
+        report.created_at
+    )}
 
                     </span>
 
@@ -663,8 +659,8 @@ function renderActiveReport(report) {
                     <span class="report-info-value">
 
                         ${formatDate(
-                            report.updated_at
-                        )}
+        report.updated_at
+    )}
 
                     </span>
 
@@ -680,8 +676,8 @@ function renderActiveReport(report) {
                     <span class="report-info-value">
 
                         ${formatStatus(
-                            report.status
-                        )}
+        report.status
+    )}
 
                     </span>
 
@@ -699,8 +695,8 @@ function renderActiveReport(report) {
                 <span class="report-location-value">
 
                     ${escapeHtml(
-                        report.address || "-"
-                    )}
+        report.address || "-"
+    )}
 
                 </span>
 

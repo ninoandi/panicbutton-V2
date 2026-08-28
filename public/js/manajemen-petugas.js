@@ -318,7 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                     onclick="window.openEditPetugasModal('${escapeAttribute(petugas.id)}', '${escapeAttribute(petugas.source)}', '${escapeAttribute(petugas.perumahanKey)}')"
                                     title="Edit Data Petugas"
                                 >
-                                    <i class="fa-solid fa-pen"></i>
                                     <span>Edit</span>
                                 </button>
                                 <button
@@ -327,7 +326,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                     onclick="window.openDetailPetugasModal('${escapeAttribute(petugas.id)}', '${escapeAttribute(petugas.source)}', '${escapeAttribute(petugas.perumahanKey)}')"
                                     title="Lihat Detail Petugas"
                                 >
-                                    <i class="fa-solid fa-eye"></i>
                                     <span>Detail</span>
                                 </button>
                                 <button
@@ -336,7 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
                                     onclick="window.confirmDeletePetugas('${escapeAttribute(petugas.id)}', '${escapeAttribute(petugas.source)}', '${escapeAttribute(petugas.perumahanKey)}', '${escapeAttribute(petugas.name)}')"
                                     title="Hapus Akun Petugas"
                                 >
-                                    <i class="fa-solid fa-trash"></i>
                                     <span>Hapus</span>
                                 </button>
                             </div>

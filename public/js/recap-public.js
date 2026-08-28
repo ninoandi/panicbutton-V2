@@ -288,7 +288,53 @@ function normalizeStatus(status) {
     ) {
 
         return STATUS.MENUNGGU;
-
+                return `
+                    <tr>
+                        <td style="font-weight: 600; color: var(--dash-text-muted); text-align: center; width: 60px;">
+                            ${no}
+                        </td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            ${dateStr}
+                        </td>
+                        <td style="text-align: center; white-space: nowrap; font-weight: 600;">
+                            ${timeStr}
+                        </td>
+                        <td>
+                            <div class="location-cell" title="${escapeAttribute(fullAddress)}">
+                                <div class="location-main">
+                                    <span>${locationDisplay}</span>
+                                </div>
+                                <div class="location-sub">${subLocation}</div>
+                            </div>
+                        </td>
+                        <td style="text-align: center;">
+                            <button
+                                type="button"
+                                class="btn-view-location"
+                                onclick="window.openLocationModal('${escapeAttribute(item.id)}')"
+                                title="Buka Peta Interaktif"
+                            >
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <span>Lihat Lokasi</span>
+                            </button>
+                        </td>
+                        <td style="text-align: center;">
+                            ${statusBadge}
+                        </td>
+                        <td style="text-align: center;">
+                            <button
+                                type="button"
+                                class="btn-detail-recap"
+                                onclick="window.openDetailModal('${escapeAttribute(item.id)}')"
+                                title="Lihat Detail Recap"
+                            >
+                                <span>Detail Recap</span>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            })
+            .join("");
     }
 
 
@@ -398,6 +444,14 @@ function getStatusBadge(status) {
         normalizeStatus(status);
 
 
+    if (detailToggleStatusBtn) {
+        if (report.isActive) {
+            detailToggleStatusBtn.className = "btn-modal btn-mark-done";
+            detailToggleStatusBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Tandai Selesai</span>`;
+        } else {
+            detailToggleStatusBtn.className = "btn-modal btn-mark-active";
+            detailToggleStatusBtn.innerHTML = `<span>Aktifkan Kembali</span>`;
+        }
     /* =============================
        AKTIF
     ============================= */
@@ -425,7 +479,6 @@ function getStatusBadge(status) {
 
             </span>
         `;
-
     }
 
 

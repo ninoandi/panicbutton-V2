@@ -241,8 +241,15 @@ document.addEventListener("DOMContentLoaded", () => {
                                         onclick="window.openEditAdminModal('${escapeAttribute(admin.id)}')"
                                         title="Edit Administrator"
                                     >
-                                        <i class="fa-solid fa-pen-to-square"></i>
                                         <span>Edit</span>
+                                    </button>
+                                    <button
+                                    type="button"
+                                    class="btn-action-detail-admin"
+                                    onclick="window.openDetailAdminModal('${escapeAttribute(admin.id)}')"
+                                    title="Detail Administrator"
+                                    >
+                                    <span>Detail</span>
                                     </button>
                                     <button
                                         type="button"
@@ -250,17 +257,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         onclick="window.confirmDeleteAdmin('${escapeAttribute(admin.id)}', '${escapeAttribute(admin.name)}')"
                                         title="Hapus Administrator"
                                     >
-                                        <i class="fa-solid fa-trash-can"></i>
                                         <span>Hapus</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="btn-action-detail-admin"
-                                        onclick="window.openDetailAdminModal('${escapeAttribute(admin.id)}')"
-                                        title="Detail Administrator"
-                                    >
-                                        <i class="fa-solid fa-circle-info"></i>
-                                        <span>Detail</span>
                                     </button>
                                 </div>
                             </td>
@@ -494,8 +491,8 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
                 let hashedPassword = null;
                 if (password) {
-                    hashedPassword = typeof window.hashPassword === "function" 
-                        ? await window.hashPassword(password) 
+                    hashedPassword = typeof window.hashPassword === "function"
+                        ? await window.hashPassword(password)
                         : password;
                 }
 

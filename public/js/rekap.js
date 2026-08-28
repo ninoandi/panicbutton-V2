@@ -198,10 +198,17 @@ function renderTable(filteredData) {
                             )"
                             title="Edit Perumahan"
                         >
-                            <i class="fa-solid fa-pen-to-square"></i>
                             <span>Edit</span>
                         </button>
 
+                        
+                        <a
+                        href="/detail-perumahan?key=${encodeURIComponent(key)}"
+                        class="btn-detail"
+                        title="Lihat Detail Monitor"
+                        >
+                        <span>Detail</span>
+                        </a>
                         <button
                             type="button"
                             class="btn-delete"
@@ -211,18 +218,8 @@ function renderTable(filteredData) {
                             )"
                             title="Hapus Perumahan"
                         >
-                            <i class="fa-solid fa-trash-can"></i>
                             <span>Hapus</span>
                         </button>
-
-                        <a
-                            href="/detail-perumahan?key=${encodeURIComponent(key)}"
-                            class="btn-detail"
-                            title="Lihat Detail Monitor"
-                        >
-                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                            <span>Detail</span>
-                        </a>
                     </div>
                 </td>
             `;

@@ -36,7 +36,7 @@
             <div class="profile-header-info">
                 <div class="profile-badge-row">
                     <span class="admin-role-badge">
-                        <i class="fa-solid fa-shield-halved"></i> Administrator
+                    Administrator
                     </span>
                 </div>
                 <h2 id="headerUserName">{{ session('web_user_name', 'Administrator') }}</h2>
@@ -47,7 +47,6 @@
 
         <div class="profile-header-right">
             <button type="button" id="toggleEditFormBtn" class="btn-toggle-edit">
-                <i class="fa-solid fa-pen-to-square"></i>
                 <span>Lengkapi / Edit Profil</span>
             </button>
         </div>
@@ -65,7 +64,7 @@
                     <i class="fa-solid fa-id-card"></i>
                 </div>
                 <div>
-                    <h3>1. Informasi Pribadi</h3>
+                    <h3>Informasi Pribadi</h3>
                     <p>Identitas diri dan kontak dasar administrator</p>
                 </div>
             </div>
@@ -105,7 +104,7 @@
                     <i class="fa-solid fa-map-location-dot"></i>
                 </div>
                 <div>
-                    <h3>2. Informasi Alamat & Domisili</h3>
+                    <h3>Informasi Alamat & Domisili</h3>
                     <p>Lokasi tempat tinggal dan wilayah operasional administrator</p>
                 </div>
             </div>

@@ -23,7 +23,6 @@
         </div>
         <div class="welcome-action">
             <a href="{{ route('user.panic') }}" class="btn-panic-hero">
-                <i class="fa-solid fa-triangle-exclamation"></i>
                 <span>Kirim Panic Sekarang</span>
             </a>
         </div>
@@ -93,7 +92,7 @@
                     <i class="fa-solid fa-tower-broadcast"></i>
                 </div>
                 <div>
-                    <h2>Status Panic Button Realtime</h2>
+                    <h2>Status Panic Button</h2>
                     <p>Pantau laporan darurat terbaru yang sedang berlangsung</p>
                 </div>
             </div>
@@ -104,15 +103,9 @@
 
         <div id="activeReportContainer" class="active-report-wrapper">
             <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="fa-solid fa-shield-heart"></i>
-                </div>
                 <h3>Tidak Ada Laporan Aktif</h3>
                 <p>Saat ini lingkungan Anda dalam kondisi aman. Tekan tombol Panic jika sewaktu-waktu membutuhkan pertolongan.</p>
-                <a href="{{ route('user.panic') }}" class="btn-primary">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                    <span>Kirim Panic</span>
-                </a>
+                
             </div>
         </div>
     </section>

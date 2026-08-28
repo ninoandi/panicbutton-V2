@@ -31,7 +31,6 @@
             </a>
 
             <button type="button" id="clearAllBtn" class="btn-clear-all">
-                <i class="fa-solid fa-trash-can"></i>
                 <span>Hapus Semua Monitor</span>
             </button>
         </div>
@@ -154,8 +153,7 @@
             </div>
 
             <button type="button" id="btnExportExcel" class="btn-export-excel" title="Import / Unduh File Excel Recap">
-                <i class="fa-solid fa-file-excel"></i>
-                <span>Import Recap Data</span>
+                <span>Eskport Recap Data</span>
             </button>
         </div>
 

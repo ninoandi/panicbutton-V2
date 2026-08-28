@@ -6,7 +6,9 @@ import {
 import {
     ref,
     onValue,
-    get
+    get,
+    query,
+    limitToLast
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 
@@ -829,9 +831,12 @@ async function getLatestMonitor(
     try {
 
         const monitorRef =
-            ref(
-                db1,
-                `perumahan/${perumahanId}/monitor`
+            query(
+                ref(
+                    db1,
+                    `perumahan/${perumahanId}/monitor`
+                ),
+                limitToLast(2)
             );
 
 

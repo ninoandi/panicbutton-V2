@@ -25,7 +25,6 @@
         </div>
 
         <button type="button" class="btn-add-user" id="openAddUserModal">
-            <i class="fa-solid fa-user-plus"></i>
             <span>Tambah Pengguna</span>
         </button>
     </section>
@@ -74,8 +73,7 @@
                     <span>Aksi</span>
                 </label>
                 <button type="button" id="btnExportUserPerumahanExcel" class="btn-export-excel" title="Import / Unduh Excel Data Pengguna Perumahan">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Import Data User</span>
+                    <span>Eksport Data User</span>
                 </button>
             </div>
 

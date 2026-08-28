@@ -23,7 +23,6 @@
         </div>
         <div class="welcome-actions">
             <a href="{{ route('monitoring-iot') }}" class="btn-hero-action">
-                <i class="fa-solid fa-microchip"></i>
                 <span>Monitoring Device</span>
             </a>
         </div>
@@ -96,7 +95,7 @@
                     <i class="fa-solid fa-triangle-exclamation"></i>
                 </div>
                 <div>
-                    <h2>Peringatan Darurat Perumahan (Realtime)</h2>
+                    <h2>Peringatan Darurat Perumahan</h2>
                     <p>Pantau laporan tombol darurat warga perumahan yang sedang aktif</p>
                 </div>
             </div>
@@ -124,7 +123,7 @@
                     <i class="fa-solid fa-tower-cell"></i>
                 </div>
                 <div>
-                    <h2>Sinyal Panic Button Publik (IoT)</h2>
+                    <h2>Sinyal Panic Button Publik</h2>
                     <p>Pantau alarm darurat perangkat publik di titik-titik zona siaga</p>
                 </div>
             </div>
