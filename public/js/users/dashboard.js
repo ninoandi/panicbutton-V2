@@ -197,10 +197,16 @@ function loadUserReports() {
             const totalReports = userReports.length;
 
             const completedReports = userReports.filter(
-                report => report.status === "completed"
+                report => {
+                    const status = (report.status || "").toLowerCase().trim();
+                    return status === "completed" || 
+                        status === "selesai" || 
+                        status === "done";
+                }
             ).length;
 
-            const activeReports = totalReports - completedReports;
+// AKTIF = TOTAL - SELESAI (sekarang akurat)
+const activeReports = totalReports - completedReports;
 
             // Render angka ke HTML jika element tersedia
             if (totalReportCount) {
@@ -241,13 +247,14 @@ function loadUserReports() {
             |--------------------------------------------------------------------------
             */
 
-            const activeReport =
-                userReports.find(
-                    report =>
-                        report.status !== "completed" &&
-                        report.status !== "selesai" &&
-                        report.status !== "done"
-                );
+            const activeReport = userReports.find(
+                report => {
+                    const status = (report.status || "").toLowerCase().trim();
+                    return status !== "completed" &&
+                        status !== "selesai" &&
+                        status !== "done";
+                }
+            );
 
             console.log(
                 "Laporan aktif:",
@@ -294,10 +301,9 @@ function loadUserReports() {
 |--------------------------------------------------------------------------
 */
 
-const PANIC_DURATION = 30 * 1000;
+const PANIC_DURATION = 15 * 1000;
 
 async function checkAutoOff(report) {
-
     // =============================================
     // 🔥 CEK: Hanya proses jika status masih "active"
     // =============================================
@@ -307,15 +313,9 @@ async function checkAutoOff(report) {
         return;
     }
 
-    // 🔥 CEK: Jika sudah diproses petugas, jangan ubah!
+    // CEK: Jika sudah diproses petugas, jangan ubah!
     if (report.officer_processed === true) {
-        console.log("🛑 Laporan sudah diproses petugas, skip auto-off");
-        return;
-    }
-
-    // 🔥 CEK: Jika status sudah diproses, jangan ubah!
-    if (report.status === "diproses" || report.status === "processing") {
-        console.log("🛑 Laporan sedang diproses, skip auto-off");
+        console.log("Laporan sudah diproses petugas, skip auto-off");
         return;
     }
 
@@ -326,24 +326,18 @@ async function checkAutoOff(report) {
 
     const elapsed = Date.now() - Number(report.created_at);
 
-    console.log(
-        "Cek umur Panic:",
-        Math.round(elapsed / 1000),
-        "detik"
-    );
+    console.log("Cek umur Panic:", Math.round(elapsed / 1000), "detik");
 
-    // Belum 30 detik
+    // Belum 15 detik
     if (elapsed < PANIC_DURATION) {
-        console.log("⏳ Belum 30 detik, auto-off belum jalan");
+        console.log("Belum 15 detik, auto-off belum jalan");
         return;
     }
 
-    console.log(
-        "⏱️ Panic sudah lebih dari 30 detik, auto-off dijalankan"
-    );
+    console.log("Panic sudah lebih dari 15 detik, auto-off dijalankan");
 
     // =============================================
-    // 🔥 CEK ULANG STATUS SEBELUM AUTO-OFF
+    // CEK ULANG STATUS SEBELUM AUTO-OFF
     // =============================================
     
     try {
@@ -353,14 +347,14 @@ async function checkAutoOff(report) {
         if (panicSnapshot.exists()) {
             const panicData = panicSnapshot.val();
             
-            // 🔥 CEK: Jika status sudah berubah, jangan ubah!
+            // CEK: Jika status sudah berubah, jangan ubah!
             if (panicData.status === "diproses" || panicData.status === "processing") {
-                console.log("🛑 Status sudah diproses, auto-off dibatalkan");
+                console.log("Status sudah diproses, auto-off dibatalkan");
                 return;
             }
             
             if (panicData.officer_processed === true) {
-                console.log("🛑 Sudah diproses petugas, auto-off dibatalkan");
+                console.log("Sudah diproses petugas, auto-off dibatalkan");
                 return;
             }
             
@@ -374,161 +368,52 @@ async function checkAutoOff(report) {
         console.error("Gagal cek ulang status:", error);
     }
 
+    // =============================================
+    // MATIKAN IOT (BUZZER) - TETAP JALAN
+    // =============================================
 
-    /*
-    |--------------------------------------------------------------------------
-    | MATIKAN IOT (TETAP JALAN)
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        report.assigned_zone &&
-        report.assigned_device
-    ) {
-
-        const channelsRef = ref(
-            db2,
-            `panicChannels/${report.assigned_zone}`
-        );
+    if (report.assigned_zone && report.assigned_device) {
+        const channelsRef = ref(db2, `panicChannels/${report.assigned_zone}`);
 
         try {
-
-            const snapshot =
-                await get(channelsRef);
+            const snapshot = await get(channelsRef);
 
             if (snapshot.exists()) {
+                const devices = snapshot.val();
 
-                const devices =
-                    snapshot.val();
+                for (const [deviceKey, deviceData] of Object.entries(devices)) {
+                    if (!deviceData) continue;
 
-                for (
-                    const [deviceKey, deviceData]
-                    of Object.entries(devices)
-                ) {
+                    const deviceName = deviceData.device || deviceKey;
 
-                    if (!deviceData) {
-                        continue;
-                    }
+                    if (deviceName === report.assigned_device) {
+                        console.log("Device ditemukan:", deviceKey);
 
-                    const deviceName =
-                        deviceData.device || deviceKey;
-
-                    if (
-                        deviceName === report.assigned_device
-                    ) {
-
-                        console.log(
-                            "Device ditemukan:",
-                            deviceKey
-                        );
-
-                        if (
-                            deviceData.assigned_panic_id &&
-                            deviceData.assigned_panic_id !== report.id
-                        ) {
-
-                            console.warn(
-                                "Device sedang digunakan panic lain."
-                            );
-
+                        if (deviceData.assigned_panic_id && deviceData.assigned_panic_id !== report.id) {
+                            console.warn("Device sedang digunakan panic lain.");
                             break;
                         }
 
-                       const deviceRef = ref(
-                            db2,
-                            `panicChannels/${report.assigned_zone}/${deviceKey}`
-                        );
+                        const deviceRef = ref(db2, `panicChannels/${report.assigned_zone}/${deviceKey}`);
 
                         await update(deviceRef, {
-                            active: false,
+                            active: false,  // 🔥 BUZZER MATI
                             assigned_panic_id: "",
                             panic_latitude: null,
                             panic_longitude: null,
                             last_update: Date.now()
                         });
 
-                        console.log(
-                            "✅ IoT berhasil dimatikan otomatis:",
-                            deviceKey
-                        );
-
+                        console.log("✅ IoT berhasil dimatikan otomatis (15 detik):", deviceKey);
                         break;
                     }
                 }
             }
-
         } catch (error) {
-
-            console.error(
-                "Gagal mematikan IoT:",
-                error
-            );
+            console.error("Gagal mematikan IoT:", error);
         }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | 🔥 UPDATE STATUS LAPORAN - HANYA JIKA MASIH "ACTIVE"
-    |--------------------------------------------------------------------------
-    */
-
-    try {
-
-        const panicRef =
-            ref(
-                db2,
-                `public_panics/${report.id}`
-            );
-
-        // 🔥 CEK ULANG SEBELUM UPDATE
-        const panicSnapshot = await get(panicRef);
-        
-        if (panicSnapshot.exists()) {
-            const panicData = panicSnapshot.val();
-            
-            // 🔥 JANGAN UBAH STATUS JIKA:
-            // 1. Sudah diproses petugas (officer_processed = true)
-            // 2. Status sudah diproses (diproses / processing)
-            // 3. Status sudah selesai (completed / selesai / done)
-            
-            if (panicData.officer_processed === true) {
-                console.log("🛑 Sudah diproses petugas, status tetap:", panicData.status);
-                return;
-            }
-            
-            if (panicData.status === "diproses" || panicData.status === "processing") {
-                console.log("🛑 Status sedang diproses, tetap:", panicData.status);
-                return;
-            }
-            
-            if (panicData.status === "completed" || panicData.status === "selesai" || panicData.status === "done") {
-                console.log("🛑 Status sudah selesai, tetap:", panicData.status);
-                return;
-            }
-            
-            // HANYA ubah jika status masih "active"
-            if (panicData.status === "active") {
-                await update(
-                    panicRef,
-                    {
-                        status: "menunggu",
-                        device_auto_off: true,
-                        updated_at: Date.now()
-                    }
-                );
-                console.log("✅ Status panic diubah menjadi menunggu (auto-off)");
-            } else {
-                console.log(`ℹ️ Status "${panicData.status}", auto-off tidak mengubah`);
-            }
-        }
-
-    } catch (error) {
-
-        console.error(
-            "Gagal update status panic:",
-            error
-        );
-    }
+    }    
+    console.log("✅ Auto-off selesai. IoT dimatikan, status laporan tetap:", report.status);
 }
 
 

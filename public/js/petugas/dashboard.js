@@ -9,7 +9,8 @@ import {
     onValue,
     update,
     query,
-    limitToLast
+    limitToLast,
+    get
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -683,52 +684,86 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     async function executeReportStatusUpdate(reportId, source, perumahanKey, dbTable, newStatus, noteText = "") {
-        try {
-            const payload = {
-                status: newStatus,
-                updated_at: Date.now()
-            };
-            if (noteText) {
-                payload.officer_note = noteText;
-                payload.response_note = noteText;
+    try {
+        const statusMap = {
+            "Selesai": "selesai",
+            "Diproses": "diproses",
+            "Menunggu": "menunggu"
+        };
+
+        // =============================================
+        // 🔥 RESET IoT JIKA STATUS DIUBAH
+        // =============================================
+        if (newStatus === "Diproses" || newStatus === "Selesai") {
+            try {
+                // Ambil data laporan dari Firebase
+                const reportRef = ref(db2, `public_panics/${reportId}`);
+                const reportSnap = await get(reportRef);
+                const reportData = reportSnap.val();
+
+                if (reportData && reportData.assigned_zone && reportData.assigned_device) {
+                    // 🔥 RESET IoT (matikan buzzer)
+                    const deviceRef = ref(db2, `panicChannels/${reportData.assigned_zone}/${reportData.assigned_device}`);
+                    await update(deviceRef, {
+                        active: false,
+                        assigned_panic_id: "",
+                        panic_latitude: null,
+                        panic_longitude: null,
+                        last_update: Date.now()
+                    });
+                    console.log("✅ IoT di-reset oleh petugas:", reportData.assigned_device);
+                }
+            } catch (iotError) {
+                console.warn("Gagal reset IoT:", iotError);
             }
-
-            if (source === "perumahan") {
-                if (!perumahanKey) throw new Error("Perumahan key tidak ditemukan.");
-                const subNode = dbTable || "monitor";
-                await update(ref(db1, `perumahan/${perumahanKey}/${subNode}/${reportId}`), payload);
-            } else {
-                const targetTable = dbTable || "public_panics";
-                await update(ref(db2, `${targetTable}/${reportId}`), payload);
-            }
-
-            // Update local memory
-            const found = allMergedReports.find(r => r.id === reportId);
-            if (found) {
-                found.status = newStatus;
-                if (noteText) found.officerNote = noteText;
-            }
-
-            scheduleBatchRender();
-
-            Swal.fire({
-                icon: "success",
-                title: "Status Berhasil Diperbarui",
-                text: `Laporan berhasil diubah menjadi status "${newStatus}".`,
-                timer: 1800,
-                showConfirmButton: false
-            });
-
-        } catch (err) {
-            console.error("Gagal memperbarui status:", err);
-            Swal.fire({
-                icon: "error",
-                title: "Gagal Menyimpan",
-                text: "Terjadi kesalahan: " + err.message,
-                confirmButtonColor: "#dc2626"
-            });
         }
+
+        const payload = {
+            status: statusMap[newStatus] || "menunggu",
+            updated_at: Date.now()
+        };
+
+        if (noteText) {
+            payload.officer_note = noteText;
+            payload.response_note = noteText;
+        }
+
+        if (source === "perumahan") {
+            if (!perumahanKey) throw new Error("Perumahan key tidak ditemukan.");
+            const subNode = dbTable || "monitor";
+            await update(ref(db1, `perumahan/${perumahanKey}/${subNode}/${reportId}`), payload);
+        } else {
+            const targetTable = dbTable || "public_panics";
+            await update(ref(db2, `${targetTable}/${reportId}`), payload);
+        }
+
+        // Update local memory
+        const found = allMergedReports.find(r => r.id === reportId);
+        if (found) {
+            found.status = newStatus;
+            if (noteText) found.officerNote = noteText;
+        }
+
+        scheduleBatchRender();
+
+        Swal.fire({
+            icon: "success",
+            title: "Status Berhasil Diperbarui",
+            text: `Laporan berhasil diubah menjadi status "${newStatus}".`,
+            timer: 1800,
+            showConfirmButton: false
+        });
+
+    } catch (err) {
+        console.error("Gagal memperbarui status:", err);
+        Swal.fire({
+            icon: "error",
+            title: "Gagal Menyimpan",
+            text: "Terjadi kesalahan: " + err.message,
+            confirmButtonColor: "#dc2626"
+        });
     }
+}
 
     function escapeHtml(text) {
         if (!text) return "";
