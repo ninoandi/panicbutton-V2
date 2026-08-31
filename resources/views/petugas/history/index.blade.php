@@ -46,12 +46,7 @@
                     <option value="public">Khusus Public</option>
                 </select>
             </div>
-
-            {{-- Refresh Button --}}
-            <button type="button" class="btn-refresh-history" id="btnRefreshHistory" title="Perbarui Data Riwayat">
-                <i class="fa-solid fa-arrows-rotate"></i>
-                <span class="btn-refresh-text">Refresh</span>
-            </button>
+           
         </div>
     </section>
 
