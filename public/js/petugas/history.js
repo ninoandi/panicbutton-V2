@@ -26,7 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Search & Filter
     const searchReportsInput = document.getElementById("searchReportsInput");
     const categoryFilter = document.getElementById("categoryFilter");
-    const btnRefreshHistory = document.getElementById("btnRefreshHistory");
 
     // Modal Detail & Status Update
     const detailReportModal = document.getElementById("detailReportModal");
@@ -106,9 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let activeClusterListeners = new Set();
     let batchFilterTimer = null;
 
-    /* =========================================================
-       HELPER: TIMESTAMP & STATUS PARSER
-    ========================================================= */
     function parseTimestamp(rawTime, item = {}) {
         if (item.timestamp && typeof item.timestamp === "number" && item.timestamp > 0) {
             return item.timestamp < 10000000000 ? item.timestamp * 1000 : item.timestamp;
@@ -116,37 +112,59 @@ document.addEventListener("DOMContentLoaded", () => {
         if (item.created_at && typeof item.created_at === "number" && item.created_at > 0) {
             return item.created_at < 10000000000 ? item.created_at * 1000 : item.created_at;
         }
-
-        if (!rawTime || rawTime === "-") return Date.now();
-
-        if (typeof rawTime === "number" && rawTime > 0) {
-            return rawTime < 10000000000 ? rawTime * 1000 : rawTime;
+        if (item.time && typeof item.time === "number" && item.time > 0) {
+            return item.time < 10000000000 ? item.time * 1000 : item.time;
         }
 
-        const str = String(rawTime).trim();
-        if (/^\d+$/.test(str)) {
-            const num = parseInt(str, 10);
-            return num < 10000000000 ? num * 1000 : num;
+        // 2. Check string fields
+        const candidateStr = String(rawTime || item.created_at || item.timestamp || item.time || item.waktu || "").trim();
+
+        if (candidateStr && candidateStr !== "-") {
+            // Numeric string (unix epoch)
+            if (/^\d+$/.test(candidateStr)) {
+                const num = parseInt(candidateStr, 10);
+                if (num > 0) {
+                    return num < 10000000000 ? num * 1000 : num;
+                }
+            }
+
+            // ISO string (e.g. 2026-08-28T14:30:00.000Z)
+            const parsedIso = new Date(candidateStr);
+            if (!isNaN(parsedIso.getTime()) && parsedIso.getTime() > 100000000000) {
+                return parsedIso.getTime();
+            }
+
+            // "YYYY-MM-DD waktu HH:mm:ss" atau "YYYY-MM-DD waktu HH:mm"
+            const matchWaktu = candidateStr.match(/^(\d{4}-\d{2}-\d{2})\s+waktu\s+(\d{2}:\d{2}(?::\d{2})?)$/i);
+            if (matchWaktu) {
+                const d = new Date(`${matchWaktu[1]}T${matchWaktu[2]}`);
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
+
+            // "YYYY-MM-DD HH:mm:ss" atau "YYYY-MM-DD HH:mm"
+            const matchIso = candidateStr.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)$/);
+            if (matchIso) {
+                const d = new Date(`${matchIso[1]}T${matchIso[2]}`);
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
+
+            // "DD-MM-YYYY HH:mm:ss" atau "DD/MM/YYYY HH:mm:ss"
+            const matchIndo = candidateStr.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})(?:\s+(?:waktu|pukul)?\s*(\d{2}:\d{2}(?::\d{2})?))?$/i);
+            if (matchIndo) {
+                const timePart = matchIndo[4] || "00:00:00";
+                const d = new Date(`${matchIndo[3]}-${matchIndo[2]}-${matchIndo[1]}T${timePart}`);
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
         }
 
-        const matchWaktu = str.match(/^(\d{4}-\d{2}-\d{2})\s+waktu\s+(\d{2}:\d{2}(?::\d{2})?)$/i);
-        if (matchWaktu) {
-            const d = new Date(`${matchWaktu[1]}T${matchWaktu[2]}`);
-            if (!isNaN(d.getTime())) return d.getTime();
+        // 3. Extract timestamp from Firebase Push ID (e.g. -O...)
+        const idToTest = reportId || item.id || (typeof rawTime === "string" ? rawTime : "");
+        const idTs = getTimestampFromFirebaseId(idToTest);
+        if (idTs > 0) {
+            return idTs;
         }
 
-        const matchIso = str.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)$/);
-        if (matchIso) {
-            const d = new Date(`${matchIso[1]}T${matchIso[2]}`);
-            if (!isNaN(d.getTime())) return d.getTime();
-        }
-
-        const parsed = new Date(str);
-        if (!isNaN(parsed.getTime())) {
-            return parsed.getTime();
-        }
-
-        return Date.now();
+        return 0;
     }
 
     function normalizeStatus(status) {
@@ -189,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.entries(monitorData).forEach(([mId, mVal]) => {
                     if (!mVal || typeof mVal !== "object") return;
                     const rawTime = mVal.time || mVal.waktu || mVal.timestamp || mVal.created_at || "-";
-                    const ts = parseTimestamp(rawTime, mVal);
+                    const ts = parseTimestamp(rawTime, mVal, mId);
 
                     clusterReports.push({
                         id: mId,
@@ -231,6 +249,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const rawTime = rVal.created_at || rVal.timestamp || Date.now();
             const ts = parseTimestamp(rawTime, rVal);
 
+            const reportUserId = getReportUserId(rVal);
+            const hasUserId = reportUserId !== null;
+
             return {
                 id: rId,
                 source: "public",
@@ -264,6 +285,9 @@ document.addEventListener("DOMContentLoaded", () => {
         rawPublicReports = Object.entries(data).map(([rId, rVal]) => {
             const rawTime = rVal.timestamp || rVal.created_at || Date.now();
             const ts = parseTimestamp(rawTime, rVal);
+
+            const reportUserId = getReportUserId(rVal);
+            const hasUserId = reportUserId !== null;
 
             return {
                 id: rId,
@@ -299,10 +323,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const flattenedHousing = [];
         housingReportsMap.forEach(reports => flattenedHousing.push(...reports));
 
-        allReports = [...flattenedHousing, ...rawPublicPanics, ...rawPublicReports];
+        allReports = deduplicateReports([...flattenedHousing, ...rawPublicPanics, ...rawPublicReports]);
 
         // Sort desc berdasarkan waktu (terbaru di atas)
-        allReports.sort((a, b) => b.time - a.time);
+        allReports.sort((a, b) => (b.time || 0) - (a.time || 0));
 
         filterAndRenderBoard();
     }
@@ -341,6 +365,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 doneList.push(report);
             }
         });
+
+        // Urutkan setiap kolom secara ketat berdasarkan waktu paling terbaru (terbaru di atas)
+        waitingList.sort((a, b) => (b.time || 0) - (a.time || 0));
+        processList.sort((a, b) => (b.time || 0) - (a.time || 0));
+        doneList.sort((a, b) => (b.time || 0) - (a.time || 0));
 
         // Update Counter Badges
         if (countWaiting) countWaiting.textContent = waitingList.length;
@@ -561,8 +590,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const confirmColor = targetStatus === "Selesai" ? "#10b981" : "#f59e0b";
         const result = await Swal.fire({
             title: `Ubah Status ke "${targetStatus}"?`,
-            text: targetStatus === "Selesai" 
-                ? "Laporan ini akan ditandai telah tuntas ditangani oleh petugas." 
+            text: targetStatus === "Selesai"
+                ? "Laporan ini akan ditandai telah tuntas ditangani oleh petugas."
                 : "Laporan ini akan dialihkan ke status sedang ditangani petugas.",
             icon: targetStatus === "Selesai" ? "success" : "info",
             showCancelButton: true,
@@ -646,13 +675,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btnRefreshHistory) {
         btnRefreshHistory.addEventListener("click", () => {
-            btnRefreshHistory.querySelector("i").classList.add("fa-spin");
+            const icon = btnRefreshHistory.querySelector("i");
+            if (icon) {
+                icon.classList.add("fa-spin");
+            }
             setTimeout(() => {
-                btnRefreshHistory.querySelector("i").classList.remove("fa-spin");
-                scheduleBatchFilter();
-            }, 500);
+                if (icon) {
+                    icon.classList.remove("fa-spin");
+                }
+                filterAndRenderBoard();
+            }, 600);
         });
     }
+
+
+    /* =========================================================
+       17. ESCAPE HTML
+    ========================================================= */
 
     function escapeHtml(text) {
         if (!text) return "";
