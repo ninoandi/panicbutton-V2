@@ -297,9 +297,6 @@ function renderTable(filteredData) {
                     ? `Perangkat: ${escapeHtml(item.assigned_device)} (${escapeHtml(item.assigned_zone)})`
                     : `Koordinat: ${item.latitude.toFixed(5)}, ${item.longitude.toFixed(5)}`;
 
-        return STATUS.MENUNGGU;
-
-
                 return `
                     <tr>
                         <td style="font-weight: 600; color: var(--dash-text-muted); text-align: center; width: 60px;">

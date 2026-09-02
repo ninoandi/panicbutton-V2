@@ -45,6 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const targetReportIdParam = urlParams.get("reportId");
     let initialReportModalOpened = false;
 
+    if (categoryFilter) {
+        categoryFilter.value = "all";
+    }
+
     /* =========================================================
        2. STATUS CONFIGURATION & STATE
     ========================================================= */
@@ -62,74 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let allReports = [];
     let batchFilterTimer = null;
 
-    // 🔥 HANYA 1 FUNGSI normalizeStatus
-    function normalizeStatus(status) {
-
-        const s = String(status || "")
-            .toLowerCase()
-            .trim();
-
-        // Status selesai
-        if (
-            s === "completed" ||
-            s === "selesai" ||
-            s === "done"
-        ) {
-            return STATUS.SELESAI;
-        }
-
-        // Status sedang diproses
-        if (
-            s === "diproses" ||
-            s === "proses" ||
-            s === "process" ||
-            s === "processing" ||
-            s === "handling"
-        ) {
-            return STATUS.DIPROSES;
-        }
-
-        // Status active dari panic
-        if (
-            s === "active" ||
-            s === "aktif"
-        ) {
-            return STATUS.MENUNGGU;
-        }
-
-        // Menunggu
-        if (
-            s === "menunggu" ||
-            s === "waiting" ||
-            s === ""
-        ) {
-            return STATUS.MENUNGGU;
-        }
-
-        // Default
-        return STATUS.MENUNGGU;
-    }
-
-
-    function getStatusLabel(status) {
-
-        const normalized =
-            normalizeStatus(status);
-
-        if (normalized === STATUS.DIPROSES) {
-            return "Diproses";
-        }
-
-        if (normalized === STATUS.SELESAI) {
-            return "Selesai";
-        }
-
-        return "Menunggu";
-    }
-
-
     /* =========================================================
-       3. HELPER UTILITIES
+       3. HELPER UTILITIES & NORMALIZATION
     ========================================================= */
     function escapeHtml(text) {
         if (text === null || text === undefined) return "";
@@ -143,15 +81,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function normalizeStatus(status) {
-        if (!status) return STATUS.MENUNGGU;
-        const s = String(status).toLowerCase().trim();
-        if (s === "selesai" || s === "completed" || s === "done" || s === "tuntas") return STATUS.SELESAI;
-        if (s === "diproses" || s === "proses" || s === "process" || s === "handling") return STATUS.DIPROSES;
+        const s = String(status || "").toLowerCase().trim();
+
+        if (s === "completed" || s === "selesai" || s === "done" || s === "tuntas") {
+            return STATUS.SELESAI;
+        }
+
+        if (s === "diproses" || s === "proses" || s === "process" || s === "processing" || s === "handling") {
+            return STATUS.DIPROSES;
+        }
+
+        if (s === "active" || s === "aktif" || s === "menunggu" || s === "waiting" || s === "") {
+            return STATUS.MENUNGGU;
+        }
+
         return STATUS.MENUNGGU;
     }
 
     function getStatusLabel(status) {
-        return normalizeStatus(status);
+        const normalized = normalizeStatus(status);
+        if (normalized === STATUS.DIPROSES) return "Diproses";
+        if (normalized === STATUS.SELESAI) return "Selesai";
+        return "Menunggu";
+    }
+
+    function getReportUserId(report) {
+        if (!report) return null;
+        if (report.user_id != null && report.user_id !== "") return String(report.user_id);
+        if (report.userId != null && report.userId !== "") return String(report.userId);
+        if (report.uid != null && report.uid !== "") return String(report.uid);
+        if (report.user && report.user.id != null) return String(report.user.id);
+        if (report.user && report.user.user_id != null) return String(report.user.user_id);
+        if (report.sender && report.sender.id != null) return String(report.sender.id);
+        if (report.pelapor && report.pelapor.id != null) return String(report.pelapor.id);
+        return null;
     }
 
     function getTimestampFromFirebaseId(id) {
@@ -166,96 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return timestamp > 1577836800000 && timestamp < 2524608000000 ? timestamp : 0;
     }
-    
-    if (btnCloseDetailModal) {
-        btnCloseDetailModal.addEventListener("click", closeModal);
-    }
-
-    if (btnCancelDetailModal) {
-        btnCancelDetailModal.addEventListener("click", closeModal);
-    }
-
-    if (detailReportModal) {
-        detailReportModal.addEventListener("click", (e) => {
-            if (e.target === detailReportModal) {
-                closeModal();
-            }
-        });
-    }
-
-    function closeModal() {
-        if (detailReportModal) {
-            detailReportModal.style.display = "none";
-        }
-    }
-
-
-    /* =========================================================
-       4. RADIO STATUS SELECTION
-    ========================================================= */
-
-    radioStatusCards.forEach(card => {
-        card.addEventListener("click", () => {
-            const radio = card.querySelector("input[type='radio']");
-            if (radio) {
-                radio.checked = true;
-            }
-            radioStatusCards.forEach(c => {
-                c.classList.remove("active-selected");
-            });
-            card.classList.add("active-selected");
-        });
-    });
-
-
-    function setModalStatusRadio(statusVal) {
-        const normalized = normalizeStatus(statusVal);
-        radioStatusCards.forEach(card => {
-            const cardValue = card.getAttribute("data-val");
-            const normalizedCardValue = normalizeStatus(cardValue);
-            const radio = card.querySelector("input[type='radio']");
-
-            if (normalizedCardValue === normalized) {
-                if (radio) {
-                    radio.checked = true;
-                }
-                card.classList.add("active-selected");
-            } else {
-                if (radio) {
-                    radio.checked = false;
-                }
-                card.classList.remove("active-selected");
-            }
-        });
-    }
-
-
-    function getSelectedRadioStatus() {
-        const checked = document.querySelector("input[name='radioStatus']:checked");
-        if (!checked) {
-            return STATUS.MENUNGGU;
-        }
-        return normalizeStatus(checked.value);
-    }
-
-
-    // URL Parameters handling (e.g. from Dashboard click)
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetReportIdParam = urlParams.get("reportId");
-    let initialReportModalOpened = false;
-
-    if (categoryFilter) {
-        categoryFilter.value = "all";
-    }
-
-    // High Performance In-Memory Data Store
-    let daftarPerumahanDict = {};
-    const housingReportsMap = new Map(); // clusterKey -> array of reports
-    let rawPublicReports = [];
-    let rawPublicPanics = [];
-    let allReports = [];
-    let activeClusterListeners = new Set();
-    let batchFilterTimer = null;
 
     function parseTimestamp(rawTime, item = {}, reportId = "") {
         if (!rawTime && rawTime !== 0) {
@@ -308,65 +181,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function deduplicateReports(reports) {
-        const seen = new Map();
-        reports.forEach(report => {
-            const key = `${report.source}_${report.perumahanKey || ''}_${report.id}`;
-            if (!seen.has(key)) {
-                seen.set(key, report);
-            } else {
-                const existing = seen.get(key);
-                if ((report.time || 0) > (existing.time || 0)) {
-                    seen.set(key, report);
-                }
-            }
-        });
-        return Array.from(seen.values());
-    }
-
-
-    function scheduleBatchFilter() {
-        if (batchFilterTimer) clearTimeout(batchFilterTimer);
-        batchFilterTimer = setTimeout(() => {
-            mergeAndRenderReports();
-        }, 50);
-    }
-
-
-    /* =========================================================
-       5. GET USER ID DARI REPORT
-    ========================================================= */
-
-    function getReportUserId(report) {
-        if (report.user_id != null && report.user_id !== "") {
-            return String(report.user_id);
-        }
-        if (report.userId != null && report.userId !== "") {
-            return String(report.userId);
-        }
-        if (report.uid != null && report.uid !== "") {
-            return String(report.uid);
-        }
-        if (report.user && report.user.id != null) {
-            return String(report.user.id);
-        }
-        if (report.user && report.user.user_id != null) {
-            return String(report.user.user_id);
-        }
-        if (report.sender && report.sender.id != null) {
-            return String(report.sender.id);
-        }
-        if (report.pelapor && report.pelapor.id != null) {
-            return String(report.pelapor.id);
-        }
-        return null;
-    }
-
-
-    /* =========================================================
-       6. DEDUPLIKASI LAPORAN
-    ========================================================= */
-
-    function deduplicateReports(reports) {
         const reportMap = new Map();
         reports.forEach(report => {
             let key = report.id;
@@ -379,7 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const newTime = report.updated_at || report.time || 0;
                 if (newTime > existingTime) {
                     reportMap.set(key, report);
-                    console.log(`🔄 Update data untuk ${key} dengan status: ${report.status}`);
                 }
             } else {
                 reportMap.set(key, report);
@@ -388,11 +201,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return Array.from(reportMap.values());
     }
 
+    function scheduleBatchFilter() {
+        if (batchFilterTimer) clearTimeout(batchFilterTimer);
+        batchFilterTimer = setTimeout(() => {
+            mergeAndRenderReports();
+        }, 50);
+    }
 
     /* =========================================================
-
        4. REALTIME FIREBASE LISTENERS (DB1 & DB2)
-
     ========================================================= */
     // DB1: Daftar Perumahan
     const daftarRef = ref(db1, "daftar_perumahan");
@@ -455,7 +272,6 @@ document.addEventListener("DOMContentLoaded", () => {
         rawPublicPanics = Object.entries(data).map(([rId, rVal]) => {
             const rawTime = rVal.created_at || rVal.timestamp || Date.now();
             const ts = parseTimestamp(rawTime, rVal, rId);
-
             const reportUserId = getReportUserId(rVal);
             const hasUserId = reportUserId !== null;
 
@@ -465,7 +281,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 dbTable: "public_panics",
                 perumahanKey: "",
                 perumahanName: "Area Publik",
-                userName: hasUserId 
+                userName: hasUserId
                     ? (rVal.senderName || rVal.name || rVal.user_name || "Warga Publik")
                     : "🟡 Tanpa Login (Publik)",
                 userPhone: rVal.phone || rVal.telepon || "-",
@@ -495,7 +311,6 @@ document.addEventListener("DOMContentLoaded", () => {
         rawPublicReports = Object.entries(data).map(([rId, rVal]) => {
             const rawTime = rVal.timestamp || rVal.created_at || Date.now();
             const ts = parseTimestamp(rawTime, rVal, rId);
-
             const reportUserId = getReportUserId(rVal);
             const hasUserId = reportUserId !== null;
 
@@ -528,11 +343,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("DB2 load reports error:", err);
     });
 
-
     /* =========================================================
-
        5. DATA AGGREGATION & RENDERING
-
     ========================================================= */
     function mergeAndRenderReports() {
         const flattenedHousing = [];
@@ -546,14 +358,10 @@ document.addEventListener("DOMContentLoaded", () => {
         filterAndRenderBoard();
     }
 
-
-    /* =========================================================
-       9. FILTER & KANBAN BOARD
-    ========================================================= */
-
     function filterAndRenderBoard() {
         const keyword = (searchReportsInput ? searchReportsInput.value : "").trim().toLowerCase();
         const category = categoryFilter ? categoryFilter.value : "all";
+
         const waitingList = [];
         const processList = [];
         const doneList = [];
@@ -732,21 +540,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function getSelectedRadioStatus() {
         const checked = document.querySelector('input[name="radioStatus"]:checked');
-        return checked ? checked.value : "";
+        if (!checked) return STATUS.MENUNGGU;
+        return normalizeStatus(checked.value);
     }
 
-    function setModalStatusRadio(status) {
-        const normalized = normalizeStatus(status);
+    function setModalStatusRadio(statusVal) {
+        const normalized = normalizeStatus(statusVal);
         radioStatusCards.forEach(card => {
-            const input = card.querySelector('input[name="radioStatus"]');
-            if (input) {
-                if (input.value === normalized) {
-                    input.checked = true;
-                    card.classList.add("active");
-                } else {
-                    input.checked = false;
-                    card.classList.remove("active");
-                }
+            const cardValue = card.getAttribute("data-val");
+            const normalizedCardValue = normalizeStatus(cardValue);
+            const radio = card.querySelector("input[type='radio']");
+
+            if (normalizedCardValue === normalized) {
+                if (radio) radio.checked = true;
+                card.classList.add("active-selected");
+                card.classList.add("active");
+            } else {
+                if (radio) radio.checked = false;
+                card.classList.remove("active-selected");
+                card.classList.remove("active");
             }
         });
     }
@@ -763,7 +575,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Radio button click styling
     radioStatusCards.forEach(card => {
         card.addEventListener("click", () => {
-            radioStatusCards.forEach(c => c.classList.remove("active"));
+            radioStatusCards.forEach(c => {
+                c.classList.remove("active-selected");
+                c.classList.remove("active");
+            });
+            card.classList.add("active-selected");
             card.classList.add("active");
             const input = card.querySelector('input[name="radioStatus"]');
             if (input) input.checked = true;
@@ -773,59 +589,6 @@ document.addEventListener("DOMContentLoaded", () => {
     window.openDetailReportModal = function (reportId) {
         const report = allReports.find(r => r.id === reportId);
         if (!report || !detailReportModal || !modalDetailContent) return;
-                        ${report.note && report.note !== "-" ? `
-                            <div class="report-note-box">
-                                <i class="fa-regular fa-comment-dots"></i>
-                                ${escapeHtml(report.note)}
-                            </div>
-                        ` : ""}
-                    </div>
-                    <div class="report-card-actions">
-                        <button type="button" class="btn-card-detail" onclick="window.openDetailReportModal('${escapeHtml(report.id)}')">
-                            <i class="fa-solid fa-circle-info"></i>
-                            <span>Detail</span>
-                        </button>
-                        ${advanceButtonHtml}
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
-
-
-    /* =========================================================
-       11. FORMAT WAKTU
-    ========================================================= */
-
-    function formatReportTime(time) {
-        if (!time) return "-";
-
-        const numeric = Number(time);
-        const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(time);
-
-        if (isNaN(date.getTime())) {
-            return String(time);
-        }
-
-        return date.toLocaleString("id-ID", {
-            day: "2-digit",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    }
-
-
-    /* =========================================================
-       12. DETAIL LAPORAN
-    ========================================================= */
-
-    window.openDetailReportModal = function (reportId) {
-        const report = allReports.find(r => r.id === reportId);
-
-        if (!report || !detailReportModal || !modalDetailContent) {
-            return;
-        }
 
         if (modalReportId) modalReportId.value = report.id;
         if (modalReportSource) modalReportSource.value = report.source;
@@ -835,7 +598,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         setModalStatusRadio(report.status);
 
-        // Google Maps Link
         let mapLinkHtml = "-";
         if (report.locationUrl) {
             mapLinkHtml = `
@@ -897,6 +659,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         detailReportModal.style.display = "flex";
     };
+
     /* =========================================================
        7. FIREBASE STATUS UPDATE EXECUTION
     ========================================================= */
@@ -944,6 +707,87 @@ document.addEventListener("DOMContentLoaded", () => {
                 text: `Laporan dipindahkan ke "${statusLabel}".`,
                 timer: 1500,
                 showConfirmButton: false
+            });
 
+            return true;
+        } catch (error) {
+            console.error("Error updating status:", error);
+            await Swal.fire({
+                icon: "error",
+                title: "Gagal Memperbarui",
+                text: "Terjadi kesalahan: " + error.message,
+                confirmButtonColor: "#dc2626"
+            });
+            return false;
+        }
+    }
+
+    // Save status change from modal
+    if (btnSaveStatusChange) {
+        btnSaveStatusChange.addEventListener("click", async () => {
+            const reportId = modalReportId.value;
+            const source = modalReportSource.value;
+            const perumahanKey = modalReportPerumahanKey.value;
+            const dbTable = modalReportDbTable ? modalReportDbTable.value : "public_panics";
+            const newStatus = getSelectedRadioStatus();
+            const noteText = (officerResponseNote ? officerResponseNote.value : "").trim();
+
+            if (!reportId || !newStatus) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Perhatian",
+                    text: "Silakan pilih status terlebih dahulu."
+                });
+                return;
+            }
+
+            const originalText = btnSaveStatusChange.innerHTML;
+            btnSaveStatusChange.disabled = true;
+            btnSaveStatusChange.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+
+            try {
+                const success = await executeStatusUpdate(reportId, source, perumahanKey, newStatus, dbTable, noteText);
+                if (success) {
+                    closeModal();
+                }
+            } finally {
+                btnSaveStatusChange.disabled = false;
+                btnSaveStatusChange.innerHTML = originalText;
+            }
+        });
+    }
+
+    // Quick Action from Kanban card
+    window.quickChangeStatus = async function (reportId, source, perumahanKey, targetStatus, dbTable) {
+        const normalized = normalizeStatus(targetStatus);
+        const confirmColor = normalized === STATUS.SELESAI ? "#10b981" : "#f59e0b";
+        const result = await Swal.fire({
+            title: `Ubah Status ke "${normalized}"?`,
+            text: normalized === STATUS.SELESAI
+                ? "Laporan ini akan ditandai telah tuntas ditangani oleh petugas."
+                : "Laporan ini akan dialihkan ke status sedang ditangani petugas.",
+            icon: normalized === STATUS.SELESAI ? "success" : "info",
+            showCancelButton: true,
+            confirmButtonColor: confirmColor,
+            cancelButtonColor: "#64748b",
+            confirmButtonText: `Ya, Jadikan ${normalized}`,
+            cancelButtonText: "Batal",
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            await executeStatusUpdate(reportId, source, perumahanKey, normalized, dbTable);
+        }
+    };
+
+    /* =========================================================
+       8. FILTER EVENT LISTENERS
+    ========================================================= */
+    if (searchReportsInput) {
+        searchReportsInput.addEventListener("input", filterAndRenderBoard);
+    }
+
+    if (categoryFilter) {
+        categoryFilter.addEventListener("change", filterAndRenderBoard);
     }
 });
