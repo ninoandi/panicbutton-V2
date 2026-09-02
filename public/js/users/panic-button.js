@@ -22,7 +22,7 @@ const panicButton =
 // DURASI PANIC
 // =====================================================
 
-const PANIC_DURATION = 30 * 1000;
+const PANIC_DURATION = 15 * 1000;
 
 
 // =====================================================
@@ -378,128 +378,47 @@ async function getAddressFromCoordinates(
 }
 
 
-// =====================================================
-// RESET DEVICE JIKA PANIC LAMA TERJEBAK ACTIVE
-// =====================================================
-
-// =====================================================
-// RESET DEVICE JIKA PANIC LAMA TERJEBAK ACTIVE
-// =====================================================
-
-async function resetStalePanicDevice(
-    deviceRef,
-    deviceData,
-    deviceId
-) {
-
-    const panicId =
-        deviceData.assigned_panic_id;
-
+async function resetStalePanicDevice(deviceRef, deviceData, deviceId) {
+    const panicId = deviceData.assigned_panic_id;
 
     if (!panicId) {
-
-        console.warn(
-            "Device active tetapi tidak memiliki panic ID."
-        );
-
-
-        await update(
-            deviceRef,
-            {
-
-                active:
-                    false,
-
-                assigned_panic_id:
-                    "",
-
-                panic_latitude:
-                    null,
-
-                panic_longitude:
-                    null,
-
-                last_update:
-                    Date.now()
-
-            }
-        );
-
-
+        console.warn("Device active tetapi tidak memiliki panic ID.");
+        await update(deviceRef, {
+            active: false,
+            assigned_panic_id: "",
+            panic_latitude: null,
+            panic_longitude: null,
+            last_update: Date.now()
+        });
         return true;
-
     }
 
-
-    const panicRef =
-        ref(
-            db2,
-            `public_panics/${panicId}`
-        );
-
-
-    const panicSnapshot =
-        await get(panicRef);
-
+    const panicRef = ref(db2, `public_panics/${panicId}`);
+    const panicSnapshot = await get(panicRef);
 
     if (!panicSnapshot.exists()) {
-
-        console.warn(
-            "Data panic tidak ditemukan. Reset device."
-        );
-
-
-        await update(
-            deviceRef,
-            {
-
-                active:
-                    false,
-
-                assigned_panic_id:
-                    "",
-
-                panic_latitude:
-                    null,
-
-                panic_longitude:
-                    null,
-
-                last_update:
-                    Date.now()
-
-            }
-        );
-
-
+        console.warn("Data panic tidak ditemukan. Reset device.");
+        await update(deviceRef, {
+            active: false,
+            assigned_panic_id: "",
+            panic_latitude: null,
+            panic_longitude: null,
+            last_update: Date.now()
+        });
         return true;
-
     }
 
-
-    const panicData =
-        panicSnapshot.val();
-
-
-    const panicStatus =
-        normalizeStatus(
-            panicData.status
-        );
-
-
-    const finishedStatuses = [
-        STATUS.MENUNGGU,
-        STATUS.DIPROSES,
-        STATUS.SELESAI
-    ];
+    const panicData = panicSnapshot.val();
+    const panicStatus = normalizeStatus(panicData.status);
+    const createdAt = Number(panicData.created_at || 0);
+    const now = Date.now();
+    const elapsed = now - createdAt;
 
     // =============================================
     // 🔥 CEK: Apakah sudah diproses petugas?
     // =============================================
-    
     if (panicData.officer_processed === true) {
         console.log(`🛑 Reset dibatalkan! Laporan sudah diproses petugas.`);
-        
         // Matikan device saja
         await update(deviceRef, {
             active: false,
@@ -508,130 +427,57 @@ async function resetStalePanicDevice(
             panic_longitude: null,
             last_update: Date.now()
         });
-        
         return true;
     }
-
-    if (
-        finishedStatuses.includes(panicStatus)
-    ) {
-
-        console.warn(
-            `Panic lama berstatus "${panicStatus}". Reset device.`
-        );
-
-
-        await update(
-            deviceRef,
-            {
-
-                active:
-                    false,
-
-                assigned_panic_id:
-                    "",
-
-                panic_latitude:
-                    null,
-
-                panic_longitude:
-                    null,
-
-                last_update:
-                    Date.now()
-
-            }
-        );
-
-
-        return true;
-
-    }
-
-
-    const createdAt =
-        Number(
-            panicData.created_at || 0
-        );
-
-
-    const now =
-        Date.now();
-
-
-    const elapsed =
-        now - createdAt;
-
 
     // =============================================
-    // 🔥 PERBAIKAN: Jangan ubah status jika sudah diproses
+    // 🔥 CEK: Jika status sudah selesai, reset device
     // =============================================
-    
-    if (
-        createdAt > 0 &&
-        elapsed >= PANIC_DURATION
-    ) {
-
-        console.warn(
-            "Panic lama melebihi 30 detik. Reset otomatis."
-        );
-
-        // Matikan device
-        await update(
-            deviceRef,
-            {
-
-                active:
-                    false,
-
-                assigned_panic_id:
-                    "",
-
-                panic_latitude:
-                    null,
-
-                panic_longitude:
-                    null,
-
-                last_update:
-                    now
-
-            }
-        );
-
-        // =============================================
-        // 🔥 HANYA UBAH STATUS JIKA MASIH ACTIVE
-        // =============================================
-        
-        if (panicStatus === STATUS.ACTIVE) {
-            await update(
-                panicRef,
-                {
-                    status: "menunggu",
-                    updated_at: now,
-                    device_auto_off: true
-                }
-            );
-            console.log("✅ Status diubah ke menunggu (panic expired)");
-        } else {
-            // 🔥 JANGAN UBAH STATUS!
-            console.log(`✅ Device dimatikan, status TETAP: ${panicStatus}`);
-            
-            // Tandai device sudah off
-            await update(panicRef, {
-                device_auto_off: true,
-                device_off_at: now
-                // ⚠️ STATUS TIDAK DIUBAH!
-            });
-        }
-
+    const finishedStatuses = [STATUS.MENUNGGU, STATUS.DIPROSES, STATUS.SELESAI];
+    if (finishedStatuses.includes(panicStatus)) {
+        console.warn(`Panic lama berstatus "${panicStatus}". Reset device.`);
+        await update(deviceRef, {
+            active: false,
+            assigned_panic_id: "",
+            panic_latitude: null,
+            panic_longitude: null,
+            last_update: Date.now()
+        });
         return true;
-
     }
 
+    // =============================================
+    // 🔥 CEK: Jika panic sudah lebih dari 15 detik
+    // =============================================
+    if (createdAt > 0 && elapsed >= PANIC_DURATION) {
+        console.warn(`Panic lama melebihi ${PANIC_DURATION/1000} detik. Reset device.`);
+
+        // =============================================
+        // 🔥 MATIKAN DEVICE (BUZZER OFF)
+        // =============================================
+        await update(deviceRef, {
+            active: false,
+            assigned_panic_id: "",
+            panic_latitude: null,
+            panic_longitude: null,
+            last_update: now
+        });
+
+        // =============================================
+        // 🔥 JANGAN UBAH STATUS LAPORAN!
+        // =============================================
+        await update(panicRef, {
+            device_auto_off: true,
+            device_off_at: now
+            // ⚠️ STATUS TIDAK DIUBAH!
+        });
+
+        console.log("✅ Device dimatikan (expired), status laporan TETAP:", panicStatus);
+
+        return true;
+    }
 
     return false;
-
 }
 
 // =====================================================
@@ -826,21 +672,20 @@ async function getDeviceFromDB2(deviceId) {
 // 🔥 AUTO TURN OFF DEVICE - HANYA MATIKAN DEVICE
 // =====================================================
 
-async function autoTurnOffDevice(
-    zone,
-    deviceKey,
-    panicId
-) {
-
+async function autoTurnOffDevice(zone, deviceKey, panicId) {
     console.log("=================================");
     console.log("⏱️ AUTO-OFF TIMER DIMULAI");
     console.log("Device:", deviceKey);
     console.log("Panic ID:", panicId);
-    console.log("Durasi: 30 detik");
+    console.log("Durasi: 15 DETIK");
     console.log("=================================");
 
-    // Tunggu 30 detik
+    // =============================================
+    // 🔥 TUNGGU 15 DETIK
+    // =============================================
     await new Promise(resolve => setTimeout(resolve, PANIC_DURATION));
+
+    console.log("⏱️ 15 detik telah berlalu, mematikan IoT...");
 
     try {
         const deviceRef = ref(db2, `panicChannels/${zone}/${deviceKey}`);
@@ -853,16 +698,21 @@ async function autoTurnOffDevice(
 
         const deviceData = deviceSnapshot.val();
 
-        // JIKA DEVICE SUDAH DIGUNAKAN PANIC LAIN, JANGAN RESET
+        // 🔥 CEK: Jika device sudah tidak aktif, skip
+        if (deviceData.active !== true) {
+            console.log("ℹ️ Device sudah mati, skip auto-off");
+            return;
+        }
+
+        // 🔥 CEK: Jika device sudah digunakan panic lain, jangan reset
         if (deviceData.assigned_panic_id && deviceData.assigned_panic_id !== panicId) {
             console.warn("⏭️ Auto-off dibatalkan karena device sudah digunakan panic lain.");
             return;
         }
 
         // =============================================
-        // 🔥 HANYA MATIKAN DEVICE, TIDAK UBAH STATUS
+        // 🔥 MATIKAN DEVICE (BUZZER OFF)
         // =============================================
-
         await update(deviceRef, {
             active: false,
             assigned_panic_id: "",
@@ -871,12 +721,11 @@ async function autoTurnOffDevice(
             last_update: Date.now()
         });
 
-        console.log("✅ Device dimatikan (status laporan TIDAK diubah)");
+        console.log("✅ BUZZER DIMATIKAN (15 detik)");
 
         // =============================================
-        // 🔥 CATAT DI LOG BAHWA DEVICE SUDAH OFF
+        // 🔥 CATAT DI LAPORAN BAHWA DEVICE SUDAH OFF
         // =============================================
-
         const panicRef = ref(db2, `public_panics/${panicId}`);
         const panicSnapshot = await get(panicRef);
 
@@ -884,19 +733,18 @@ async function autoTurnOffDevice(
             await update(panicRef, {
                 device_auto_off: true,
                 device_off_at: Date.now()
-                // ⚠️ STATUS TIDAK DIUBAH!
+                // ⚠️ STATUS LAPORAN TIDAK DIUBAH!
             });
-            console.log("📝 Dicatat: device auto-off selesai");
+            console.log("📝 Dicatat: device auto-off selesai, status laporan TETAP:", panicSnapshot.val().status);
         }
 
         console.log("=================================");
-        console.log("✅ AUTO-OFF SELESAI (STATUS TETAP)");
+        console.log("✅ AUTO-OFF SELESAI (BUZZER MATI, STATUS TETAP)");
         console.log("=================================");
 
     } catch (error) {
         console.error("❌ Gagal melakukan auto-off:", error);
     }
-
 }
 
 
@@ -1483,14 +1331,14 @@ panicButton?.addEventListener(
             // =============================================
 
             autoTurnOffDevice(
-
                 userDevice.zone,
-
                 userDevice.deviceKey,
-
                 panicId
+            ).catch(error => {
+                console.error("❌ Auto-off gagal:", error);
+            });
 
-            );
+            console.log("✅ Auto-off timer dimulai untuk device:", userDevice.device.device);
 
 
             // =============================================

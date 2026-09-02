@@ -374,57 +374,80 @@ function actualProcessPublicPanicData() {
     const now = Date.now();
     const maxActiveAge = 24 * 60 * 60 * 1000;
 
-    // Buat Map untuk akses cepat O(1) bukan O(n)
+    // Buat Map untuk akses cepat O(1)
     const publicPanicsMap = new Map();
     if (currentPublicPanicsData) {
         Object.entries(currentPublicPanicsData).forEach(([id, data]) => {
-            if (data && data.status === "active") {
+            if (data) {
                 publicPanicsMap.set(id, data);
             }
         });
     }
 
-    // Proses channels dengan optimasi
+    // =============================================
+    // 🔥 PROSES CHANNELS IoT
+    // =============================================
     if (currentChannelsData) {
         Object.entries(currentChannelsData).forEach(([zoneName, zoneData]) => {
             if (!zoneData || typeof zoneData !== "object") return;
 
             Object.entries(zoneData).forEach(([deviceKey, deviceData]) => {
                 if (!deviceData || typeof deviceData !== "object") return;
+                
+                // 🔥 CEK: IoT aktif?
                 if (deviceData.active !== true) return;
 
                 const assignedPanicId = deviceData.assigned_panic_id || "";
                 const report = assignedPanicId ? publicPanicsMap.get(assignedPanicId) : null;
 
-                // Skip jika sudah mencapai batas maksimum
-                if (activePanics.length >= MAX_RENDER_ITEMS * 2) {
-                    return;
+                // 🔥 CEK: Jika ada laporan dan status sudah selesai, SKIP!
+                if (report) {
+                    const status = (report.status || "").toLowerCase().trim();
+                    if (status === "selesai" || status === "completed" || status === "done") {
+                        console.log(`⏭️ Skip: Device ${deviceKey} aktif tapi laporan ${assignedPanicId} sudah selesai`);
+                        return; // Skip device ini
+                    }
                 }
 
+                // =============================================
+                // 🔥 TAMBAHKAN DATA KE activePanics
+                // =============================================
+                
                 // Tentukan nama pengirim & info akun
                 let senderName = "Pengguna Publik";
-                let username = "-";
                 let phone = "-";
                 let email = "-";
                 let isGuest = false;
                 let isHardware = false;
+                let address = deviceData.lokasi || "-";
+                let latitude = null;
+                let longitude = null;
+                let locationUrl = null;
+                let createdAt = deviceData.last_update || now;
 
                 if (report) {
+                    // 🔥 AMBIL DATA DARI LAPORAN
                     senderName = report.name || report.username || "Pengguna Publik";
-                    username = report.username ? `@${report.username.replace('@', '')}` : "-";
                     phone = report.phone || "-";
                     email = report.email || "-";
                     isGuest = Boolean(report.is_guest || (!report.user_id || report.user_id === "guest"));
+                    address = report.address || deviceData.lokasi || "-";
+                    latitude = report.latitude || deviceData.panic_latitude || null;
+                    longitude = report.longitude || deviceData.panic_longitude || null;
+                    locationUrl = report.location_url || (latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : null);
+                    createdAt = report.created_at || deviceData.last_update || now;
                 } else if (!assignedPanicId) {
                     senderName = "Tombol Fisik IoT / Hardware";
                     isHardware = true;
                 }
 
-                const latitude = report?.latitude || deviceData.panic_latitude || null;
-                const longitude = report?.longitude || deviceData.panic_longitude || null;
-                const address = report?.address || deviceData.lokasi || "-";
-                const locationUrl = report?.location_url || (latitude && longitude ? `https://www.google.com/maps?q=${latitude},${longitude}` : null);
-                const createdAt = report?.created_at || deviceData.last_update || now;
+                // 🔥 SKIP jika laporan sudah selesai (cek ulang)
+                if (report) {
+                    const status = (report.status || "").toLowerCase().trim();
+                    if (status === "selesai" || status === "completed" || status === "done") {
+                        return;
+                    }
+                }
 
                 activePanics.push({
                     id: assignedPanicId || `${zoneName}_${deviceKey}`,
@@ -435,7 +458,6 @@ function actualProcessPublicPanicData() {
                     last_update: deviceData.last_update || createdAt,
                     createdAt: createdAt,
                     senderName: senderName,
-                    username: username,
                     phone: phone,
                     email: email,
                     isGuest: isGuest,
@@ -449,20 +471,26 @@ function actualProcessPublicPanicData() {
         });
     }
 
-    // B. Periksa laporan public_panics yang belum terdaftar
+    // =============================================
+    // 🔥 PROSES PUBLIC_PANICS YANG BELUM TERDAFTAR DI CHANNELS
+    // =============================================
     if (currentPublicPanicsData) {
         Object.entries(currentPublicPanicsData).forEach(([repId, report]) => {
             if (!report || typeof report !== "object") return;
-            if (report.status !== "active") return;
+            
+            // 🔥 CEK: Hanya proses yang statusnya "active"
+            const status = (report.status || "").toLowerCase().trim();
+            if (status !== "active") return;
+            
+            // 🔥 CEK: Apakah sudah terdaftar di activePanics?
             if (activePanics.some(p => p.id === repId)) return;
 
+            // 🔥 CEK: Apakah laporan masih recent?
             const isRecent = !report.created_at || (report.created_at >= (now - maxActiveAge));
             if (!isRecent) return;
 
-            // Skip jika sudah mencapai batas maksimum
-            if (activePanics.length >= MAX_RENDER_ITEMS * 2) {
-                return;
-            }
+            // 🔥 SKIP jika sudah mencapai batas maksimum
+            if (activePanics.length >= MAX_RENDER_ITEMS * 2) return;
 
             const senderName = report.name || report.username || "Pengguna Publik";
             const username = report.username ? `@${report.username.replace('@', '')}` : "-";
@@ -478,7 +506,6 @@ function actualProcessPublicPanicData() {
                 last_update: report.created_at || now,
                 createdAt: report.created_at || now,
                 senderName: senderName,
-                username: username,
                 phone: report.phone || "-",
                 email: report.email || "-",
                 isGuest: isGuest,
@@ -491,19 +518,20 @@ function actualProcessPublicPanicData() {
         });
     }
 
-    // Urutkan dari update / waktu kejadian terbaru
+    // =============================================
+    // 🔥 URUTKAN DAN RENDER
+    // =============================================
     activePanics.sort((a, b) => (b.createdAt || b.last_update || 0) - (a.createdAt || a.last_update || 0));
 
     // Batasi jumlah yang dirender
     const limitedPanics = activePanics.slice(0, MAX_RENDER_ITEMS);
 
-    // Render dengan interval minimum untuk mencegah render berlebihan
+    // Render
     const nowTime = Date.now();
     if (nowTime - lastRenderTime >= MIN_RENDER_INTERVAL || isFirstLoad) {
         renderPublicPanic(limitedPanics);
         lastRenderTime = nowTime;
     } else {
-        // Schedule render berikutnya
         setTimeout(() => {
             renderPublicPanic(limitedPanics);
             lastRenderTime = Date.now();
@@ -628,8 +656,6 @@ function renderPublicPanic(activePanics) {
                                         ${accountBadgeHtml}
                                     </div>
                                     <div class="public-panic-user-sub">
-                                        <span><i class="fa-regular fa-user"></i> ${escapeHtml(panic.username)}</span>
-                                        <span>•</span>
                                         <span><i class="fa-solid fa-phone"></i> ${escapeHtml(panic.phone)}</span>
                                     </div>
                                 </div>
