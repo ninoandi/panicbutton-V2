@@ -47,6 +47,12 @@
         href="{{ asset('css/app.css') }}"
     >
 
+    {{-- Emergency Realtime Notifications CSS --}}
+    <link
+        rel="stylesheet"
+        href="{{ asset('css/shared/emergency-notifications.css') }}"
+    >
+
     {{-- Early Theme Init --}}
     <script>
         (function () {
@@ -99,6 +105,9 @@
 
     </div>
 
+    {{-- GLOBAL REALTIME EMERGENCY TOAST CONTAINER --}}
+    <div id="emergencyToastContainer" aria-live="assertive"></div>
+
 
     <script>
         window.csrfToken = @json(csrf_token());
@@ -113,6 +122,13 @@
             role: @json(session('web_role')),
             petugasType: @json(session('web_petugas_type')),
             perumahanKey: @json(session('web_perumahan_key'))
+        };
+
+        window.appUrls = {
+            dashboard: "{{ route('dashboard') }}",
+            petugasDashboard: "{{ route('petugas.dashboard') }}",
+            petugasHistory: "{{ route('petugas.history') }}",
+            recapPublic: "{{ route('recap-public') }}"
         };
 
         // Global Helper: Hash Password using Laravel native Bcrypt
@@ -156,6 +172,12 @@
     {{-- Shared Sidebar JS --}}
     <script
         src="{{ asset('js/shared/sidebar.js') }}"
+    ></script>
+
+    {{-- Shared Emergency Realtime Notifications (Role Admin & Petugas) --}}
+    <script
+        type="module"
+        src="{{ asset('js/shared/emergency-notifications.js') }}"
     ></script>
 
     @stack('scripts')

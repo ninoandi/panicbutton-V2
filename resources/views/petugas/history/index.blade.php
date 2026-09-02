@@ -46,7 +46,6 @@
                     <option value="public">Khusus Public</option>
                 </select>
             </div>
-           
         </div>
     </section>
 

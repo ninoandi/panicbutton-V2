@@ -109,44 +109,78 @@ document.addEventListener("DOMContentLoaded", () => {
     /* =========================================================
        HELPER: TIMESTAMP & STATUS PARSER
     ========================================================= */
-    function parseTimestamp(rawTime, item = {}) {
+    function getTimestampFromFirebaseId(id) {
+        if (typeof id !== "string" || id.length < 8) return 0;
+        const PUSH_CHARS = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz";
+        let time = 0;
+        for (let i = 0; i < 8; i++) {
+            const c = id.charAt(i);
+            const index = PUSH_CHARS.indexOf(c);
+            if (index === -1) return 0;
+            time = time * 64 + index;
+        }
+        if (time > 1577836800000 && time < 2208988800000) {
+            return time;
+        }
+        return 0;
+    }
+
+    function parseTimestamp(rawTime, item = {}, reportId = "") {
+        if (typeof rawTime === "number" && rawTime > 0) {
+            return rawTime < 10000000000 ? rawTime * 1000 : rawTime;
+        }
         if (item.timestamp && typeof item.timestamp === "number" && item.timestamp > 0) {
             return item.timestamp < 10000000000 ? item.timestamp * 1000 : item.timestamp;
         }
         if (item.created_at && typeof item.created_at === "number" && item.created_at > 0) {
             return item.created_at < 10000000000 ? item.created_at * 1000 : item.created_at;
         }
-
-        if (!rawTime || rawTime === "-") return Date.now();
-
-        if (typeof rawTime === "number" && rawTime > 0) {
-            return rawTime < 10000000000 ? rawTime * 1000 : rawTime;
+        if (item.time && typeof item.time === "number" && item.time > 0) {
+            return item.time < 10000000000 ? item.time * 1000 : item.time;
         }
 
-        const str = String(rawTime).trim();
-        if (/^\d+$/.test(str)) {
-            const num = parseInt(str, 10);
-            return num < 10000000000 ? num * 1000 : num;
+        const candidateStr = String(rawTime || item.created_at || item.timestamp || item.time || item.waktu || "").trim();
+
+        if (candidateStr && candidateStr !== "-") {
+            if (/^\d+$/.test(candidateStr)) {
+                const num = parseInt(candidateStr, 10);
+                if (num > 0) {
+                    return num < 10000000000 ? num * 1000 : num;
+                }
+            }
+
+            const parsedIso = new Date(candidateStr);
+            if (!isNaN(parsedIso.getTime()) && parsedIso.getTime() > 100000000000) {
+                return parsedIso.getTime();
+            }
+
+            const matchWaktu = candidateStr.match(/^(\d{4}-\d{2}-\d{2})\s+waktu\s+(\d{2}:\d{2}(?::\d{2})?)$/i);
+            if (matchWaktu) {
+                const d = new Date(`${matchWaktu[1]}T${matchWaktu[2]}`);
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
+
+            const matchIso = candidateStr.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)$/);
+            if (matchIso) {
+                const d = new Date(`${matchIso[1]}T${matchIso[2]}`);
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
+
+            const matchIndo = candidateStr.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})(?:\s+(?:waktu|pukul)?\s*(\d{2}:\d{2}(?::\d{2})?))?$/i);
+            if (matchIndo) {
+                const timePart = matchIndo[4] || "00:00:00";
+                const d = new Date(`${matchIndo[3]}-${matchIndo[2]}-${matchIndo[1]}T${timePart}`);
+                if (!isNaN(d.getTime())) return d.getTime();
+            }
         }
 
-        const matchWaktu = str.match(/^(\d{4}-\d{2}-\d{2})\s+waktu\s+(\d{2}:\d{2}(?::\d{2})?)$/i);
-        if (matchWaktu) {
-            const d = new Date(`${matchWaktu[1]}T${matchWaktu[2]}`);
-            if (!isNaN(d.getTime())) return d.getTime();
+        const idToTest = reportId || item.id || (typeof rawTime === "string" ? rawTime : "");
+        const idTs = getTimestampFromFirebaseId(idToTest);
+        if (idTs > 0) {
+            return idTs;
         }
 
-        const matchIso = str.match(/^(\d{4}-\d{2}-\d{2})\s+(\d{2}:\d{2}(?::\d{2})?)$/);
-        if (matchIso) {
-            const d = new Date(`${matchIso[1]}T${matchIso[2]}`);
-            if (!isNaN(d.getTime())) return d.getTime();
-        }
-
-        const parsed = new Date(str);
-        if (!isNaN(parsed.getTime())) {
-            return parsed.getTime();
-        }
-
-        return Date.now();
+        return 0;
     }
 
     function normalizeStatus(status) {
@@ -266,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 Object.entries(monitorData).forEach(([mId, mVal]) => {
                     if (!mVal || typeof mVal !== "object") return;
                     const rawTime = mVal.time || mVal.waktu || mVal.timestamp || mVal.created_at || "-";
-                    const ts = parseTimestamp(rawTime, mVal);
+                    const ts = parseTimestamp(rawTime, mVal, mId);
 
                     clusterReports.push({
                         id: mId,
@@ -309,8 +343,8 @@ document.addEventListener("DOMContentLoaded", () => {
     onValue(publicPanicsQuery, (snapshot) => {
         const data = snapshot.val() || {};
         publicPanicsReports = Object.entries(data).map(([rId, rVal]) => {
-            const rawTime = rVal.created_at || rVal.timestamp || Date.now();
-            const ts = parseTimestamp(rawTime, rVal);
+            const rawTime = rVal.created_at || rVal.timestamp || rVal.time || "-";
+            const ts = parseTimestamp(rawTime, rVal, rId);
 
             return {
                 id: rId,
@@ -343,8 +377,8 @@ document.addEventListener("DOMContentLoaded", () => {
     onValue(publicReportsQuery, (snapshot) => {
         const data = snapshot.val() || {};
         publicGeneralReports = Object.entries(data).map(([rId, rVal]) => {
-            const rawTime = rVal.timestamp || rVal.created_at || Date.now();
-            const ts = parseTimestamp(rawTime, rVal);
+            const rawTime = rVal.timestamp || rVal.created_at || rVal.time || "-";
+            const ts = parseTimestamp(rawTime, rVal, rId);
 
             return {
                 id: rId,

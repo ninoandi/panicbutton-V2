@@ -297,6 +297,9 @@ function renderTable(filteredData) {
                     ? `Perangkat: ${escapeHtml(item.assigned_device)} (${escapeHtml(item.assigned_zone)})`
                     : `Koordinat: ${item.latitude.toFixed(5)}, ${item.longitude.toFixed(5)}`;
 
+        return STATUS.MENUNGGU;
+
+
                 return `
                     <tr>
                         <td style="font-weight: 600; color: var(--dash-text-muted); text-align: center; width: 60px;">
@@ -576,15 +579,33 @@ window.openDetailModal = function (reportId) {
     if (detailDistance) {
         detailDistance.textContent = report.device_distance !== null ? `${report.device_distance} meter` : "-";
     }
+    /* =============================
+       AKTIF
+    ============================= */
 
-    if (detailToggleStatusBtn) {
-        if (report.isActive) {
-            detailToggleStatusBtn.className = "btn-modal btn-mark-done";
-            detailToggleStatusBtn.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Tandai Selesai</span>`;
-        } else {
-            detailToggleStatusBtn.className = "btn-modal btn-mark-active";
-            detailToggleStatusBtn.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Aktifkan Kembali</span>`;
-        }
+    if (
+        normalizedStatus ===
+        STATUS.ACTIVE
+    ) {
+
+        return `
+            <span
+                class="
+                    status-badge
+                    status-badge-active
+                "
+            >
+
+                <span
+                    class="
+                        status-dot-active
+                    "
+                ></span>
+
+                Aktif
+
+            </span>
+        `;
     }
 
     if (detailModal) {
