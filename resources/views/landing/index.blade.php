@@ -7,6 +7,11 @@
     rel="stylesheet"
     href="{{ asset('css/landing.css') }}"
 >
+
+<link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
 @endpush
 
 @section('content')
@@ -45,6 +50,11 @@
                 <a href="#kejadian" class="nav-link">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <span>Kejadian</span>
+                </a>
+
+                <a href="#instansi-terdekat" class="nav-link">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>Instansi Terdekat</span>
                 </a>
                 <a href="#tentang" class="nav-link">
                     <i class="fa-solid fa-shield-halved"></i>
@@ -305,6 +315,101 @@
             </div>
         </section>
 
+       {{-- =====================================================
+                INSTANSI DARURAT TERDEKAT
+            ===================================================== --}}
+
+            <section
+                id="instansi-terdekat"
+                class="emergency-map-section"
+            >
+
+                <div class="section-container">
+
+                    <div class="section-header">
+
+                        <span class="section-tag">
+                            <i class="fa-solid fa-location-dot"></i>
+                            INSTANSI DARURAT
+                        </span>
+
+                        <h2>Instansi Darurat Terdekat</h2>
+
+                        <p>
+                            Temukan rumah sakit, kantor polisi,
+                            pemadam kebakaran, dan klinik terdekat
+                            berdasarkan lokasi Anda.
+                        </p>
+
+                    </div>
+
+
+                    <div class="emergency-map-wrapper">
+
+                        <div class="map-filter">
+
+                            <button
+                                class="map-filter-btn active"
+                                data-type="all"
+                            >
+                                <i class="fa-solid fa-layer-group"></i>
+                                Semua
+                            </button>
+
+                            <button
+                                class="map-filter-btn"
+                                data-type="hospital"
+                            >
+                                <i class="fa-solid fa-hospital"></i>
+                                Rumah Sakit
+                            </button>
+
+                            <button
+                                class="map-filter-btn"
+                                data-type="police"
+                            >
+                                <i class="fa-solid fa-shield-halved"></i>
+                                Polisi
+                            </button>
+
+                            <button
+                                class="map-filter-btn"
+                                data-type="fire_station"
+                            >
+                                <i class="fa-solid fa-fire"></i>
+                                Damkar
+                            </button>
+
+                            <button
+                                class="map-filter-btn"
+                                data-type="clinic"
+                            >
+                                <i class="fa-solid fa-kit-medical"></i>
+                                Klinik
+                            </button>
+
+                        </div>
+
+
+                        <div id="emergencyMap"></div>
+
+
+                        <div id="mapLoading">
+
+                            <i class="fa-solid fa-location-crosshairs"></i>
+
+                            <span>
+                                Mendeteksi lokasi dan instansi terdekat...
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
         {{-- =====================================================
              INFORMASI SISTEM
         ====================================================== --}}
@@ -476,5 +581,13 @@
 <script
     type="module"
     src="{{ asset('js/users/public-monitoring.js') }}"
+></script>
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+></script>
+
+<script
+    src="{{ asset('js/emergency-maps.js') }}"
 ></script>
 @endpush
